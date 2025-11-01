@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo, useRef, useEffect } from "react"
+import { useState, useCallback, useMemo, useRef, useEffect, memo } from "react"
 import * as XLSX from "xlsx"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -21,10 +21,11 @@ import {
   CheckCircle,
   ExternalLink,
   Copy,
+  Loader2,
 } from "lucide-react"
 import { MultiSelect } from "@/components/multi-select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { getAllData, testConnection, getDatabaseStatus } from "./actions"
+import { getAllData, testConnection, getDatabaseStatus, clearCache } from "./actions"
 import { SavedFiltersManager } from "@/components/saved-filters-manager"
 
 interface Account {
@@ -132,6 +133,100 @@ interface AvailableOptions {
   functionTypes: FilterOption[]
 }
 
+// ============================================
+// MEMOIZED COMPONENTS FOR PERFORMANCE
+// ============================================
+
+const AccountRow = memo(({ account }: { account: Account }) => (
+  <TableRow>
+    <TableCell className="font-medium">{account["ACCOUNT NAME"]}</TableCell>
+    <TableCell>{account["ACCOUNT COUNTRY"]}</TableCell>
+    <TableCell>{account["ACCOUNT REGION"]}</TableCell>
+    <TableCell>{account["ACCOUNT INDUSTRY"]}</TableCell>
+    <TableCell>{account["ACCOUNT SUB INDUSTRY"]}</TableCell>
+    <TableCell>{account["ACCOUNT PRIMARY CATEGORY"]}</TableCell>
+    <TableCell>{account["ACCOUNT PRIMARY NATURE"]}</TableCell>
+    <TableCell>{account["ACCOUNT NASSCOM STATUS"]}</TableCell>
+    <TableCell>{formatRevenueInMillions(parseRevenue(account["ACCOUNT REVNUE"]))}</TableCell>
+    <TableCell>{account["ACCOUNT REVENUE RANGE"]}</TableCell>
+    <TableCell>{account["ACCOUNT EMPLOYEES RANGE"]}</TableCell>
+    <TableCell>{account["ACCOUNT CENTER EMPLOYEES"]}</TableCell>
+  </TableRow>
+))
+AccountRow.displayName = "AccountRow"
+
+const CenterRow = memo(({ center }: { center: Center }) => (
+  <TableRow>
+    <TableCell className="font-medium">{center["CENTER NAME"]}</TableCell>
+    <TableCell className="text-xs text-gray-600">{center["CN UNIQUE KEY"]}</TableCell>
+    <TableCell>{center["ACCOUNT NAME"]}</TableCell>
+    <TableCell>{center["CENTER TYPE"]}</TableCell>
+    <TableCell>{center["CENTER CITY"]}</TableCell>
+    <TableCell>{center["CENTER STATE"]}</TableCell>
+    <TableCell>{center["CENTER COUNTRY"]}</TableCell>
+    <TableCell>{center["CENTER STATUS"]}</TableCell>
+    <TableCell>{center["CENTER EMPLOYEES"]}</TableCell>
+    <TableCell>{center["CENTER EMPLOYEES RANGE"]}</TableCell>
+  </TableRow>
+))
+CenterRow.displayName = "CenterRow"
+
+const FunctionRow = memo(({ func }: { func: Function }) => (
+  <TableRow>
+    <TableCell className="text-xs text-gray-600">{func["CN UNIQUE KEY"]}</TableCell>
+    <TableCell>{func["FUNCTION"]}</TableCell>
+  </TableRow>
+))
+FunctionRow.displayName = "FunctionRow"
+
+const ServiceRow = memo(({ service }: { service: Service }) => (
+  <TableRow>
+    <TableCell className="text-xs text-gray-600">{service["CN UNIQUE KEY"]}</TableCell>
+    <TableCell>{service["CENTER NAME"]}</TableCell>
+    <TableCell>{service["PRIMARY SERVICE"]}</TableCell>
+    <TableCell>{service["FOCUS REGION"]}</TableCell>
+    <TableCell>{service.IT}</TableCell>
+    <TableCell>{service["ER&D"]}</TableCell>
+    <TableCell>{service.FnA}</TableCell>
+    <TableCell>{service.HR}</TableCell>
+    <TableCell>{service.PROCUREMENT}</TableCell>
+    <TableCell>{service["SALES & MARKETING"]}</TableCell>
+    <TableCell>{service["CUSTOMER SUPPORT"]}</TableCell>
+    <TableCell>{service.OTHERS}</TableCell>
+    <TableCell>{service["SOFTWARE VENDOR"]}</TableCell>
+    <TableCell>{service["SOFTWARE IN USE"]}</TableCell>
+  </TableRow>
+))
+ServiceRow.displayName = "ServiceRow"
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+const parseRevenue = (value: string | number): number => {
+  const numValue = typeof value === "string" ? Number.parseFloat(value) : value
+  return isNaN(numValue) ? 0 : numValue
+}
+
+const formatRevenueInMillions = (value: number): string => {
+  return `${value.toLocaleString()}M`
+}
+
+// Debounce function
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout | null = null
+
+  return function executedFunction(...args: Parameters<T>) {
+    const later = () => {
+      timeout = null
+      func(...args)
+    }
+
+    if (timeout) clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
+
 function DashboardContent() {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [centers, setCenters] = useState<Center[]>([])
@@ -189,22 +284,27 @@ function DashboardContent() {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(50)
   const [isApplying, setIsApplying] = useState(false)
-
-  // Helper function to parse revenue values (already in millions in DB)
-  const parseRevenue = (value: string | number): number => {
-    const numValue = typeof value === "string" ? Number.parseFloat(value) : value
-    return isNaN(numValue) ? 0 : numValue
-  }
-
-  // Helper function to format revenue for display (always in millions)
-  const formatRevenueInMillions = (value: number): string => {
-    return `${value.toLocaleString()}M`
-  }
+  const [searchInput, setSearchInput] = useState("")
 
   // Load data from database on component mount
   useEffect(() => {
     loadData()
   }, [])
+
+  // Debounced search handler
+  const debouncedSearch = useCallback(
+    debounce((value: string) => {
+      setPendingFilters((prev) => ({ ...prev, searchTerm: value }))
+    }, 500),
+    []
+  )
+
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearchInput(value)
+    debouncedSearch(value)
+  }
 
   const checkDatabaseStatus = async () => {
     try {
@@ -236,7 +336,6 @@ function DashboardContent() {
       setError(null)
       setConnectionStatus("Checking database configuration...")
 
-      // Check database status first
       const status = await checkDatabaseStatus()
       if (status && !status.hasUrl) {
         setError("Database URL not configured. Please check environment variables.")
@@ -252,7 +351,6 @@ function DashboardContent() {
 
       setConnectionStatus("Testing database connection...")
 
-      // Test connection
       const connectionOk = await testDatabaseConnection()
       if (!connectionOk) {
         setError("Database connection test failed. Please check your database configuration.")
@@ -262,20 +360,17 @@ function DashboardContent() {
       setConnectionStatus("Loading data from database...")
       const data = await getAllData()
 
-      // Check if there was an error in the data fetch
       if (data.error) {
         setError(`Database error: ${data.error}`)
         setConnectionStatus("Data loading failed")
         return
       }
 
-      // Ensure data is in the correct format
       const accountsData = Array.isArray(data.accounts) ? data.accounts : []
       const centersData = Array.isArray(data.centers) ? data.centers : []
       const functionsData = Array.isArray(data.functions) ? data.functions : []
       const servicesData = Array.isArray(data.services) ? data.services : []
 
-      // Check if we got any data
       if (
         accountsData.length === 0 &&
         centersData.length === 0 &&
@@ -292,7 +387,6 @@ function DashboardContent() {
       setFunctions(functionsData as Function[])
       setServices(servicesData as Service[])
 
-      // Calculate revenue range from actual data (values are already in millions)
       const revenues = accountsData
         .map((account: Account) => parseRevenue(account["ACCOUNT REVNUE"]))
         .filter((rev: number) => rev > 0)
@@ -302,14 +396,13 @@ function DashboardContent() {
         const maxRevenue = Math.max(...revenues)
         setRevenueRange({ min: minRevenue, max: maxRevenue })
 
-        // Update filters with actual range
         const newRange: [number, number] = [minRevenue, maxRevenue]
         setFilters((prev) => ({ ...prev, accountRevenueRange: newRange }))
         setPendingFilters((prev) => ({ ...prev, accountRevenueRange: newRange }))
       }
 
       setConnectionStatus(
-        `Successfully loaded: ${accountsData.length} accounts, ${centersData.length} centers, ${functionsData.length} functions, ${servicesData.length} services`,
+        `Successfully loaded: ${accountsData.length} accounts, ${centersData.length} centers, ${functionsData.length} functions, ${servicesData.length} services`
       )
     } catch (err) {
       console.error("Error loading data:", err)
@@ -321,15 +414,26 @@ function DashboardContent() {
     }
   }
 
+  // Clear cache and reload data
+  const handleClearCache = async () => {
+    try {
+      setConnectionStatus("Clearing cache...")
+      await clearCache()
+      await loadData()
+    } catch (err) {
+      console.error("Error clearing cache:", err)
+      setError("Failed to clear cache")
+    }
+  }
+
   // Reset pagination when filters change
   useEffect(() => {
     setCurrentPage(1)
   }, [filters])
 
-  // Use ref to prevent infinite loops
   const isUpdatingOptions = useRef(false)
 
-  // Main filtering logic - memoized to prevent unnecessary recalculations
+  // Main filtering logic - memoized with stable dependencies
   const filteredData = useMemo(() => {
     const arrayFilterMatch = (filterArray: string[], value: string) => {
       return filterArray.length === 0 || filterArray.includes(value)
@@ -338,21 +442,17 @@ function DashboardContent() {
     const rangeFilterMatch = (range: [number, number], value: string | number, includeNull: boolean) => {
       const numValue = parseRevenue(value)
 
-      // If includeNull is true and value is 0 or null/undefined, include it
       if (includeNull && (numValue === 0 || value === null || value === undefined || value === "")) {
         return true
       }
 
-      // If includeNull is false and value is 0 or null/undefined, exclude it
       if (!includeNull && (numValue === 0 || value === null || value === undefined || value === "")) {
         return false
       }
 
-      // Normal range check for valid values
       return numValue >= range[0] && numValue <= range[1]
     }
 
-    // Step 1: Filter accounts first based on account filters and search
     const filteredAccounts = accounts.filter((account) => {
       return (
         arrayFilterMatch(filters.accountCountries, account["ACCOUNT COUNTRY"]) &&
@@ -369,10 +469,8 @@ function DashboardContent() {
       )
     })
 
-    // Step 2: Get account names from filtered accounts
     const filteredAccountNames = filteredAccounts.map((a) => a["ACCOUNT NAME"])
 
-    // Step 3: Filter centers based on center filters AND account relationship
     let filteredCenters = centers.filter((center) => {
       const centerFilterMatch =
         arrayFilterMatch(filters.centerTypes, center["CENTER TYPE"]) &&
@@ -383,43 +481,35 @@ function DashboardContent() {
         arrayFilterMatch(filters.centerEmployees, center["CENTER EMPLOYEES RANGE"]) &&
         arrayFilterMatch(filters.centerStatuses, center["CENTER STATUS"])
 
-      // If account filters are applied, only include centers from filtered accounts
       const accountFilterMatch =
         filteredAccountNames.length === accounts.length || filteredAccountNames.includes(center["ACCOUNT NAME"])
 
       return centerFilterMatch && accountFilterMatch
     })
 
-    // Step 4: Filter functions based on function filters AND center relationship
     let filteredFunctions = functions.filter((func) => {
       const functionFilterMatch = arrayFilterMatch(filters.functionTypes, func["FUNCTION"])
-
-      // Get center keys from filtered centers
       const filteredCenterKeys = filteredCenters.map((c) => c["CN UNIQUE KEY"])
       const centerRelationMatch = filteredCenterKeys.includes(func["CN UNIQUE KEY"])
 
       return functionFilterMatch && centerRelationMatch
     })
 
-    // Step 5: Cross-filter centers if function filters are applied
     if (filters.functionTypes.length > 0) {
       const centerKeysWithMatchingFunctions = filteredFunctions.map((f) => f["CN UNIQUE KEY"])
       filteredCenters = filteredCenters.filter((center) =>
-        centerKeysWithMatchingFunctions.includes(center["CN UNIQUE KEY"]),
+        centerKeysWithMatchingFunctions.includes(center["CN UNIQUE KEY"])
       )
     }
 
-    // Step 6: Update functions to match final filtered centers
     const finalCenterKeys = filteredCenters.map((c) => c["CN UNIQUE KEY"])
     filteredFunctions = filteredFunctions.filter((func) => finalCenterKeys.includes(func["CN UNIQUE KEY"]))
 
-    // Step 7: Filter services based on final center keys
     const filteredServices = services.filter((service) => finalCenterKeys.includes(service["CN UNIQUE KEY"]))
 
-    // Step 8: Final cross-filtering - ensure accounts only include those with matching centers
     const finalAccountNames = [...new Set(filteredCenters.map((c) => c["ACCOUNT NAME"]))]
     const finalFilteredAccounts = filteredAccounts.filter((account) =>
-      finalAccountNames.includes(account["ACCOUNT NAME"]),
+      finalAccountNames.includes(account["ACCOUNT NAME"])
     )
 
     return {
@@ -442,6 +532,8 @@ function DashboardContent() {
     filters.accountNasscomStatuses,
     filters.accountEmployeesRanges,
     filters.accountCenterEmployees,
+    filters.accountRevenueRange,
+    filters.includeNullRevenue,
     filters.centerTypes,
     filters.centerFocus,
     filters.centerCities,
@@ -450,24 +542,21 @@ function DashboardContent() {
     filters.centerEmployees,
     filters.centerStatuses,
     filters.functionTypes,
-    filters,
-    revenueRange,
+    filters.searchTerm,
   ])
 
-  // Dynamic revenue range calculation based on other filters
+  // Dynamic revenue range calculation
   const dynamicRevenueRange = useMemo(() => {
-    // Create a temporary filter set excluding revenue-related filters
     const tempFilters = {
       ...filters,
       accountRevenueRange: [0, Number.MAX_SAFE_INTEGER] as [number, number],
-      includeNullRevenue: true, // Include all for range calculation
+      includeNullRevenue: true,
     }
 
     const arrayFilterMatch = (filterArray: string[], value: string) => {
       return filterArray.length === 0 || filterArray.includes(value)
     }
 
-    // Filter accounts based on non-revenue filters
     const tempFilteredAccounts = accounts.filter((account) => {
       return (
         arrayFilterMatch(tempFilters.accountCountries, account["ACCOUNT COUNTRY"]) &&
@@ -484,13 +573,12 @@ function DashboardContent() {
       )
     })
 
-    // Get valid revenue values from filtered accounts
     const validRevenues = tempFilteredAccounts
       .map((account) => parseRevenue(account["ACCOUNT REVNUE"]))
-      .filter((rev) => rev > 0) // Only consider positive values for range calculation
+      .filter((rev) => rev > 0)
 
     if (validRevenues.length === 0) {
-      return { min: 0, max: 1000000 } // Default range if no valid revenues
+      return { min: 0, max: 1000000 }
     }
 
     const minRevenue = Math.min(...validRevenues)
@@ -509,14 +597,12 @@ function DashboardContent() {
     filters.accountEmployeesRanges,
     filters.accountCenterEmployees,
     filters.searchTerm,
-    filters,
   ])
 
   // Update revenueRange when dynamicRevenueRange changes
   useEffect(() => {
     setRevenueRange(dynamicRevenueRange)
 
-    // Update pending filters if the current range is outside the new dynamic range
     setPendingFilters((prev) => {
       const newMin = Math.max(prev.accountRevenueRange[0], dynamicRevenueRange.min)
       const newMax = Math.min(prev.accountRevenueRange[1], dynamicRevenueRange.max)
@@ -532,7 +618,7 @@ function DashboardContent() {
     })
   }, [dynamicRevenueRange])
 
-  // OPTIMIZED: Calculate available options with single-pass filtering
+  // Calculate available options - OPTIMIZED
   const availableOptions = useMemo((): AvailableOptions => {
     if (isUpdatingOptions.current) {
       return {
@@ -556,7 +642,6 @@ function DashboardContent() {
       }
     }
 
-    // Single pass through accounts to collect counts
     const accountCounts = {
       countries: new Map<string, number>(),
       regions: new Map<string, number>(),
@@ -572,7 +657,6 @@ function DashboardContent() {
     const validAccountNames = new Set<string>()
 
     accounts.forEach((account) => {
-      // Check if account matches current filters (excluding the field being counted)
       const matchesSearch =
         !filters.searchTerm || account["ACCOUNT NAME"].toLowerCase().includes(filters.searchTerm.toLowerCase())
 
@@ -585,7 +669,6 @@ function DashboardContent() {
 
       if (!matchesRevenue) return
 
-      // Increment counts for each field
       const country = account["ACCOUNT COUNTRY"]
       const region = account["ACCOUNT REGION"]
       const industry = account["ACCOUNT INDUSTRY"]
@@ -596,7 +679,6 @@ function DashboardContent() {
       const empRange = account["ACCOUNT EMPLOYEES RANGE"]
       const centerEmp = account["ACCOUNT CENTER EMPLOYEES"]
 
-      // Check if account matches all OTHER filters
       const matchesCountry = filters.accountCountries.length === 0 || filters.accountCountries.includes(country)
       const matchesRegion = filters.accountRegions.length === 0 || filters.accountRegions.includes(region)
       const matchesIndustry = filters.accountIndustries.length === 0 || filters.accountIndustries.includes(industry)
@@ -613,7 +695,6 @@ function DashboardContent() {
       const matchesCenterEmp =
         filters.accountCenterEmployees.length === 0 || filters.accountCenterEmployees.includes(centerEmp)
 
-      // For each field, count it if all OTHER filters match
       if (
         matchesRegion &&
         matchesIndustry &&
@@ -723,7 +804,6 @@ function DashboardContent() {
         accountCounts.centerEmployees.set(centerEmp, (accountCounts.centerEmployees.get(centerEmp) || 0) + 1)
       }
 
-      // Track valid accounts for center filtering
       if (
         matchesCountry &&
         matchesRegion &&
@@ -739,7 +819,6 @@ function DashboardContent() {
       }
     })
 
-    // Single pass through centers
     const centerCounts = {
       types: new Map<string, number>(),
       focus: new Map<string, number>(),
@@ -806,7 +885,6 @@ function DashboardContent() {
       }
     })
 
-    // Single pass through functions
     const functionCounts = new Map<string, number>()
 
     functions.forEach((func) => {
@@ -815,7 +893,6 @@ function DashboardContent() {
       functionCounts.set(funcType, (functionCounts.get(funcType) || 0) + 1)
     })
 
-    // Convert Maps to sorted arrays
     const mapToSortedArray = (map: Map<string, number>): FilterOption[] => {
       return Array.from(map.entries())
         .map(([value, count]) => ({ value, count }))
@@ -845,7 +922,6 @@ function DashboardContent() {
 
   const applyFilters = useCallback(() => {
     setIsApplying(true)
-    // Use setTimeout to allow UI to update
     setTimeout(() => {
       setFilters(pendingFilters)
       setIsApplying(false)
@@ -877,6 +953,7 @@ function DashboardContent() {
     }
     setFilters(emptyFilters)
     setPendingFilters(emptyFilters)
+    setSearchInput("")
   }
 
   const getTotalPendingFilters = () => {
@@ -941,6 +1018,7 @@ function DashboardContent() {
   const handleLoadSavedFilters = (savedFilters: Filters) => {
     setPendingFilters(savedFilters)
     setFilters(savedFilters)
+    setSearchInput(savedFilters.searchTerm)
   }
 
   const getPaginatedData = (data: any[], page: number, itemsPerPage: number) => {
@@ -961,16 +1039,9 @@ function DashboardContent() {
 
   const exportToExcel = (data: any[], filename: string, sheetName: string) => {
     try {
-      // Create a new workbook
       const wb = XLSX.utils.book_new()
-
-      // Convert data to worksheet
       const ws = XLSX.utils.json_to_sheet(data)
-
-      // Add the worksheet to the workbook
       XLSX.utils.book_append_sheet(wb, ws, sheetName)
-
-      // Generate Excel file and trigger download
       XLSX.writeFile(wb, `${filename}.xlsx`)
     } catch (error) {
       console.error("Error exporting to Excel:", error)
@@ -979,30 +1050,23 @@ function DashboardContent() {
 
   const exportAllData = () => {
     try {
-      // Create a new workbook
       const wb = XLSX.utils.book_new()
 
-      // Add filtered accounts data
       const accountsWs = XLSX.utils.json_to_sheet(filteredData.filteredAccounts)
       XLSX.utils.book_append_sheet(wb, accountsWs, "Accounts")
 
-      // Add filtered centers data
       const centersWs = XLSX.utils.json_to_sheet(filteredData.filteredCenters)
       XLSX.utils.book_append_sheet(wb, centersWs, "Centers")
 
-      // Add filtered functions data
       const functionsWs = XLSX.utils.json_to_sheet(filteredData.filteredFunctions)
       XLSX.utils.book_append_sheet(wb, functionsWs, "Functions")
 
-      // Add filtered services data
       const servicesWs = XLSX.utils.json_to_sheet(filteredData.filteredServices)
       XLSX.utils.book_append_sheet(wb, servicesWs, "Services")
 
-      // Generate filename with timestamp
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-")
       const filename = `dashboard-export-${timestamp}`
 
-      // Generate Excel file and trigger download
       XLSX.writeFile(wb, `${filename}.xlsx`)
     } catch (error) {
       console.error("Error exporting all data to Excel:", error)
@@ -1013,7 +1077,6 @@ function DashboardContent() {
     navigator.clipboard.writeText(text)
   }
 
-  // Handle manual input changes for revenue range
   const handleMinRevenueChange = (value: string) => {
     const numValue = Number.parseFloat(value) || revenueRange.min
     const clampedValue = Math.max(revenueRange.min, Math.min(numValue, pendingFilters.accountRevenueRange[1]))
@@ -1040,7 +1103,7 @@ function DashboardContent() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-96">
           <CardContent className="flex flex-col items-center justify-center p-8">
-            <Database className="h-12 w-12 text-blue-600 mb-4 animate-pulse" />
+            <Loader2 className="h-12 w-12 text-blue-600 mb-4 animate-spin" />
             <h2 className="text-xl font-semibold mb-2">Loading Data</h2>
             <p className="text-gray-600 text-center mb-2">Fetching data from Neon database...</p>
             {connectionStatus && <p className="text-sm text-gray-500 text-center">{connectionStatus}</p>}
@@ -1186,10 +1249,16 @@ function DashboardContent() {
                 </div>
               )}
 
-              <Button onClick={loadData} className="flex items-center gap-2">
-                <RefreshCw className="h-4 w-4" />
-                Retry Connection
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={loadData} className="flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4" />
+                  Retry Connection
+                </Button>
+                <Button onClick={handleClearCache} variant="outline" className="flex items-center gap-2">
+                  <Database className="h-4 w-4" />
+                  Clear Cache
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -1213,8 +1282,14 @@ function DashboardContent() {
             <Button variant="ghost" size="sm" onClick={loadData} className="h-6 px-2">
               <RefreshCw className="h-3 w-3" />
             </Button>
+            <Button variant="ghost" size="sm" onClick={handleClearCache} className="h-6 px-2" title="Clear Cache">
+              <Database className="h-3 w-3" />
+            </Button>
           </div>
           {connectionStatus && <p className="text-xs text-gray-400">{connectionStatus}</p>}
+          {dbStatus && dbStatus.cacheSize > 0 && (
+            <p className="text-xs text-gray-400">Cache: {dbStatus.cacheSize} items</p>
+          )}
         </div>
 
         {dataLoaded && (
@@ -1289,7 +1364,7 @@ function DashboardContent() {
                     >
                       {isApplying ? (
                         <>
-                          <RefreshCw className="h-4 w-4 animate-spin" />
+                          <Loader2 className="h-4 w-4 animate-spin" />
                           Applying...
                         </>
                       ) : (
@@ -1311,14 +1386,17 @@ function DashboardContent() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Search */}
+                {/* Search - with debouncing */}
                 <div className="space-y-2">
-                  <Label>Search Account Name</Label>
+                  <Label>Search Account Name (debounced)</Label>
                   <Input
                     placeholder="Search accounts..."
-                    value={pendingFilters.searchTerm}
-                    onChange={(e) => setPendingFilters((prev) => ({ ...prev, searchTerm: e.target.value }))}
+                    value={searchInput}
+                    onChange={handleSearchChange}
                   />
+                  {searchInput !== pendingFilters.searchTerm && (
+                    <p className="text-xs text-gray-500">Typing... (search will apply in 500ms)</p>
+                  )}
                 </div>
 
                 {/* Account Filters */}
@@ -1636,23 +1714,8 @@ function DashboardContent() {
                         <TableBody>
                           {getPaginatedData(filteredData.filteredAccounts, currentPage, itemsPerPage).map(
                             (account, index) => (
-                              <TableRow key={index}>
-                                <TableCell className="font-medium">{account["ACCOUNT NAME"]}</TableCell>
-                                <TableCell>{account["ACCOUNT COUNTRY"]}</TableCell>
-                                <TableCell>{account["ACCOUNT REGION"]}</TableCell>
-                                <TableCell>{account["ACCOUNT INDUSTRY"]}</TableCell>
-                                <TableCell>{account["ACCOUNT SUB INDUSTRY"]}</TableCell>
-                                <TableCell>{account["ACCOUNT PRIMARY CATEGORY"]}</TableCell>
-                                <TableCell>{account["ACCOUNT PRIMARY NATURE"]}</TableCell>
-                                <TableCell>{account["ACCOUNT NASSCOM STATUS"]}</TableCell>
-                                <TableCell>
-                                  {formatRevenueInMillions(parseRevenue(account["ACCOUNT REVNUE"]))}
-                                </TableCell>
-                                <TableCell>{account["ACCOUNT REVENUE RANGE"]}</TableCell>
-                                <TableCell>{account["ACCOUNT EMPLOYEES RANGE"]}</TableCell>
-                                <TableCell>{account["ACCOUNT CENTER EMPLOYEES"]}</TableCell>
-                              </TableRow>
-                            ),
+                              <AccountRow key={`${account["ACCOUNT NAME"]}-${index}`} account={account} />
+                            )
                           )}
                         </TableBody>
                       </Table>
@@ -1694,7 +1757,7 @@ function DashboardContent() {
                               size="sm"
                               onClick={() =>
                                 setCurrentPage((prev) =>
-                                  Math.min(prev + 1, getTotalPages(filteredData.filteredAccounts.length, itemsPerPage)),
+                                  Math.min(prev + 1, getTotalPages(filteredData.filteredAccounts.length, itemsPerPage))
                                 )
                               }
                               disabled={
@@ -1736,19 +1799,8 @@ function DashboardContent() {
                         <TableBody>
                           {getPaginatedData(filteredData.filteredCenters, currentPage, itemsPerPage).map(
                             (center, index) => (
-                              <TableRow key={index}>
-                                <TableCell className="font-medium">{center["CENTER NAME"]}</TableCell>
-                                <TableCell className="text-xs text-gray-600">{center["CN UNIQUE KEY"]}</TableCell>
-                                <TableCell>{center["ACCOUNT NAME"]}</TableCell>
-                                <TableCell>{center["CENTER TYPE"]}</TableCell>
-                                <TableCell>{center["CENTER CITY"]}</TableCell>
-                                <TableCell>{center["CENTER STATE"]}</TableCell>
-                                <TableCell>{center["CENTER COUNTRY"]}</TableCell>
-                                <TableCell>{center["CENTER STATUS"]}</TableCell>
-                                <TableCell>{center["CENTER EMPLOYEES"]}</TableCell>
-                                <TableCell>{center["CENTER EMPLOYEES RANGE"]}</TableCell>
-                              </TableRow>
-                            ),
+                              <CenterRow key={`${center["CN UNIQUE KEY"]}-${index}`} center={center} />
+                            )
                           )}
                         </TableBody>
                       </Table>
@@ -1790,7 +1842,7 @@ function DashboardContent() {
                               size="sm"
                               onClick={() =>
                                 setCurrentPage((prev) =>
-                                  Math.min(prev + 1, getTotalPages(filteredData.filteredCenters.length, itemsPerPage)),
+                                  Math.min(prev + 1, getTotalPages(filteredData.filteredCenters.length, itemsPerPage))
                                 )
                               }
                               disabled={
@@ -1824,11 +1876,8 @@ function DashboardContent() {
                         <TableBody>
                           {getPaginatedData(filteredData.filteredFunctions, currentPage, itemsPerPage).map(
                             (func, index) => (
-                              <TableRow key={index}>
-                                <TableCell className="text-xs text-gray-600">{func["CN UNIQUE KEY"]}</TableCell>
-                                <TableCell>{func["FUNCTION"]}</TableCell>
-                              </TableRow>
-                            ),
+                              <FunctionRow key={`${func["CN UNIQUE KEY"]}-${func.FUNCTION}-${index}`} func={func} />
+                            )
                           )}
                         </TableBody>
                       </Table>
@@ -1874,8 +1923,8 @@ function DashboardContent() {
                                 setCurrentPage((prev) =>
                                   Math.min(
                                     prev + 1,
-                                    getTotalPages(filteredData.filteredFunctions.length, itemsPerPage),
-                                  ),
+                                    getTotalPages(filteredData.filteredFunctions.length, itemsPerPage)
+                                  )
                                 )
                               }
                               disabled={
@@ -1921,23 +1970,8 @@ function DashboardContent() {
                         <TableBody>
                           {getPaginatedData(filteredData.filteredServices, currentPage, itemsPerPage).map(
                             (service, index) => (
-                              <TableRow key={index}>
-                                <TableCell className="text-xs text-gray-600">{service["CN UNIQUE KEY"]}</TableCell>
-                                <TableCell>{service["CENTER NAME"]}</TableCell>
-                                <TableCell>{service["PRIMARY SERVICE"]}</TableCell>
-                                <TableCell>{service["FOCUS REGION"]}</TableCell>
-                                <TableCell>{service.IT}</TableCell>
-                                <TableCell>{service["ER&D"]}</TableCell>
-                                <TableCell>{service.FnA}</TableCell>
-                                <TableCell>{service.HR}</TableCell>
-                                <TableCell>{service.PROCUREMENT}</TableCell>
-                                <TableCell>{service["SALES & MARKETING"]}</TableCell>
-                                <TableCell>{service["CUSTOMER SUPPORT"]}</TableCell>
-                                <TableCell>{service.OTHERS}</TableCell>
-                                <TableCell>{service["SOFTWARE VENDOR"]}</TableCell>
-                                <TableCell>{service["SOFTWARE IN USE"]}</TableCell>
-                              </TableRow>
-                            ),
+                              <ServiceRow key={`${service["CN UNIQUE KEY"]}-${index}`} service={service} />
+                            )
                           )}
                         </TableBody>
                       </Table>
@@ -1979,7 +2013,7 @@ function DashboardContent() {
                               size="sm"
                               onClick={() =>
                                 setCurrentPage((prev) =>
-                                  Math.min(prev + 1, getTotalPages(filteredData.filteredServices.length, itemsPerPage)),
+                                  Math.min(prev + 1, getTotalPages(filteredData.filteredServices.length, itemsPerPage))
                                 )
                               }
                               disabled={
