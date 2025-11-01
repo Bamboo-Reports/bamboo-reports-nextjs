@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -70,7 +70,157 @@ interface SavedFiltersManagerProps {
   totalActiveFilters: number
 }
 
-export function SavedFiltersManager({ currentFilters, onLoadFilters, totalActiveFilters }: SavedFiltersManagerProps) {
+// Memoized FilterBadge component to prevent re-renders
+const FilterBadge = memo(({ filterKey, value }: { filterKey: string; value: string }) => (
+  <Badge variant="outline" className="text-xs">
+    {filterKey}: {value}
+  </Badge>
+))
+FilterBadge.displayName = "FilterBadge"
+
+// Memoized SavedFilterCard component to prevent re-renders
+const SavedFilterCard = memo(({ 
+  filter, 
+  onLoad, 
+  onEdit, 
+  onDelete 
+}: { 
+  filter: SavedFilter
+  onLoad: (filter: SavedFilter) => void
+  onEdit: (filter: SavedFilter) => void
+  onDelete: (filter: SavedFilter) => void
+}) => {
+  // Memoize filter count calculation
+  const filterCount = useCallback(() => {
+    const filters = filter.filters
+    return (
+      filters.accountCountries.length +
+      filters.accountRegions.length +
+      filters.accountIndustries.length +
+      filters.accountSubIndustries.length +
+      filters.accountPrimaryCategories.length +
+      filters.accountPrimaryNatures.length +
+      filters.accountNasscomStatuses.length +
+      filters.accountEmployeesRanges.length +
+      filters.accountCenterEmployees.length +
+      filters.centerTypes.length +
+      filters.centerFocus.length +
+      filters.centerCities.length +
+      filters.centerStates.length +
+      filters.centerCountries.length +
+      filters.centerEmployees.length +
+      filters.centerStatuses.length +
+      filters.functionTypes.length +
+      (filters.searchTerm ? 1 : 0)
+    )
+  }, [filter.filters])
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg">{filter.name}</CardTitle>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">{filterCount()} filters</Badge>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(filter)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-red-600 hover:text-red-700"
+              onClick={() => onDelete(filter)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 text-sm text-gray-500">
+          <div className="flex items-center gap-1">
+            <Calendar className="h-3 w-3" />
+            Created: {new Date(filter.created_at).toLocaleDateString()}
+          </div>
+          {filter.updated_at !== filter.created_at && (
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              Updated: {new Date(filter.updated_at).toLocaleDateString()}
+            </div>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Filter Details:</span>
+            <Button variant="outline" size="sm" onClick={() => onLoad(filter)}>
+              <Filter className="h-4 w-4 mr-2" />
+              Load Filters
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {filter.filters.accountCountries.map((country) => (
+              <FilterBadge key={`country-${country}`} filterKey="Country" value={country} />
+            ))}
+            {filter.filters.accountRegions.map((region) => (
+              <FilterBadge key={`region-${region}`} filterKey="Region" value={region} />
+            ))}
+            {filter.filters.accountIndustries.map((industry) => (
+              <FilterBadge key={`industry-${industry}`} filterKey="Industry" value={industry} />
+            ))}
+            {filter.filters.accountSubIndustries.map((subIndustry) => (
+              <FilterBadge key={`subind-${subIndustry}`} filterKey="Sub Industry" value={subIndustry} />
+            ))}
+            {filter.filters.accountPrimaryCategories.map((category) => (
+              <FilterBadge key={`cat-${category}`} filterKey="Category" value={category} />
+            ))}
+            {filter.filters.accountPrimaryNatures.map((nature) => (
+              <FilterBadge key={`nature-${nature}`} filterKey="Nature" value={nature} />
+            ))}
+            {filter.filters.accountNasscomStatuses.map((status) => (
+              <FilterBadge key={`nasscom-${status}`} filterKey="NASSCOM" value={status} />
+            ))}
+            {filter.filters.accountEmployeesRanges.map((range) => (
+              <FilterBadge key={`emprange-${range}`} filterKey="Emp Range" value={range} />
+            ))}
+            {filter.filters.accountCenterEmployees.map((emp) => (
+              <FilterBadge key={`centemp-${emp}`} filterKey="Center Emp" value={emp} />
+            ))}
+            {filter.filters.centerTypes.map((type) => (
+              <FilterBadge key={`type-${type}`} filterKey="Type" value={type} />
+            ))}
+            {filter.filters.centerCities.map((city) => (
+              <FilterBadge key={`city-${city}`} filterKey="City" value={city} />
+            ))}
+            {filter.filters.centerCountries.map((country) => (
+              <FilterBadge key={`centcountry-${country}`} filterKey="Center Country" value={country} />
+            ))}
+            {filter.filters.centerEmployees.map((emp) => (
+              <FilterBadge key={`centemps-${emp}`} filterKey="Center Employees" value={emp} />
+            ))}
+            {filter.filters.centerStatuses.map((status) => (
+              <FilterBadge key={`centstatus-${status}`} filterKey="Center Status" value={status} />
+            ))}
+            {filter.filters.searchTerm && (
+              <FilterBadge filterKey="Search" value={`"${filter.filters.searchTerm}"`} />
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+})
+SavedFilterCard.displayName = "SavedFilterCard"
+
+// Main component wrapped in memo to prevent unnecessary re-renders
+export const SavedFiltersManager = memo(function SavedFiltersManager({ 
+  currentFilters, 
+  onLoadFilters, 
+  totalActiveFilters 
+}: SavedFiltersManagerProps) {
   const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([])
   const [loading, setLoading] = useState(false)
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
@@ -86,7 +236,8 @@ export function SavedFiltersManager({ currentFilters, onLoadFilters, totalActive
     loadSavedFilters()
   }, [])
 
-  const loadSavedFilters = async () => {
+  // Memoize loadSavedFilters to prevent recreation
+  const loadSavedFilters = useCallback(async () => {
     setLoading(true)
     try {
       const filters = await getSavedFilters()
@@ -96,9 +247,10 @@ export function SavedFiltersManager({ currentFilters, onLoadFilters, totalActive
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const handleSaveFilter = async () => {
+  // Memoize handleSaveFilter
+  const handleSaveFilter = useCallback(async () => {
     if (!filterName.trim()) return
 
     setLoading(true)
@@ -116,18 +268,21 @@ export function SavedFiltersManager({ currentFilters, onLoadFilters, totalActive
     } finally {
       setLoading(false)
     }
-  }
+  }, [filterName, currentFilters, loadSavedFilters])
 
-  const handleLoadFilter = (savedFilter: SavedFilter) => {
+  // Memoize handleLoadFilter
+  const handleLoadFilter = useCallback((savedFilter: SavedFilter) => {
     onLoadFilters(savedFilter.filters)
-  }
+  }, [onLoadFilters])
 
-  const handleDeleteFilter = async (filter: SavedFilter) => {
+  // Memoize handleDeleteFilter
+  const handleDeleteFilter = useCallback((filter: SavedFilter) => {
     setFilterToDelete(filter)
     setDeleteConfirmOpen(true)
-  }
+  }, [])
 
-  const confirmDeleteFilter = async () => {
+  // Memoize confirmDeleteFilter
+  const confirmDeleteFilter = useCallback(async () => {
     if (!filterToDelete) return
 
     setLoading(true)
@@ -145,9 +300,10 @@ export function SavedFiltersManager({ currentFilters, onLoadFilters, totalActive
     } finally {
       setLoading(false)
     }
-  }
+  }, [filterToDelete, loadSavedFilters])
 
-  const handleUpdateFilter = async () => {
+  // Memoize handleUpdateFilter
+  const handleUpdateFilter = useCallback(async () => {
     if (!editingFilter || !editName.trim()) return
 
     setLoading(true)
@@ -165,9 +321,10 @@ export function SavedFiltersManager({ currentFilters, onLoadFilters, totalActive
     } finally {
       setLoading(false)
     }
-  }
+  }, [editingFilter, editName, loadSavedFilters])
 
-  const getFilterSummary = (filters: Filters) => {
+  // Memoize getFilterSummary
+  const getFilterSummary = useCallback((filters: Filters) => {
     const activeFilters = [
       ...filters.accountCountries,
       ...filters.accountRegions,
@@ -193,7 +350,13 @@ export function SavedFiltersManager({ currentFilters, onLoadFilters, totalActive
     }
 
     return activeFilters.length
-  }
+  }, [])
+
+  // Memoize edit handler
+  const handleEdit = useCallback((filter: SavedFilter) => {
+    setEditingFilter(filter)
+    setEditName(filter.name)
+  }, [])
 
   return (
     <div className="flex items-center gap-2">
@@ -306,134 +469,13 @@ export function SavedFiltersManager({ currentFilters, onLoadFilters, totalActive
             </DialogHeader>
             <div className="space-y-4">
               {savedFilters.map((filter) => (
-                <Card key={filter.id}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">{filter.name}</CardTitle>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary">{getFilterSummary(filter.filters)} filters</Badge>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setEditingFilter(filter)
-                            setEditName(filter.name)
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-600 hover:text-red-700"
-                          onClick={() => handleDeleteFilter(filter)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        Created: {new Date(filter.created_at).toLocaleDateString()}
-                      </div>
-                      {filter.updated_at !== filter.created_at && (
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          Updated: {new Date(filter.updated_at).toLocaleDateString()}
-                        </div>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Filter Details:</span>
-                        <Button variant="outline" size="sm" onClick={() => handleLoadFilter(filter)}>
-                          <Filter className="h-4 w-4 mr-2" />
-                          Load Filters
-                        </Button>
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {filter.filters.accountCountries.map((country) => (
-                          <Badge key={country} variant="outline" className="text-xs">
-                            Country: {country}
-                          </Badge>
-                        ))}
-                        {filter.filters.accountRegions.map((region) => (
-                          <Badge key={region} variant="outline" className="text-xs">
-                            Region: {region}
-                          </Badge>
-                        ))}
-                        {filter.filters.accountIndustries.map((industry) => (
-                          <Badge key={industry} variant="outline" className="text-xs">
-                            Industry: {industry}
-                          </Badge>
-                        ))}
-                        {filter.filters.accountSubIndustries.map((subIndustry) => (
-                          <Badge key={subIndustry} variant="outline" className="text-xs">
-                            Sub Industry: {subIndustry}
-                          </Badge>
-                        ))}
-                        {filter.filters.accountPrimaryCategories.map((category) => (
-                          <Badge key={category} variant="outline" className="text-xs">
-                            Category: {category}
-                          </Badge>
-                        ))}
-                        {filter.filters.accountPrimaryNatures.map((nature) => (
-                          <Badge key={nature} variant="outline" className="text-xs">
-                            Nature: {nature}
-                          </Badge>
-                        ))}
-                        {filter.filters.accountNasscomStatuses.map((status) => (
-                          <Badge key={status} variant="outline" className="text-xs">
-                            NASSCOM: {status}
-                          </Badge>
-                        ))}
-                        {filter.filters.accountEmployeesRanges.map((range) => (
-                          <Badge key={range} variant="outline" className="text-xs">
-                            Emp Range: {range}
-                          </Badge>
-                        ))}
-                        {filter.filters.accountCenterEmployees.map((emp) => (
-                          <Badge key={emp} variant="outline" className="text-xs">
-                            Center Emp: {emp}
-                          </Badge>
-                        ))}
-                        {filter.filters.centerTypes.map((type) => (
-                          <Badge key={type} variant="outline" className="text-xs">
-                            Type: {type}
-                          </Badge>
-                        ))}
-                        {filter.filters.centerCities.map((city) => (
-                          <Badge key={city} variant="outline" className="text-xs">
-                            City: {city}
-                          </Badge>
-                        ))}
-                        {filter.filters.centerCountries.map((country) => (
-                          <Badge key={country} variant="outline" className="text-xs">
-                            Center Country: {country}
-                          </Badge>
-                        ))}
-                        {filter.filters.centerEmployees.map((emp) => (
-                          <Badge key={emp} variant="outline" className="text-xs">
-                            Center Employees: {emp}
-                          </Badge>
-                        ))}
-                        {filter.filters.centerStatuses.map((status) => (
-                          <Badge key={status} variant="outline" className="text-xs">
-                            Center Status: {status}
-                          </Badge>
-                        ))}
-                        {filter.filters.searchTerm && (
-                          <Badge variant="outline" className="text-xs">
-                            Search: "{filter.filters.searchTerm}"
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <SavedFilterCard
+                  key={filter.id}
+                  filter={filter}
+                  onLoad={handleLoadFilter}
+                  onEdit={handleEdit}
+                  onDelete={handleDeleteFilter}
+                />
               ))}
             </div>
           </DialogContent>
@@ -491,4 +533,4 @@ export function SavedFiltersManager({ currentFilters, onLoadFilters, totalActive
       </Dialog>
     </div>
   )
-}
+})
