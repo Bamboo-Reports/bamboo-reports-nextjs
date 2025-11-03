@@ -10,24 +10,29 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Slider } from "@/components/ui/slider"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import {
-  Filter,
   RotateCcw,
-  Info,
   Download,
   Database,
   RefreshCw,
   AlertCircle,
   CheckCircle,
-  ExternalLink,
-  Copy,
   Loader2,
+  TrendingUp,
+  Building2,
+  MapPin,
+  Users,
+  Filter as FilterIcon,
 } from "lucide-react"
 import { MultiSelect } from "@/components/multi-select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { getAllData, testConnection, getDatabaseStatus, clearCache } from "./actions"
 import { SavedFiltersManager } from "@/components/saved-filters-manager"
+import { CollapsibleSidebar } from "@/components/collapsible-sidebar"
+import { cn } from "@/lib/utils"
 
+// Keep all existing interfaces
 interface Account {
   "ACCOUNT NASSCOM STATUS": string
   "ACCOUNT NAME": string
@@ -133,10 +138,7 @@ interface AvailableOptions {
   functionTypes: FilterOption[]
 }
 
-// ============================================
-// MEMOIZED COMPONENTS FOR PERFORMANCE
-// ============================================
-
+// Memoized table row components
 const AccountRow = memo(({ account }: { account: Account }) => (
   <TableRow>
     <TableCell className="font-medium">{account["ACCOUNT NAME"]}</TableCell>
@@ -171,14 +173,6 @@ const CenterRow = memo(({ center }: { center: Center }) => (
 ))
 CenterRow.displayName = "CenterRow"
 
-const FunctionRow = memo(({ func }: { func: Function }) => (
-  <TableRow>
-    <TableCell className="text-xs text-gray-600">{func["CN UNIQUE KEY"]}</TableCell>
-    <TableCell>{func["FUNCTION"]}</TableCell>
-  </TableRow>
-))
-FunctionRow.displayName = "FunctionRow"
-
 const ServiceRow = memo(({ service }: { service: Service }) => (
   <TableRow>
     <TableCell className="text-xs text-gray-600">{service["CN UNIQUE KEY"]}</TableCell>
@@ -199,10 +193,7 @@ const ServiceRow = memo(({ service }: { service: Service }) => (
 ))
 ServiceRow.displayName = "ServiceRow"
 
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
-
+// Helper functions
 const parseRevenue = (value: string | number): number => {
   const numValue = typeof value === "string" ? Number.parseFloat(value) : value
   return isNaN(numValue) ? 0 : numValue
@@ -212,7 +203,6 @@ const formatRevenueInMillions = (value: number): string => {
   return `${value.toLocaleString()}M`
 }
 
-// Debounce function
 function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null
 
@@ -228,6 +218,7 @@ function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (..
 }
 
 function DashboardContent() {
+  // All state declarations from original file
   const [accounts, setAccounts] = useState<Account[]>([])
   const [centers, setCenters] = useState<Center[]>([])
   const [functions, setFunctions] = useState<Function[]>([])
@@ -285,6 +276,7 @@ function DashboardContent() {
   const [itemsPerPage] = useState(50)
   const [isApplying, setIsApplying] = useState(false)
   const [searchInput, setSearchInput] = useState("")
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   // Load data from database on component mount
   useEffect(() => {
@@ -414,7 +406,6 @@ function DashboardContent() {
     }
   }
 
-  // Clear cache and reload data
   const handleClearCache = async () => {
     try {
       setConnectionStatus("Clearing cache...")
@@ -433,7 +424,7 @@ function DashboardContent() {
 
   const isUpdatingOptions = useRef(false)
 
-  // Main filtering logic - memoized with stable dependencies
+  // Main filtering logic
   const filteredData = useMemo(() => {
     const arrayFilterMatch = (filterArray: string[], value: string) => {
       return filterArray.length === 0 || filterArray.includes(value)
@@ -618,7 +609,7 @@ function DashboardContent() {
     })
   }, [dynamicRevenueRange])
 
-  // Calculate available options - OPTIMIZED
+  // Calculate available options
   const availableOptions = useMemo((): AvailableOptions => {
     if (isUpdatingOptions.current) {
       return {
@@ -1058,9 +1049,6 @@ function DashboardContent() {
       const centersWs = XLSX.utils.json_to_sheet(filteredData.filteredCenters)
       XLSX.utils.book_append_sheet(wb, centersWs, "Centers")
 
-      const functionsWs = XLSX.utils.json_to_sheet(filteredData.filteredFunctions)
-      XLSX.utils.book_append_sheet(wb, functionsWs, "Functions")
-
       const servicesWs = XLSX.utils.json_to_sheet(filteredData.filteredServices)
       XLSX.utils.book_append_sheet(wb, servicesWs, "Services")
 
@@ -1071,10 +1059,6 @@ function DashboardContent() {
     } catch (error) {
       console.error("Error exporting all data to Excel:", error)
     }
-  }
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
   }
 
   const handleMinRevenueChange = (value: string) => {
@@ -1107,13 +1091,6 @@ function DashboardContent() {
             <h2 className="text-xl font-semibold mb-2">Loading Data</h2>
             <p className="text-gray-600 text-center mb-2">Fetching data from Neon database...</p>
             {connectionStatus && <p className="text-sm text-gray-500 text-center">{connectionStatus}</p>}
-            {dbStatus && (
-              <div className="text-xs text-gray-400 mt-2 text-center">
-                <p>DB URL: {dbStatus.hasUrl ? "✓" : "✗"}</p>
-                <p>Connection: {dbStatus.hasConnection ? "✓" : "✗"}</p>
-                <p>Environment: {dbStatus.environment}</p>
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>
@@ -1121,8 +1098,6 @@ function DashboardContent() {
   }
 
   if (error) {
-    const isUrlMissing = dbStatus && !dbStatus.hasUrl
-
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl">
@@ -1133,122 +1108,6 @@ function DashboardContent() {
                 <h2 className="text-2xl font-semibold mb-2 text-red-600">Database Configuration Error</h2>
                 <p className="text-gray-600 mb-4">{error}</p>
               </div>
-
-              {isUrlMissing && (
-                <div className="w-full space-y-4 text-left">
-                  <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertDescription>
-                      <strong>Quick Fix:</strong> You need to add your Neon database URL to Vercel's environment
-                      variables.
-                    </AlertDescription>
-                  </Alert>
-
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                    <h3 className="font-semibold text-gray-900">Step-by-Step Setup:</h3>
-
-                    <div className="space-y-3">
-                      <div className="flex items-start space-x-3">
-                        <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold">
-                          1
-                        </div>
-                        <div>
-                          <p className="font-medium">Go to your Vercel Dashboard</p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="mt-1 bg-transparent"
-                            onClick={() => window.open("https://vercel.com/dashboard", "_blank")}
-                          >
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Open Vercel Dashboard
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start space-x-3">
-                        <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold">
-                          2
-                        </div>
-                        <div>
-                          <p className="font-medium">Select your project → Settings → Environment Variables</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start space-x-3">
-                        <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold">
-                          3
-                        </div>
-                        <div className="w-full">
-                          <p className="font-medium mb-2">Add a new environment variable:</p>
-                          <div className="bg-white p-3 rounded border space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="font-mono text-sm">Name: DATABASE_URL</span>
-                              <Button variant="ghost" size="sm" onClick={() => copyToClipboard("DATABASE_URL")}>
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                            </div>
-                            <div>
-                              <span className="font-mono text-sm">Value: Your Neon connection string</span>
-                              <p className="text-xs text-gray-500 mt-1">
-                                Format: postgresql://username:password@host/database?sslmode=require
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start space-x-3">
-                        <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold">
-                          4
-                        </div>
-                        <div>
-                          <p className="font-medium">Save and redeploy your application</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Alert>
-                    <Database className="h-4 w-4" />
-                    <AlertDescription>
-                      <strong>Need your Neon connection string?</strong> Go to your Neon dashboard → Select your
-                      database → Connection Details → Copy the connection string.
-                    </AlertDescription>
-                  </Alert>
-                </div>
-              )}
-
-              {dbStatus && (
-                <div className="w-full bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-gray-900 mb-2">Debug Information:</h4>
-                  <div className="text-sm space-y-1">
-                    <div className="flex justify-between">
-                      <span>Database URL:</span>
-                      <span className={dbStatus.hasUrl ? "text-green-600" : "text-red-600"}>
-                        {dbStatus.hasUrl ? "✓ Configured" : "✗ Missing"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Connection:</span>
-                      <span className={dbStatus.hasConnection ? "text-green-600" : "text-red-600"}>
-                        {dbStatus.hasConnection ? "✓ Initialized" : "✗ Failed"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Environment:</span>
-                      <span className="text-gray-600">{dbStatus.environment}</span>
-                    </div>
-                    {dbStatus.urlLength > 0 && (
-                      <div className="flex justify-between">
-                        <span>URL Length:</span>
-                        <span className="text-gray-600">{dbStatus.urlLength} chars</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
               <div className="flex gap-2">
                 <Button onClick={loadData} className="flex items-center gap-2">
                   <RefreshCw className="h-4 w-4" />
@@ -1267,269 +1126,180 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="flex items-center justify-between mb-4">
-            <div></div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Collapsible Sidebar */}
+      <CollapsibleSidebar defaultCollapsed={false}>
+        <div className="space-y-4">
+          {/* Header with Actions */}
+          <div className="flex items-center justify-between pb-4 border-b">
+            <SavedFiltersManager
+              currentFilters={filters}
+              onLoadFilters={handleLoadSavedFilters}
+              totalActiveFilters={getTotalActiveFilters()}
+            />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Business Intelligence Dashboard</h1>
-          <p className="text-gray-600">Explore accounts, centers, functions, and services data from Neon database</p>
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <span>Connected to Neon Database</span>
-            <Button variant="ghost" size="sm" onClick={loadData} className="h-6 px-2">
-              <RefreshCw className="h-3 w-3" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleClearCache} className="h-6 px-2" title="Clear Cache">
-              <Database className="h-3 w-3" />
-            </Button>
+
+          {/* Search */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Search Account Name</Label>
+            <Input placeholder="Search accounts..." value={searchInput} onChange={handleSearchChange} />
+            {searchInput !== pendingFilters.searchTerm && (
+              <p className="text-xs text-gray-500">Typing... (search will apply in 500ms)</p>
+            )}
           </div>
-          {connectionStatus && <p className="text-xs text-gray-400">{connectionStatus}</p>}
-          {dbStatus && dbStatus.cacheSize > 0 && (
-            <p className="text-xs text-gray-400">Cache: {dbStatus.cacheSize} items</p>
-          )}
-        </div>
 
-        {dataLoaded && (
-          <>
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Total Accounts</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">{filteredData.filteredAccounts.length}</div>
-                  <p className="text-xs text-gray-500">of {accounts.length} total</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Total Centers</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{filteredData.filteredCenters.length}</div>
-                  <p className="text-xs text-gray-500">of {centers.length} total</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Total Services</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-purple-600">{filteredData.filteredServices.length}</div>
-                  <p className="text-xs text-gray-500">of {services.length} total</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Smart Filtering Info */}
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                <strong>Smart Filtering:</strong> Filter options automatically update based on your selections. Numbers
-                in parentheses show how many records each option contains. All filters work together - account filters
-                will properly cascade to centers, functions, and services.
-              </AlertDescription>
-            </Alert>
-
-            {/* Filters Section */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Filter className="h-5 w-5" />
-                    <CardTitle>Filters</CardTitle>
-                    {getTotalActiveFilters() > 0 && <Badge variant="secondary">{getTotalActiveFilters()} active</Badge>}
-                    {hasUnappliedChanges() && (
-                      <Badge variant="outline" className="text-orange-600 border-orange-600">
-                        Changes pending
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <SavedFiltersManager
-                      currentFilters={filters}
-                      onLoadFilters={handleLoadSavedFilters}
-                      totalActiveFilters={getTotalActiveFilters()}
-                    />
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={applyFilters}
-                      disabled={!hasUnappliedChanges() || isApplying}
-                      className="flex items-center gap-2"
-                    >
-                      {isApplying ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Applying...
-                        </>
-                      ) : (
-                        <>
-                          <Filter className="h-4 w-4" />
-                          Apply Filters {getTotalPendingFilters() > 0 && `(${getTotalPendingFilters()})`}
-                        </>
-                      )}
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={resetFilters}>
-                      <RotateCcw className="h-4 w-4 mr-2" />
-                      Reset Filters
-                    </Button>
-                    <Button variant="default" size="sm" onClick={exportAllData} className="flex items-center gap-2">
-                      <Download className="h-4 w-4" />
-                      Export All Data
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Search - with debouncing */}
-                <div className="space-y-2">
-                  <Label>Search Account Name (debounced)</Label>
-                  <Input
-                    placeholder="Search accounts..."
-                    value={searchInput}
-                    onChange={handleSearchChange}
-                  />
-                  {searchInput !== pendingFilters.searchTerm && (
-                    <p className="text-xs text-gray-500">Typing... (search will apply in 500ms)</p>
+          {/* Filters Accordion */}
+          <Accordion type="multiple" defaultValue={["accounts", "centers"]} className="w-full">
+            {/* Account Filters */}
+            <AccordionItem value="accounts" className="border rounded-lg px-4 mb-2">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-blue-600" />
+                  <span className="font-semibold">Account Filters</span>
+                  {(filters.accountCountries.length +
+                    filters.accountRegions.length +
+                    filters.accountIndustries.length +
+                    filters.accountSubIndustries.length +
+                    filters.accountPrimaryCategories.length +
+                    filters.accountPrimaryNatures.length +
+                    filters.accountNasscomStatuses.length +
+                    filters.accountEmployeesRanges.length +
+                    filters.accountCenterEmployees.length) >
+                    0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {filters.accountCountries.length +
+                        filters.accountRegions.length +
+                        filters.accountIndustries.length +
+                        filters.accountSubIndustries.length +
+                        filters.accountPrimaryCategories.length +
+                        filters.accountPrimaryNatures.length +
+                        filters.accountNasscomStatuses.length +
+                        filters.accountEmployeesRanges.length +
+                        filters.accountCenterEmployees.length}
+                    </Badge>
                   )}
                 </div>
-
-                {/* Account Filters */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Account Filters</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label>Countries ({availableOptions.accountCountries.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountCountries}
-                        selected={pendingFilters.accountCountries}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountCountries: selected }))}
-                        placeholder="Select countries..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Regions ({availableOptions.accountRegions.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountRegions}
-                        selected={pendingFilters.accountRegions}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountRegions: selected }))}
-                        placeholder="Select regions..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Industries ({availableOptions.accountIndustries.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountIndustries}
-                        selected={pendingFilters.accountIndustries}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountIndustries: selected }))}
-                        placeholder="Select industries..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Sub Industries ({availableOptions.accountSubIndustries.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountSubIndustries}
-                        selected={pendingFilters.accountSubIndustries}
-                        onChange={(selected) =>
-                          setPendingFilters((prev) => ({ ...prev, accountSubIndustries: selected }))
-                        }
-                        placeholder="Select sub industries..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Primary Categories ({availableOptions.accountPrimaryCategories.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountPrimaryCategories}
-                        selected={pendingFilters.accountPrimaryCategories}
-                        onChange={(selected) =>
-                          setPendingFilters((prev) => ({ ...prev, accountPrimaryCategories: selected }))
-                        }
-                        placeholder="Select categories..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Primary Nature ({availableOptions.accountPrimaryNatures.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountPrimaryNatures}
-                        selected={pendingFilters.accountPrimaryNatures}
-                        onChange={(selected) =>
-                          setPendingFilters((prev) => ({ ...prev, accountPrimaryNatures: selected }))
-                        }
-                        placeholder="Select nature..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>NASSCOM Status ({availableOptions.accountNasscomStatuses.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountNasscomStatuses}
-                        selected={pendingFilters.accountNasscomStatuses}
-                        onChange={(selected) =>
-                          setPendingFilters((prev) => ({ ...prev, accountNasscomStatuses: selected }))
-                        }
-                        placeholder="Select NASSCOM status..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Employees Range ({availableOptions.accountEmployeesRanges.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountEmployeesRanges}
-                        selected={pendingFilters.accountEmployeesRanges}
-                        onChange={(selected) =>
-                          setPendingFilters((prev) => ({ ...prev, accountEmployeesRanges: selected }))
-                        }
-                        placeholder="Select employees range..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Center Employees ({availableOptions.accountCenterEmployees.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountCenterEmployees}
-                        selected={pendingFilters.accountCenterEmployees}
-                        onChange={(selected) =>
-                          setPendingFilters((prev) => ({ ...prev, accountCenterEmployees: selected }))
-                        }
-                        placeholder="Select center employees..."
-                      />
-                    </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm">Countries ({availableOptions.accountCountries.length})</Label>
+                    <MultiSelect
+                      options={availableOptions.accountCountries}
+                      selected={pendingFilters.accountCountries}
+                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountCountries: selected }))}
+                      placeholder="Select countries..."
+                    />
                   </div>
 
-                  {/* Revenue Range Slider with Input Fields */}
+                  <div className="space-y-2">
+                    <Label className="text-sm">Regions ({availableOptions.accountRegions.length})</Label>
+                    <MultiSelect
+                      options={availableOptions.accountRegions}
+                      selected={pendingFilters.accountRegions}
+                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountRegions: selected }))}
+                      placeholder="Select regions..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm">Industries ({availableOptions.accountIndustries.length})</Label>
+                    <MultiSelect
+                      options={availableOptions.accountIndustries}
+                      selected={pendingFilters.accountIndustries}
+                      onChange={(selected) =>
+                        setPendingFilters((prev) => ({ ...prev, accountIndustries: selected }))
+                      }
+                      placeholder="Select industries..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm">Sub Industries ({availableOptions.accountSubIndustries.length})</Label>
+                    <MultiSelect
+                      options={availableOptions.accountSubIndustries}
+                      selected={pendingFilters.accountSubIndustries}
+                      onChange={(selected) =>
+                        setPendingFilters((prev) => ({ ...prev, accountSubIndustries: selected }))
+                      }
+                      placeholder="Select sub industries..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm">Primary Categories ({availableOptions.accountPrimaryCategories.length})</Label>
+                    <MultiSelect
+                      options={availableOptions.accountPrimaryCategories}
+                      selected={pendingFilters.accountPrimaryCategories}
+                      onChange={(selected) =>
+                        setPendingFilters((prev) => ({ ...prev, accountPrimaryCategories: selected }))
+                      }
+                      placeholder="Select categories..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm">Primary Nature ({availableOptions.accountPrimaryNatures.length})</Label>
+                    <MultiSelect
+                      options={availableOptions.accountPrimaryNatures}
+                      selected={pendingFilters.accountPrimaryNatures}
+                      onChange={(selected) =>
+                        setPendingFilters((prev) => ({ ...prev, accountPrimaryNatures: selected }))
+                      }
+                      placeholder="Select nature..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm">NASSCOM Status ({availableOptions.accountNasscomStatuses.length})</Label>
+                    <MultiSelect
+                      options={availableOptions.accountNasscomStatuses}
+                      selected={pendingFilters.accountNasscomStatuses}
+                      onChange={(selected) =>
+                        setPendingFilters((prev) => ({ ...prev, accountNasscomStatuses: selected }))
+                      }
+                      placeholder="Select status..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm">Employees Range ({availableOptions.accountEmployeesRanges.length})</Label>
+                    <MultiSelect
+                      options={availableOptions.accountEmployeesRanges}
+                      selected={pendingFilters.accountEmployeesRanges}
+                      onChange={(selected) =>
+                        setPendingFilters((prev) => ({ ...prev, accountEmployeesRanges: selected }))
+                      }
+                      placeholder="Select range..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm">Center Employees ({availableOptions.accountCenterEmployees.length})</Label>
+                    <MultiSelect
+                      options={availableOptions.accountCenterEmployees}
+                      selected={pendingFilters.accountCenterEmployees}
+                      onChange={(selected) =>
+                        setPendingFilters((prev) => ({ ...prev, accountCenterEmployees: selected }))
+                      }
+                      placeholder="Select employees..."
+                    />
+                  </div>
+
+                  {/* Revenue Range */}
                   <div className="space-y-4 pt-4 border-t">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <Label className="text-base font-medium">
-                          Account Revenue Range: {formatRevenueInMillions(pendingFilters.accountRevenueRange[0])} -{" "}
+                        <Label className="text-sm font-medium">
+                          Revenue Range: {formatRevenueInMillions(pendingFilters.accountRevenueRange[0])} -{" "}
                           {formatRevenueInMillions(pendingFilters.accountRevenueRange[1])}
                         </Label>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            id="include-null-revenue"
-                            checked={pendingFilters.includeNullRevenue || false}
-                            onChange={(e) =>
-                              setPendingFilters((prev) => ({
-                                ...prev,
-                                includeNullRevenue: e.target.checked,
-                              }))
-                            }
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <Label htmlFor="include-null-revenue" className="text-sm text-gray-700 cursor-pointer">
-                            Include accounts with null/zero revenue
-                          </Label>
-                        </div>
                       </div>
 
-                      {/* Input Fields */}
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="min-revenue" className="text-sm">
-                            Minimum (Millions)
+                          <Label htmlFor="min-revenue" className="text-xs">
+                            Min (Millions)
                           </Label>
                           <Input
                             id="min-revenue"
@@ -1538,13 +1308,12 @@ function DashboardContent() {
                             onChange={(e) => handleMinRevenueChange(e.target.value)}
                             min={revenueRange.min}
                             max={pendingFilters.accountRevenueRange[1]}
-                            placeholder="Min revenue"
                             className="text-sm"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="max-revenue" className="text-sm">
-                            Maximum (Millions)
+                          <Label htmlFor="max-revenue" className="text-xs">
+                            Max (Millions)
                           </Label>
                           <Input
                             id="max-revenue"
@@ -1553,13 +1322,11 @@ function DashboardContent() {
                             onChange={(e) => handleMaxRevenueChange(e.target.value)}
                             min={pendingFilters.accountRevenueRange[0]}
                             max={revenueRange.max}
-                            placeholder="Max revenue"
                             className="text-sm"
                           />
                         </div>
                       </div>
 
-                      {/* Slider */}
                       <div className="px-3 py-2">
                         <Slider
                           value={pendingFilters.accountRevenueRange}
@@ -1576,96 +1343,136 @@ function DashboardContent() {
                         />
                       </div>
 
-                      {/* Range Display */}
-                      <div className="flex justify-between text-sm text-gray-500">
-                        <span>{formatRevenueInMillions(revenueRange.min)}</span>
-                        <span>{formatRevenueInMillions(revenueRange.max)}</span>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="include-null-revenue"
+                          checked={pendingFilters.includeNullRevenue || false}
+                          onChange={(e) =>
+                            setPendingFilters((prev) => ({
+                              ...prev,
+                              includeNullRevenue: e.target.checked,
+                            }))
+                          }
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <Label htmlFor="include-null-revenue" className="text-xs text-gray-700 cursor-pointer">
+                          Include accounts with null/zero revenue
+                        </Label>
                       </div>
-
-                      <p className="text-xs text-gray-400">
-                        All values are in millions. Use the slider or input fields to set your desired range. Toggle
-                        above to include accounts with missing or zero revenue data.
-                      </p>
                     </div>
                   </div>
                 </div>
+              </AccordionContent>
+            </AccordionItem>
 
-                {/* Center Filters */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Center Filters</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label>Center Types ({availableOptions.centerTypes.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.centerTypes}
-                        selected={pendingFilters.centerTypes}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerTypes: selected }))}
-                        placeholder="Select types..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Center Focus ({availableOptions.centerFocus.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.centerFocus}
-                        selected={pendingFilters.centerFocus}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerFocus: selected }))}
-                        placeholder="Select focus..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Cities ({availableOptions.centerCities.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.centerCities}
-                        selected={pendingFilters.centerCities}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerCities: selected }))}
-                        placeholder="Select cities..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>States ({availableOptions.centerStates.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.centerStates}
-                        selected={pendingFilters.centerStates}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerStates: selected }))}
-                        placeholder="Select states..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Countries ({availableOptions.centerCountries.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.centerCountries}
-                        selected={pendingFilters.centerCountries}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerCountries: selected }))}
-                        placeholder="Select countries..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Center Employees Range ({availableOptions.centerEmployees.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.centerEmployees}
-                        selected={pendingFilters.centerEmployees}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerEmployees: selected }))}
-                        placeholder="Select employees range..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Center Status ({availableOptions.centerStatuses.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.centerStatuses}
-                        selected={pendingFilters.centerStatuses}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerStatuses: selected }))}
-                        placeholder="Select status..."
-                      />
-                    </div>
-                  </div>
+            {/* Center Filters with Nested Functions */}
+            <AccordionItem value="centers" className="border rounded-lg px-4 mb-2">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-green-600" />
+                  <span className="font-semibold">Center Filters</span>
+                  {(filters.centerTypes.length +
+                    filters.centerFocus.length +
+                    filters.centerCities.length +
+                    filters.centerStates.length +
+                    filters.centerCountries.length +
+                    filters.centerEmployees.length +
+                    filters.centerStatuses.length +
+                    filters.functionTypes.length) >
+                    0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {filters.centerTypes.length +
+                        filters.centerFocus.length +
+                        filters.centerCities.length +
+                        filters.centerStates.length +
+                        filters.centerCountries.length +
+                        filters.centerEmployees.length +
+                        filters.centerStatuses.length +
+                        filters.functionTypes.length}
+                    </Badge>
+                  )}
                 </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm">Center Types ({availableOptions.centerTypes.length})</Label>
+                    <MultiSelect
+                      options={availableOptions.centerTypes}
+                      selected={pendingFilters.centerTypes}
+                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerTypes: selected }))}
+                      placeholder="Select types..."
+                    />
+                  </div>
 
-                {/* Function Filters */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Function Filters</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm">Center Focus ({availableOptions.centerFocus.length})</Label>
+                    <MultiSelect
+                      options={availableOptions.centerFocus}
+                      selected={pendingFilters.centerFocus}
+                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerFocus: selected }))}
+                      placeholder="Select focus..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm">Cities ({availableOptions.centerCities.length})</Label>
+                    <MultiSelect
+                      options={availableOptions.centerCities}
+                      selected={pendingFilters.centerCities}
+                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerCities: selected }))}
+                      placeholder="Select cities..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm">States ({availableOptions.centerStates.length})</Label>
+                    <MultiSelect
+                      options={availableOptions.centerStates}
+                      selected={pendingFilters.centerStates}
+                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerStates: selected }))}
+                      placeholder="Select states..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm">Countries ({availableOptions.centerCountries.length})</Label>
+                    <MultiSelect
+                      options={availableOptions.centerCountries}
+                      selected={pendingFilters.centerCountries}
+                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerCountries: selected }))}
+                      placeholder="Select countries..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm">Employees Range ({availableOptions.centerEmployees.length})</Label>
+                    <MultiSelect
+                      options={availableOptions.centerEmployees}
+                      selected={pendingFilters.centerEmployees}
+                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerEmployees: selected }))}
+                      placeholder="Select range..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm">Center Status ({availableOptions.centerStatuses.length})</Label>
+                    <MultiSelect
+                      options={availableOptions.centerStatuses}
+                      selected={pendingFilters.centerStatuses}
+                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerStatuses: selected }))}
+                      placeholder="Select status..."
+                    />
+                  </div>
+
+                  {/* Nested Functions Filter */}
+                  <div className="pt-4 border-t">
                     <div className="space-y-2">
-                      <Label>Function Types ({availableOptions.functionTypes.length} available)</Label>
+                      <Label className="text-sm font-medium flex items-center gap-2">
+                        <Users className="h-4 w-4 text-purple-600" />
+                        Function Types ({availableOptions.functionTypes.length})
+                      </Label>
                       <MultiSelect
                         options={availableOptions.functionTypes}
                         selected={pendingFilters.functionTypes}
@@ -1675,363 +1482,418 @@ function DashboardContent() {
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
 
-            {/* Data Tables */}
-            <Tabs defaultValue="accounts" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="accounts">Accounts ({filteredData.filteredAccounts.length})</TabsTrigger>
-                <TabsTrigger value="centers">Centers ({filteredData.filteredCenters.length})</TabsTrigger>
-                <TabsTrigger value="functions">Functions ({filteredData.filteredFunctions.length})</TabsTrigger>
-                <TabsTrigger value="services">Services ({filteredData.filteredServices.length})</TabsTrigger>
-              </TabsList>
+          {/* Filter Actions */}
+          <div className="flex flex-col gap-2 pt-4 border-t">
+            <Button
+              onClick={applyFilters}
+              disabled={!hasUnappliedChanges() || isApplying}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              {isApplying ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Applying...
+                </>
+              ) : (
+                <>
+                  <FilterIcon className="h-4 w-4" />
+                  Apply Filters {getTotalPendingFilters() > 0 && `(${getTotalPendingFilters()})`}
+                </>
+              )}
+            </Button>
+            <Button variant="outline" onClick={resetFilters} className="w-full">
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reset All Filters
+            </Button>
+          </div>
+        </div>
+      </CollapsibleSidebar>
 
-              <TabsContent value="accounts">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Accounts Data</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Account Name</TableHead>
-                            <TableHead>Country</TableHead>
-                            <TableHead>Region</TableHead>
-                            <TableHead>Industry</TableHead>
-                            <TableHead>Sub Industry</TableHead>
-                            <TableHead>Primary Category</TableHead>
-                            <TableHead>Primary Nature</TableHead>
-                            <TableHead>NASSCOM Status</TableHead>
-                            <TableHead>Revenue</TableHead>
-                            <TableHead>Revenue Range</TableHead>
-                            <TableHead>Employees Range</TableHead>
-                            <TableHead>Center Employees</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {getPaginatedData(filteredData.filteredAccounts, currentPage, itemsPerPage).map(
-                            (account, index) => (
-                              <AccountRow key={`${account["ACCOUNT NAME"]}-${index}`} account={account} />
-                            )
-                          )}
-                        </TableBody>
-                      </Table>
+      {/* Main Content Area */}
+      <div
+        className={cn(
+          "transition-all duration-300",
+          sidebarCollapsed ? "ml-0" : "ml-[30%] min-[1280px]:ml-[320px] max-[1920px]:ml-[480px]"
+        )}
+      >
+        <div className="p-6">
+          {/* Header */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Business Intelligence Dashboard</h1>
+                <p className="text-gray-600 mt-1">Enterprise data analytics platform</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={loadData}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleClearCache}>
+                  <Database className="h-4 w-4 mr-2" />
+                  Clear Cache
+                </Button>
+                <Button size="sm" onClick={exportAllData} className="flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Export All
+                </Button>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <span className="text-sm text-gray-600">{connectionStatus || "Connected to Neon Database"}</span>
+            </div>
+          </div>
+
+          {dataLoaded && (
+            <>
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <Card className="border-l-4 border-l-blue-500">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Accounts</p>
+                        <p className="text-3xl font-bold text-gray-900 mt-2">
+                          {filteredData.filteredAccounts.length.toLocaleString()}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">of {accounts.length.toLocaleString()} total</p>
+                      </div>
+                      <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                        <Building2 className="h-6 w-6 text-blue-600" />
+                      </div>
                     </div>
-                    {filteredData.filteredAccounts.length > 0 && (
-                      <div className="flex items-center justify-between mt-4">
-                        <div className="flex items-center gap-4">
+                  </CardContent>
+                </Card>
+
+                <Card className="border-l-4 border-l-green-500">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Centers</p>
+                        <p className="text-3xl font-bold text-gray-900 mt-2">
+                          {filteredData.filteredCenters.length.toLocaleString()}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">of {centers.length.toLocaleString()} total</p>
+                      </div>
+                      <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                        <MapPin className="h-6 w-6 text-green-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-l-4 border-l-purple-500">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Services</p>
+                        <p className="text-3xl font-bold text-gray-900 mt-2">
+                          {filteredData.filteredServices.length.toLocaleString()}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">of {services.length.toLocaleString()} total</p>
+                      </div>
+                      <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                        <TrendingUp className="h-6 w-6 text-purple-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Data Tables */}
+              <Tabs defaultValue="accounts" className="space-y-4">
+                <TabsList className="grid w-full grid-cols-3 h-auto">
+                  <TabsTrigger value="accounts" className="data-[state=active]:bg-blue-50">
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Accounts ({filteredData.filteredAccounts.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="centers" className="data-[state=active]:bg-green-50">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Centers ({filteredData.filteredCenters.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="services" className="data-[state=active]:bg-purple-50">
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    Services ({filteredData.filteredServices.length})
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="accounts">
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>Accounts Data</CardTitle>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            exportToExcel(filteredData.filteredAccounts, "accounts-export", "Accounts")
+                          }
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Export
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Account Name</TableHead>
+                              <TableHead>Country</TableHead>
+                              <TableHead>Region</TableHead>
+                              <TableHead>Industry</TableHead>
+                              <TableHead>Sub Industry</TableHead>
+                              <TableHead>Primary Category</TableHead>
+                              <TableHead>Primary Nature</TableHead>
+                              <TableHead>NASSCOM Status</TableHead>
+                              <TableHead>Revenue</TableHead>
+                              <TableHead>Revenue Range</TableHead>
+                              <TableHead>Employees Range</TableHead>
+                              <TableHead>Center Employees</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {getPaginatedData(filteredData.filteredAccounts, currentPage, itemsPerPage).map(
+                              (account, index) => (
+                                <AccountRow key={`${account["ACCOUNT NAME"]}-${index}`} account={account} />
+                              )
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                      {filteredData.filteredAccounts.length > 0 && (
+                        <div className="flex items-center justify-between mt-4">
                           <p className="text-sm text-gray-500">
                             Showing{" "}
                             {getPageInfo(currentPage, filteredData.filteredAccounts.length, itemsPerPage).startItem} to{" "}
                             {getPageInfo(currentPage, filteredData.filteredAccounts.length, itemsPerPage).endItem} of{" "}
                             {filteredData.filteredAccounts.length} results
                           </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => exportToExcel(filteredData.filteredAccounts, "accounts-export", "Accounts")}
-                            className="flex items-center gap-2"
-                          >
-                            <Download className="h-4 w-4" />
-                            Export Accounts
-                          </Button>
-                        </div>
-                        {getTotalPages(filteredData.filteredAccounts.length, itemsPerPage) > 1 && (
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                              disabled={currentPage === 1}
-                            >
-                              Previous
-                            </Button>
-                            <span className="text-sm text-gray-600">
-                              Page {currentPage} of {getTotalPages(filteredData.filteredAccounts.length, itemsPerPage)}
-                            </span>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setCurrentPage((prev) =>
-                                  Math.min(prev + 1, getTotalPages(filteredData.filteredAccounts.length, itemsPerPage))
-                                )
-                              }
-                              disabled={
-                                currentPage === getTotalPages(filteredData.filteredAccounts.length, itemsPerPage)
-                              }
-                            >
-                              Next
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="centers">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Centers Data</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Center Name</TableHead>
-                            <TableHead>CN Unique Key</TableHead>
-                            <TableHead>Account Name</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>City</TableHead>
-                            <TableHead>State</TableHead>
-                            <TableHead>Country</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Employees</TableHead>
-                            <TableHead>Employees Range</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {getPaginatedData(filteredData.filteredCenters, currentPage, itemsPerPage).map(
-                            (center, index) => (
-                              <CenterRow key={`${center["CN UNIQUE KEY"]}-${index}`} center={center} />
-                            )
+                          {getTotalPages(filteredData.filteredAccounts.length, itemsPerPage) > 1 && (
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                              >
+                                Previous
+                              </Button>
+                              <span className="text-sm text-gray-600">
+                                Page {currentPage} of{" "}
+                                {getTotalPages(filteredData.filteredAccounts.length, itemsPerPage)}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setCurrentPage((prev) =>
+                                    Math.min(
+                                      prev + 1,
+                                      getTotalPages(filteredData.filteredAccounts.length, itemsPerPage)
+                                    )
+                                  )
+                                }
+                                disabled={
+                                  currentPage === getTotalPages(filteredData.filteredAccounts.length, itemsPerPage)
+                                }
+                              >
+                                Next
+                              </Button>
+                            </div>
                           )}
-                        </TableBody>
-                      </Table>
-                    </div>
-                    {filteredData.filteredCenters.length > 0 && (
-                      <div className="flex items-center justify-between mt-4">
-                        <div className="flex items-center gap-4">
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="centers">
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>Centers Data</CardTitle>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => exportToExcel(filteredData.filteredCenters, "centers-export", "Centers")}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Export
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Center Name</TableHead>
+                              <TableHead>CN Unique Key</TableHead>
+                              <TableHead>Account Name</TableHead>
+                              <TableHead>Type</TableHead>
+                              <TableHead>City</TableHead>
+                              <TableHead>State</TableHead>
+                              <TableHead>Country</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Employees</TableHead>
+                              <TableHead>Employees Range</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {getPaginatedData(filteredData.filteredCenters, currentPage, itemsPerPage).map(
+                              (center, index) => (
+                                <CenterRow key={`${center["CN UNIQUE KEY"]}-${index}`} center={center} />
+                              )
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                      {filteredData.filteredCenters.length > 0 && (
+                        <div className="flex items-center justify-between mt-4">
                           <p className="text-sm text-gray-500">
                             Showing{" "}
                             {getPageInfo(currentPage, filteredData.filteredCenters.length, itemsPerPage).startItem} to{" "}
                             {getPageInfo(currentPage, filteredData.filteredCenters.length, itemsPerPage).endItem} of{" "}
                             {filteredData.filteredCenters.length} results
                           </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => exportToExcel(filteredData.filteredCenters, "centers-export", "Centers")}
-                            className="flex items-center gap-2"
-                          >
-                            <Download className="h-4 w-4" />
-                            Export Centers
-                          </Button>
-                        </div>
-                        {getTotalPages(filteredData.filteredCenters.length, itemsPerPage) > 1 && (
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                              disabled={currentPage === 1}
-                            >
-                              Previous
-                            </Button>
-                            <span className="text-sm text-gray-600">
-                              Page {currentPage} of {getTotalPages(filteredData.filteredCenters.length, itemsPerPage)}
-                            </span>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setCurrentPage((prev) =>
-                                  Math.min(prev + 1, getTotalPages(filteredData.filteredCenters.length, itemsPerPage))
-                                )
-                              }
-                              disabled={
-                                currentPage === getTotalPages(filteredData.filteredCenters.length, itemsPerPage)
-                              }
-                            >
-                              Next
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="functions">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Functions Data</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>CN Unique Key</TableHead>
-                            <TableHead>Function</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {getPaginatedData(filteredData.filteredFunctions, currentPage, itemsPerPage).map(
-                            (func, index) => (
-                              <FunctionRow key={`${func["CN UNIQUE KEY"]}-${func.FUNCTION}-${index}`} func={func} />
-                            )
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
-                    {filteredData.filteredFunctions.length > 0 && (
-                      <div className="flex items-center justify-between mt-4">
-                        <div className="flex items-center gap-4">
-                          <p className="text-sm text-gray-500">
-                            Showing{" "}
-                            {getPageInfo(currentPage, filteredData.filteredFunctions.length, itemsPerPage).startItem} to{" "}
-                            {getPageInfo(currentPage, filteredData.filteredFunctions.length, itemsPerPage).endItem} of{" "}
-                            {filteredData.filteredFunctions.length} results
-                          </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              exportToExcel(filteredData.filteredFunctions, "functions-export", "Functions")
-                            }
-                            className="flex items-center gap-2"
-                          >
-                            <Download className="h-4 w-4" />
-                            Export Functions
-                          </Button>
-                        </div>
-                        {getTotalPages(filteredData.filteredFunctions.length, itemsPerPage) > 1 && (
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                              disabled={currentPage === 1}
-                            >
-                              Previous
-                            </Button>
-                            <span className="text-sm text-gray-600">
-                              Page {currentPage} of {getTotalPages(filteredData.filteredFunctions.length, itemsPerPage)}
-                            </span>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setCurrentPage((prev) =>
-                                  Math.min(
-                                    prev + 1,
-                                    getTotalPages(filteredData.filteredFunctions.length, itemsPerPage)
+                          {getTotalPages(filteredData.filteredCenters.length, itemsPerPage) > 1 && (
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                              >
+                                Previous
+                              </Button>
+                              <span className="text-sm text-gray-600">
+                                Page {currentPage} of{" "}
+                                {getTotalPages(filteredData.filteredCenters.length, itemsPerPage)}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setCurrentPage((prev) =>
+                                    Math.min(prev + 1, getTotalPages(filteredData.filteredCenters.length, itemsPerPage))
                                   )
-                                )
-                              }
-                              disabled={
-                                currentPage === getTotalPages(filteredData.filteredFunctions.length, itemsPerPage)
-                              }
-                            >
-                              Next
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="services">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Services Data</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>CN Unique Key</TableHead>
-                            <TableHead>Center Name</TableHead>
-                            <TableHead>Primary Service</TableHead>
-                            <TableHead>Focus Region</TableHead>
-                            <TableHead>IT</TableHead>
-                            <TableHead>ER&D</TableHead>
-                            <TableHead>FnA</TableHead>
-                            <TableHead>HR</TableHead>
-                            <TableHead>Procurement</TableHead>
-                            <TableHead>Sales & Marketing</TableHead>
-                            <TableHead>Customer Support</TableHead>
-                            <TableHead>Others</TableHead>
-                            <TableHead>Software Vendor</TableHead>
-                            <TableHead>Software In Use</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {getPaginatedData(filteredData.filteredServices, currentPage, itemsPerPage).map(
-                            (service, index) => (
-                              <ServiceRow key={`${service["CN UNIQUE KEY"]}-${index}`} service={service} />
-                            )
+                                }
+                                disabled={
+                                  currentPage === getTotalPages(filteredData.filteredCenters.length, itemsPerPage)
+                                }
+                              >
+                                Next
+                              </Button>
+                            </div>
                           )}
-                        </TableBody>
-                      </Table>
-                    </div>
-                    {filteredData.filteredServices.length > 0 && (
-                      <div className="flex items-center justify-between mt-4">
-                        <div className="flex items-center gap-4">
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="services">
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>Services Data</CardTitle>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => exportToExcel(filteredData.filteredServices, "services-export", "Services")}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Export
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>CN Unique Key</TableHead>
+                              <TableHead>Center Name</TableHead>
+                              <TableHead>Primary Service</TableHead>
+                              <TableHead>Focus Region</TableHead>
+                              <TableHead>IT</TableHead>
+                              <TableHead>ER&D</TableHead>
+                              <TableHead>FnA</TableHead>
+                              <TableHead>HR</TableHead>
+                              <TableHead>Procurement</TableHead>
+                              <TableHead>Sales & Marketing</TableHead>
+                              <TableHead>Customer Support</TableHead>
+                              <TableHead>Others</TableHead>
+                              <TableHead>Software Vendor</TableHead>
+                              <TableHead>Software In Use</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {getPaginatedData(filteredData.filteredServices, currentPage, itemsPerPage).map(
+                              (service, index) => (
+                                <ServiceRow key={`${service["CN UNIQUE KEY"]}-${index}`} service={service} />
+                              )
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                      {filteredData.filteredServices.length > 0 && (
+                        <div className="flex items-center justify-between mt-4">
                           <p className="text-sm text-gray-500">
                             Showing{" "}
                             {getPageInfo(currentPage, filteredData.filteredServices.length, itemsPerPage).startItem} to{" "}
                             {getPageInfo(currentPage, filteredData.filteredServices.length, itemsPerPage).endItem} of{" "}
                             {filteredData.filteredServices.length} results
                           </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => exportToExcel(filteredData.filteredServices, "services-export", "Services")}
-                            className="flex items-center gap-2"
-                          >
-                            <Download className="h-4 w-4" />
-                            Export Services
-                          </Button>
+                          {getTotalPages(filteredData.filteredServices.length, itemsPerPage) > 1 && (
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                              >
+                                Previous
+                              </Button>
+                              <span className="text-sm text-gray-600">
+                                Page {currentPage} of{" "}
+                                {getTotalPages(filteredData.filteredServices.length, itemsPerPage)}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setCurrentPage((prev) =>
+                                    Math.min(
+                                      prev + 1,
+                                      getTotalPages(filteredData.filteredServices.length, itemsPerPage)
+                                    )
+                                  )
+                                }
+                                disabled={
+                                  currentPage === getTotalPages(filteredData.filteredServices.length, itemsPerPage)
+                                }
+                              >
+                                Next
+                              </Button>
+                            </div>
+                          )}
                         </div>
-                        {getTotalPages(filteredData.filteredServices.length, itemsPerPage) > 1 && (
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                              disabled={currentPage === 1}
-                            >
-                              Previous
-                            </Button>
-                            <span className="text-sm text-gray-600">
-                              Page {currentPage} of {getTotalPages(filteredData.filteredServices.length, itemsPerPage)}
-                            </span>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setCurrentPage((prev) =>
-                                  Math.min(prev + 1, getTotalPages(filteredData.filteredServices.length, itemsPerPage))
-                                )
-                              }
-                              disabled={
-                                currentPage === getTotalPages(filteredData.filteredServices.length, itemsPerPage)
-                              }
-                            >
-                              Next
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </>
-        )}
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
