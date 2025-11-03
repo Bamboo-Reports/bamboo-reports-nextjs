@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Slider } from "@/components/ui/slider"
 import {
@@ -22,6 +23,8 @@ import {
   ExternalLink,
   Copy,
   Loader2,
+  Building,
+  Briefcase,
 } from "lucide-react"
 import { MultiSelect } from "@/components/multi-select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -1267,425 +1270,420 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="flex items-center justify-between mb-4">
-            <div></div>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900">Business Intelligence Dashboard</h1>
-          <p className="text-gray-600">Explore accounts, centers, functions, and services data from Neon database</p>
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <span>Connected to Neon Database</span>
-            <Button variant="ghost" size="sm" onClick={loadData} className="h-6 px-2">
-              <RefreshCw className="h-3 w-3" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleClearCache} className="h-6 px-2" title="Clear Cache">
-              <Database className="h-3 w-3" />
-            </Button>
-          </div>
-          {connectionStatus && <p className="text-xs text-gray-400">{connectionStatus}</p>}
-          {dbStatus && dbStatus.cacheSize > 0 && (
-            <p className="text-xs text-gray-400">Cache: {dbStatus.cacheSize} items</p>
-          )}
-        </div>
-
-        {dataLoaded && (
-          <>
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Total Accounts</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">{filteredData.filteredAccounts.length}</div>
-                  <p className="text-xs text-gray-500">of {accounts.length} total</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Total Centers</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{filteredData.filteredCenters.length}</div>
-                  <p className="text-xs text-gray-500">of {centers.length} total</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Total Services</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-purple-600">{filteredData.filteredServices.length}</div>
-                  <p className="text-xs text-gray-500">of {services.length} total</p>
-                </CardContent>
-              </Card>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b shadow-sm sticky top-0 z-10">
+        <div className="max-w-full mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Business Intelligence Platform</h1>
+              <p className="text-sm text-gray-600 mt-1">Intelligence-driven insights for accounts, centers, and services</p>
             </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <span className="text-sm text-gray-500">Connected to Neon Database</span>
+              <Button variant="ghost" size="sm" onClick={loadData} className="h-8 px-3">
+                <RefreshCw className="h-3 w-3" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleClearCache} className="h-8 px-3" title="Clear Cache">
+                <Database className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+          {connectionStatus && <p className="text-xs text-gray-400 mt-1">{connectionStatus}</p>}
+        </div>
+      </div>
 
-            {/* Smart Filtering Info */}
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                <strong>Smart Filtering:</strong> Filter options automatically update based on your selections. Numbers
-                in parentheses show how many records each option contains. All filters work together - account filters
-                will properly cascade to centers, functions, and services.
-              </AlertDescription>
-            </Alert>
+      {dataLoaded && (
+        <div className="flex h-[calc(100vh-88px)]">
+          {/* Left Sidebar - Filters (30%) */}
+          <div className="w-[30%] border-r bg-white overflow-y-auto">
+            <div className="p-4 space-y-4">
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 gap-3 mb-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-gray-600">Total Accounts</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-blue-600">{filteredData.filteredAccounts.length}</div>
+                    <p className="text-xs text-gray-500">of {accounts.length} total</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-gray-600">Total Centers</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">{filteredData.filteredCenters.length}</div>
+                    <p className="text-xs text-gray-500">of {centers.length} total</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-gray-600">Total Services</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-purple-600">{filteredData.filteredServices.length}</div>
+                    <p className="text-xs text-gray-500">of {services.length} total</p>
+                  </CardContent>
+                </Card>
+              </div>
 
-            {/* Filters Section */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Filter className="h-5 w-5" />
-                    <CardTitle>Filters</CardTitle>
-                    {getTotalActiveFilters() > 0 && <Badge variant="secondary">{getTotalActiveFilters()} active</Badge>}
-                    {hasUnappliedChanges() && (
-                      <Badge variant="outline" className="text-orange-600 border-orange-600">
-                        Changes pending
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <SavedFiltersManager
-                      currentFilters={filters}
-                      onLoadFilters={handleLoadSavedFilters}
-                      totalActiveFilters={getTotalActiveFilters()}
-                    />
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={applyFilters}
-                      disabled={!hasUnappliedChanges() || isApplying}
-                      className="flex items-center gap-2"
-                    >
-                      {isApplying ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Applying...
-                        </>
-                      ) : (
-                        <>
-                          <Filter className="h-4 w-4" />
-                          Apply Filters {getTotalPendingFilters() > 0 && `(${getTotalPendingFilters()})`}
-                        </>
-                      )}
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={resetFilters}>
-                      <RotateCcw className="h-4 w-4 mr-2" />
-                      Reset Filters
-                    </Button>
-                    <Button variant="default" size="sm" onClick={exportAllData} className="flex items-center gap-2">
-                      <Download className="h-4 w-4" />
-                      Export All Data
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Search - with debouncing */}
-                <div className="space-y-2">
-                  <Label>Search Account Name (debounced)</Label>
-                  <Input
-                    placeholder="Search accounts..."
-                    value={searchInput}
-                    onChange={handleSearchChange}
-                  />
-                  {searchInput !== pendingFilters.searchTerm && (
-                    <p className="text-xs text-gray-500">Typing... (search will apply in 500ms)</p>
+              {/* Filter Actions */}
+              <div className="flex flex-col gap-2 mb-4">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-gray-600" />
+                  <span className="text-sm font-semibold text-gray-900">Filters</span>
+                  {getTotalActiveFilters() > 0 && (
+                    <Badge variant="secondary" className="ml-auto">{getTotalActiveFilters()} active</Badge>
+                  )}
+                  {hasUnappliedChanges() && (
+                    <Badge variant="outline" className="text-orange-600 border-orange-600">
+                      Pending
+                    </Badge>
                   )}
                 </div>
-
-                {/* Account Filters */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Account Filters</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label>Countries ({availableOptions.accountCountries.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountCountries}
-                        selected={pendingFilters.accountCountries}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountCountries: selected }))}
-                        placeholder="Select countries..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Regions ({availableOptions.accountRegions.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountRegions}
-                        selected={pendingFilters.accountRegions}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountRegions: selected }))}
-                        placeholder="Select regions..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Industries ({availableOptions.accountIndustries.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountIndustries}
-                        selected={pendingFilters.accountIndustries}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountIndustries: selected }))}
-                        placeholder="Select industries..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Sub Industries ({availableOptions.accountSubIndustries.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountSubIndustries}
-                        selected={pendingFilters.accountSubIndustries}
-                        onChange={(selected) =>
-                          setPendingFilters((prev) => ({ ...prev, accountSubIndustries: selected }))
-                        }
-                        placeholder="Select sub industries..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Primary Categories ({availableOptions.accountPrimaryCategories.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountPrimaryCategories}
-                        selected={pendingFilters.accountPrimaryCategories}
-                        onChange={(selected) =>
-                          setPendingFilters((prev) => ({ ...prev, accountPrimaryCategories: selected }))
-                        }
-                        placeholder="Select categories..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Primary Nature ({availableOptions.accountPrimaryNatures.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountPrimaryNatures}
-                        selected={pendingFilters.accountPrimaryNatures}
-                        onChange={(selected) =>
-                          setPendingFilters((prev) => ({ ...prev, accountPrimaryNatures: selected }))
-                        }
-                        placeholder="Select nature..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>NASSCOM Status ({availableOptions.accountNasscomStatuses.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountNasscomStatuses}
-                        selected={pendingFilters.accountNasscomStatuses}
-                        onChange={(selected) =>
-                          setPendingFilters((prev) => ({ ...prev, accountNasscomStatuses: selected }))
-                        }
-                        placeholder="Select NASSCOM status..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Employees Range ({availableOptions.accountEmployeesRanges.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountEmployeesRanges}
-                        selected={pendingFilters.accountEmployeesRanges}
-                        onChange={(selected) =>
-                          setPendingFilters((prev) => ({ ...prev, accountEmployeesRanges: selected }))
-                        }
-                        placeholder="Select employees range..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Center Employees ({availableOptions.accountCenterEmployees.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.accountCenterEmployees}
-                        selected={pendingFilters.accountCenterEmployees}
-                        onChange={(selected) =>
-                          setPendingFilters((prev) => ({ ...prev, accountCenterEmployees: selected }))
-                        }
-                        placeholder="Select center employees..."
-                      />
-                    </div>
+                <div className="flex flex-col gap-2">
+                  <SavedFiltersManager
+                    currentFilters={filters}
+                    onLoadFilters={handleLoadSavedFilters}
+                    totalActiveFilters={getTotalActiveFilters()}
+                  />
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={applyFilters}
+                    disabled={!hasUnappliedChanges() || isApplying}
+                    className="w-full flex items-center justify-center gap-2"
+                  >
+                    {isApplying ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Applying...
+                      </>
+                    ) : (
+                      <>
+                        <Filter className="h-4 w-4" />
+                        Apply Filters {getTotalPendingFilters() > 0 && `(${getTotalPendingFilters()})`}
+                      </>
+                    )}
+                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={resetFilters} className="flex-1">
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Reset
+                    </Button>
+                    <Button variant="default" size="sm" onClick={exportAllData} className="flex-1 flex items-center justify-center gap-2">
+                      <Download className="h-4 w-4" />
+                      Export
+                    </Button>
                   </div>
+                </div>
+              </div>
 
-                  {/* Revenue Range Slider with Input Fields */}
-                  <div className="space-y-4 pt-4 border-t">
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-base font-medium">
-                          Account Revenue Range: {formatRevenueInMillions(pendingFilters.accountRevenueRange[0])} -{" "}
-                          {formatRevenueInMillions(pendingFilters.accountRevenueRange[1])}
-                        </Label>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            id="include-null-revenue"
-                            checked={pendingFilters.includeNullRevenue || false}
-                            onChange={(e) =>
-                              setPendingFilters((prev) => ({
-                                ...prev,
-                                includeNullRevenue: e.target.checked,
-                              }))
-                            }
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <Label htmlFor="include-null-revenue" className="text-sm text-gray-700 cursor-pointer">
-                            Include accounts with null/zero revenue
-                          </Label>
-                        </div>
-                      </div>
-
-                      {/* Input Fields */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="min-revenue" className="text-sm">
-                            Minimum (Millions)
-                          </Label>
-                          <Input
-                            id="min-revenue"
-                            type="number"
-                            value={pendingFilters.accountRevenueRange[0]}
-                            onChange={(e) => handleMinRevenueChange(e.target.value)}
-                            min={revenueRange.min}
-                            max={pendingFilters.accountRevenueRange[1]}
-                            placeholder="Min revenue"
-                            className="text-sm"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="max-revenue" className="text-sm">
-                            Maximum (Millions)
-                          </Label>
-                          <Input
-                            id="max-revenue"
-                            type="number"
-                            value={pendingFilters.accountRevenueRange[1]}
-                            onChange={(e) => handleMaxRevenueChange(e.target.value)}
-                            min={pendingFilters.accountRevenueRange[0]}
-                            max={revenueRange.max}
-                            placeholder="Max revenue"
-                            className="text-sm"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Slider */}
-                      <div className="px-3 py-2">
-                        <Slider
-                          value={pendingFilters.accountRevenueRange}
-                          onValueChange={(value) =>
-                            setPendingFilters((prev) => ({
-                              ...prev,
-                              accountRevenueRange: value as [number, number],
-                            }))
-                          }
-                          min={revenueRange.min}
-                          max={revenueRange.max}
-                          step={Math.max(1, Math.floor((revenueRange.max - revenueRange.min) / 1000))}
-                          className="w-full"
+              {/* Accordion Filters */}
+              <Accordion type="multiple" defaultValue={["accounts", "centers"]} className="w-full">
+                {/* Accounts Accordion */}
+                <AccordionItem value="accounts">
+                  <AccordionTrigger className="text-sm font-semibold">
+                    <div className="flex items-center gap-2">
+                      <Building className="h-4 w-4 text-blue-600" />
+                      Accounts
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4 pt-2">
+                      {/* Search */}
+                      <div className="space-y-2">
+                        <Label className="text-xs font-medium">Search Account Name</Label>
+                        <Input
+                          placeholder="Search accounts..."
+                          value={searchInput}
+                          onChange={handleSearchChange}
+                          className="text-sm"
                         />
+                        {searchInput !== pendingFilters.searchTerm && (
+                          <p className="text-xs text-gray-400">Typing... (search will apply in 500ms)</p>
+                        )}
                       </div>
 
-                      {/* Range Display */}
-                      <div className="flex justify-between text-sm text-gray-500">
-                        <span>{formatRevenueInMillions(revenueRange.min)}</span>
-                        <span>{formatRevenueInMillions(revenueRange.max)}</span>
+                      {/* Account Filters */}
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Countries ({availableOptions.accountCountries.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.accountCountries}
+                            selected={pendingFilters.accountCountries}
+                            onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountCountries: selected }))}
+                            placeholder="Select countries..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Regions ({availableOptions.accountRegions.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.accountRegions}
+                            selected={pendingFilters.accountRegions}
+                            onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountRegions: selected }))}
+                            placeholder="Select regions..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Industries ({availableOptions.accountIndustries.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.accountIndustries}
+                            selected={pendingFilters.accountIndustries}
+                            onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountIndustries: selected }))}
+                            placeholder="Select industries..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Sub Industries ({availableOptions.accountSubIndustries.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.accountSubIndustries}
+                            selected={pendingFilters.accountSubIndustries}
+                            onChange={(selected) =>
+                              setPendingFilters((prev) => ({ ...prev, accountSubIndustries: selected }))
+                            }
+                            placeholder="Select sub industries..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Primary Categories ({availableOptions.accountPrimaryCategories.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.accountPrimaryCategories}
+                            selected={pendingFilters.accountPrimaryCategories}
+                            onChange={(selected) =>
+                              setPendingFilters((prev) => ({ ...prev, accountPrimaryCategories: selected }))
+                            }
+                            placeholder="Select categories..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Primary Nature ({availableOptions.accountPrimaryNatures.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.accountPrimaryNatures}
+                            selected={pendingFilters.accountPrimaryNatures}
+                            onChange={(selected) =>
+                              setPendingFilters((prev) => ({ ...prev, accountPrimaryNatures: selected }))
+                            }
+                            placeholder="Select nature..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">NASSCOM Status ({availableOptions.accountNasscomStatuses.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.accountNasscomStatuses}
+                            selected={pendingFilters.accountNasscomStatuses}
+                            onChange={(selected) =>
+                              setPendingFilters((prev) => ({ ...prev, accountNasscomStatuses: selected }))
+                            }
+                            placeholder="Select NASSCOM status..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Employees Range ({availableOptions.accountEmployeesRanges.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.accountEmployeesRanges}
+                            selected={pendingFilters.accountEmployeesRanges}
+                            onChange={(selected) =>
+                              setPendingFilters((prev) => ({ ...prev, accountEmployeesRanges: selected }))
+                            }
+                            placeholder="Select employees range..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Center Employees ({availableOptions.accountCenterEmployees.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.accountCenterEmployees}
+                            selected={pendingFilters.accountCenterEmployees}
+                            onChange={(selected) =>
+                              setPendingFilters((prev) => ({ ...prev, accountCenterEmployees: selected }))
+                            }
+                            placeholder="Select center employees..."
+                          />
+                        </div>
+
+                        {/* Revenue Range */}
+                        <div className="space-y-3 pt-2 border-t">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-xs font-medium">
+                              Revenue: {formatRevenueInMillions(pendingFilters.accountRevenueRange[0])} -{" "}
+                              {formatRevenueInMillions(pendingFilters.accountRevenueRange[1])}
+                            </Label>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id="include-null-revenue"
+                                checked={pendingFilters.includeNullRevenue || false}
+                                onChange={(e) =>
+                                  setPendingFilters((prev) => ({
+                                    ...prev,
+                                    includeNullRevenue: e.target.checked,
+                                  }))
+                                }
+                                className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              />
+                              <Label htmlFor="include-null-revenue" className="text-xs text-gray-700 cursor-pointer">
+                                Include null/zero
+                              </Label>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                              <Label htmlFor="min-revenue" className="text-xs">Min (M)</Label>
+                              <Input
+                                id="min-revenue"
+                                type="number"
+                                value={pendingFilters.accountRevenueRange[0]}
+                                onChange={(e) => handleMinRevenueChange(e.target.value)}
+                                min={revenueRange.min}
+                                max={pendingFilters.accountRevenueRange[1]}
+                                className="text-xs h-8"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor="max-revenue" className="text-xs">Max (M)</Label>
+                              <Input
+                                id="max-revenue"
+                                type="number"
+                                value={pendingFilters.accountRevenueRange[1]}
+                                onChange={(e) => handleMaxRevenueChange(e.target.value)}
+                                min={pendingFilters.accountRevenueRange[0]}
+                                max={revenueRange.max}
+                                className="text-xs h-8"
+                              />
+                            </div>
+                          </div>
+                          <div className="px-2">
+                            <Slider
+                              value={pendingFilters.accountRevenueRange}
+                              onValueChange={(value) =>
+                                setPendingFilters((prev) => ({
+                                  ...prev,
+                                  accountRevenueRange: value as [number, number],
+                                }))
+                              }
+                              min={revenueRange.min}
+                              max={revenueRange.max}
+                              step={Math.max(1, Math.floor((revenueRange.max - revenueRange.min) / 1000))}
+                              className="w-full"
+                            />
+                          </div>
+                          <div className="flex justify-between text-xs text-gray-500 px-2">
+                            <span>{formatRevenueInMillions(revenueRange.min)}</span>
+                            <span>{formatRevenueInMillions(revenueRange.max)}</span>
+                          </div>
+                        </div>
                       </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
 
-                      <p className="text-xs text-gray-400">
-                        All values are in millions. Use the slider or input fields to set your desired range. Toggle
-                        above to include accounts with missing or zero revenue data.
-                      </p>
+                {/* Centers Accordion */}
+                <AccordionItem value="centers">
+                  <AccordionTrigger className="text-sm font-semibold">
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="h-4 w-4 text-green-600" />
+                      Centers
                     </div>
-                  </div>
-                </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4 pt-2">
+                      {/* Center Filters */}
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Center Types ({availableOptions.centerTypes.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.centerTypes}
+                            selected={pendingFilters.centerTypes}
+                            onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerTypes: selected }))}
+                            placeholder="Select types..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Center Focus ({availableOptions.centerFocus.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.centerFocus}
+                            selected={pendingFilters.centerFocus}
+                            onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerFocus: selected }))}
+                            placeholder="Select focus..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Cities ({availableOptions.centerCities.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.centerCities}
+                            selected={pendingFilters.centerCities}
+                            onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerCities: selected }))}
+                            placeholder="Select cities..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">States ({availableOptions.centerStates.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.centerStates}
+                            selected={pendingFilters.centerStates}
+                            onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerStates: selected }))}
+                            placeholder="Select states..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Countries ({availableOptions.centerCountries.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.centerCountries}
+                            selected={pendingFilters.centerCountries}
+                            onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerCountries: selected }))}
+                            placeholder="Select countries..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Center Employees ({availableOptions.centerEmployees.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.centerEmployees}
+                            selected={pendingFilters.centerEmployees}
+                            onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerEmployees: selected }))}
+                            placeholder="Select employees range..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Center Status ({availableOptions.centerStatuses.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.centerStatuses}
+                            selected={pendingFilters.centerStatuses}
+                            onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerStatuses: selected }))}
+                            placeholder="Select status..."
+                          />
+                        </div>
 
-                {/* Center Filters */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Center Filters</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label>Center Types ({availableOptions.centerTypes.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.centerTypes}
-                        selected={pendingFilters.centerTypes}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerTypes: selected }))}
-                        placeholder="Select types..."
-                      />
+                        {/* Functions nested inside Centers */}
+                        <div className="space-y-2 pt-2 border-t">
+                          <Label className="text-xs font-medium">Functions ({availableOptions.functionTypes.length})</Label>
+                          <MultiSelect
+                            options={availableOptions.functionTypes}
+                            selected={pendingFilters.functionTypes}
+                            onChange={(selected) => setPendingFilters((prev) => ({ ...prev, functionTypes: selected }))}
+                            placeholder="Select functions..."
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Center Focus ({availableOptions.centerFocus.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.centerFocus}
-                        selected={pendingFilters.centerFocus}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerFocus: selected }))}
-                        placeholder="Select focus..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Cities ({availableOptions.centerCities.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.centerCities}
-                        selected={pendingFilters.centerCities}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerCities: selected }))}
-                        placeholder="Select cities..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>States ({availableOptions.centerStates.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.centerStates}
-                        selected={pendingFilters.centerStates}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerStates: selected }))}
-                        placeholder="Select states..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Countries ({availableOptions.centerCountries.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.centerCountries}
-                        selected={pendingFilters.centerCountries}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerCountries: selected }))}
-                        placeholder="Select countries..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Center Employees Range ({availableOptions.centerEmployees.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.centerEmployees}
-                        selected={pendingFilters.centerEmployees}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerEmployees: selected }))}
-                        placeholder="Select employees range..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Center Status ({availableOptions.centerStatuses.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.centerStatuses}
-                        selected={pendingFilters.centerStatuses}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerStatuses: selected }))}
-                        placeholder="Select status..."
-                      />
-                    </div>
-                  </div>
-                </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+          </div>
 
-                {/* Function Filters */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Function Filters</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Function Types ({availableOptions.functionTypes.length} available)</Label>
-                      <MultiSelect
-                        options={availableOptions.functionTypes}
-                        selected={pendingFilters.functionTypes}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, functionTypes: selected }))}
-                        placeholder="Select functions..."
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Data Tables */}
-            <Tabs defaultValue="accounts" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="accounts">Accounts ({filteredData.filteredAccounts.length})</TabsTrigger>
-                <TabsTrigger value="centers">Centers ({filteredData.filteredCenters.length})</TabsTrigger>
-                <TabsTrigger value="functions">Functions ({filteredData.filteredFunctions.length})</TabsTrigger>
-                <TabsTrigger value="services">Services ({filteredData.filteredServices.length})</TabsTrigger>
-              </TabsList>
+          {/* Right Side - Data View (70%) */}
+          <div className="flex-1 w-[70%] overflow-y-auto bg-gray-50">
+            <div className="p-6">
+              {/* Data Tables */}
+              <Tabs defaultValue="accounts" className="space-y-4">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="accounts">Accounts ({filteredData.filteredAccounts.length})</TabsTrigger>
+                  <TabsTrigger value="centers">Centers ({filteredData.filteredCenters.length})</TabsTrigger>
+                  <TabsTrigger value="services">Services ({filteredData.filteredServices.length})</TabsTrigger>
+                </TabsList>
 
               <TabsContent value="accounts">
                 <Card>
@@ -1859,88 +1857,6 @@ function DashboardContent() {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="functions">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Functions Data</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>CN Unique Key</TableHead>
-                            <TableHead>Function</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {getPaginatedData(filteredData.filteredFunctions, currentPage, itemsPerPage).map(
-                            (func, index) => (
-                              <FunctionRow key={`${func["CN UNIQUE KEY"]}-${func.FUNCTION}-${index}`} func={func} />
-                            )
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
-                    {filteredData.filteredFunctions.length > 0 && (
-                      <div className="flex items-center justify-between mt-4">
-                        <div className="flex items-center gap-4">
-                          <p className="text-sm text-gray-500">
-                            Showing{" "}
-                            {getPageInfo(currentPage, filteredData.filteredFunctions.length, itemsPerPage).startItem} to{" "}
-                            {getPageInfo(currentPage, filteredData.filteredFunctions.length, itemsPerPage).endItem} of{" "}
-                            {filteredData.filteredFunctions.length} results
-                          </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              exportToExcel(filteredData.filteredFunctions, "functions-export", "Functions")
-                            }
-                            className="flex items-center gap-2"
-                          >
-                            <Download className="h-4 w-4" />
-                            Export Functions
-                          </Button>
-                        </div>
-                        {getTotalPages(filteredData.filteredFunctions.length, itemsPerPage) > 1 && (
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                              disabled={currentPage === 1}
-                            >
-                              Previous
-                            </Button>
-                            <span className="text-sm text-gray-600">
-                              Page {currentPage} of {getTotalPages(filteredData.filteredFunctions.length, itemsPerPage)}
-                            </span>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setCurrentPage((prev) =>
-                                  Math.min(
-                                    prev + 1,
-                                    getTotalPages(filteredData.filteredFunctions.length, itemsPerPage)
-                                  )
-                                )
-                              }
-                              disabled={
-                                currentPage === getTotalPages(filteredData.filteredFunctions.length, itemsPerPage)
-                              }
-                            >
-                              Next
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
               <TabsContent value="services">
                 <Card>
                   <CardHeader>
@@ -2030,7 +1946,8 @@ function DashboardContent() {
                 </Card>
               </TabsContent>
             </Tabs>
-          </>
+            </div>
+          </div>
         )}
       </div>
     </div>
