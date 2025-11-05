@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Slider } from "@/components/ui/slider"
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
 import {
   Filter,
   RotateCcw,
@@ -25,6 +26,7 @@ import {
   Loader2,
   Building,
   Briefcase,
+  PieChartIcon,
 } from "lucide-react"
 import { MultiSelect } from "@/components/multi-select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -202,6 +204,75 @@ const ServiceRow = memo(({ service }: { service: Service }) => (
 ))
 ServiceRow.displayName = "ServiceRow"
 
+// Custom Tooltip for Charts
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+        <p className="font-semibold text-gray-900">{payload[0].name}</p>
+        <p className="text-sm text-gray-600">
+          Count: <span className="font-bold text-blue-600">{payload[0].value}</span>
+        </p>
+        <p className="text-xs text-gray-500">
+          {((payload[0].value / payload[0].payload.total) * 100).toFixed(1)}% of total
+        </p>
+      </div>
+    )
+  }
+  return null
+}
+
+// Pie Chart Component
+const PieChartCard = memo(({ title, data, dataKey = "value" }: { title: string; data: any[]; dataKey?: string }) => {
+  // Add total to each data point for tooltip calculation
+  const total = data.reduce((sum, item) => sum + item[dataKey], 0)
+  const dataWithTotal = data.map(item => ({ ...item, total }))
+  
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold flex items-center gap-2">
+          <PieChartIcon className="h-4 w-4 text-blue-600" />
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {data.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={dataWithTotal}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey={dataKey}
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+              <Legend 
+                verticalAlign="bottom" 
+                height={36}
+                formatter={(value) => <span className="text-xs">{value}</span>}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-[300px] flex items-center justify-center text-gray-400">
+            <p className="text-sm">No data available</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+})
+PieChartCard.displayName = "PieChartCard"
+
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
@@ -213,6 +284,40 @@ const parseRevenue = (value: string | number): number => {
 
 const formatRevenueInMillions = (value: number): string => {
   return `${value.toLocaleString()}M`
+}
+
+// Color palette for charts
+const CHART_COLORS = [
+  "#3b82f6", // blue
+  "#10b981", // green
+  "#f59e0b", // amber
+  "#ef4444", // red
+  "#8b5cf6", // violet
+  "#ec4899", // pink
+  "#06b6d4", // cyan
+  "#f97316", // orange
+  "#14b8a6", // teal
+  "#6366f1", // indigo
+  "#84cc16", // lime
+  "#a855f7", // purple
+  "#f43f5e", // rose
+  "#22d3ee", // sky
+  "#facc15", // yellow
+]
+
+// Calculate chart data from accounts
+const calculateChartData = (accounts: Account[], field: keyof Account) => {
+  const counts = new Map<string, number>()
+  
+  accounts.forEach((account) => {
+    const value = account[field] || "Unknown"
+    counts.set(value, (counts.get(value) || 0) + 1)
+  })
+  
+  return Array.from(counts.entries())
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 10) // Top 10 for better readability
 }
 
 // Debounce function
@@ -547,6 +652,18 @@ function DashboardContent() {
     filters.functionTypes,
     filters.searchTerm,
   ])
+
+  // Calculate chart data for accounts
+  const accountChartData = useMemo(() => {
+    const accounts = filteredData.filteredAccounts
+    
+    return {
+      regionData: calculateChartData(accounts, "ACCOUNT REGION"),
+      primaryNatureData: calculateChartData(accounts, "ACCOUNT PRIMARY NATURE"),
+      revenueRangeData: calculateChartData(accounts, "ACCOUNT REVENUE RANGE"),
+      employeesRangeData: calculateChartData(accounts, "ACCOUNT EMPLOYEES RANGE"),
+    }
+  }, [filteredData.filteredAccounts])
 
   // Dynamic revenue range calculation
   const dynamicRevenueRange = useMemo(() => {
@@ -1686,6 +1803,37 @@ function DashboardContent() {
                 </TabsList>
 
               <TabsContent value="accounts">
+                {/* Charts Section */}
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <PieChartIcon className="h-5 w-5 text-blue-600" />
+                    <h2 className="text-lg font-semibold text-gray-900">Account Analytics</h2>
+                    <Badge variant="secondary" className="ml-auto">
+                      {filteredData.filteredAccounts.length} Accounts
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <PieChartCard
+                      title="Region Split"
+                      data={accountChartData.regionData}
+                    />
+                    <PieChartCard
+                      title="Primary Nature Split"
+                      data={accountChartData.primaryNatureData}
+                    />
+                    <PieChartCard
+                      title="Revenue Range Split"
+                      data={accountChartData.revenueRangeData}
+                    />
+                    <PieChartCard
+                      title="Employees Range Split"
+                      data={accountChartData.employeesRangeData}
+                    />
+                  </div>
+                </div>
+
+                {/* Data Table */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Accounts Data</CardTitle>
