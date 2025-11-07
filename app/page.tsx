@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo, useRef, useEffect, memo } from "react"
+import React, { useState, useCallback, useMemo, useRef, useEffect, memo } from "react"
 import * as XLSX from "xlsx"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Slider } from "@/components/ui/slider"
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
+import { PieChart, Pie, Cell, Legend } from "recharts"
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from "@/components/ui/chart"
 import {
   Filter,
   RotateCcw,
@@ -204,30 +205,20 @@ const ServiceRow = memo(({ service }: { service: Service }) => (
 ))
 ServiceRow.displayName = "ServiceRow"
 
-// Custom Tooltip for Charts
-const CustomTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-        <p className="font-semibold text-gray-900">{payload[0].name}</p>
-        <p className="text-sm text-gray-600">
-          Count: <span className="font-bold text-blue-600">{payload[0].value}</span>
-        </p>
-        <p className="text-xs text-gray-500">
-          {((payload[0].value / payload[0].payload.total) * 100).toFixed(1)}% of total
-        </p>
-      </div>
-    )
-  }
-  return null
-}
-
-// Pie Chart Component
+// Pie Chart Component with shadcn/ui
 const PieChartCard = memo(({ title, data, dataKey = "value" }: { title: string; data: any[]; dataKey?: string }) => {
-  // Add total to each data point for tooltip calculation
-  const total = data.reduce((sum, item) => sum + item[dataKey], 0)
-  const dataWithTotal = data.map(item => ({ ...item, total }))
-  
+  // Create chart config from data
+  const chartConfig = React.useMemo(() => {
+    const config: ChartConfig = {}
+    data.forEach((item, index) => {
+      config[item.name] = {
+        label: item.name,
+        color: CHART_COLORS[index % CHART_COLORS.length],
+      }
+    })
+    return config
+  }, [data])
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -238,30 +229,27 @@ const PieChartCard = memo(({ title, data, dataKey = "value" }: { title: string; 
       </CardHeader>
       <CardContent>
         {data.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
+          <ChartContainer config={chartConfig} className="h-[300px] w-full">
             <PieChart>
+              <ChartTooltip
+                content={<ChartTooltipContent hideLabel />}
+              />
               <Pie
-                data={dataWithTotal}
+                data={data}
+                dataKey={dataKey}
+                nameKey="name"
                 cx="50%"
                 cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                 outerRadius={80}
-                fill="#8884d8"
-                dataKey={dataKey}
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip />} />
-              <Legend 
-                verticalAlign="bottom" 
-                height={36}
-                formatter={(value) => <span className="text-xs">{value}</span>}
-              />
+              <ChartLegend content={<ChartLegendContent />} />
             </PieChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         ) : (
           <div className="h-[300px] flex items-center justify-center text-gray-400">
             <p className="text-sm">No data available</p>
