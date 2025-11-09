@@ -149,18 +149,18 @@ export function FiltersSidebar({
                 {/* Account Filters */}
                 <div className="space-y-3">
                   <div className="space-y-2">
-                    <Label className="text-xs font-medium">Countries ({availableOptions.accountCountries.length})</Label>
+                    <Label className="text-xs font-medium">Countries ({availableOptions.accountCountries?.length || 0})</Label>
                     <MultiSelect
-                      options={availableOptions.accountCountries}
+                      options={availableOptions.accountCountries || []}
                       selected={pendingFilters.accountCountries}
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountCountries: selected }))}
                       placeholder="Select countries..."
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs font-medium">Regions ({availableOptions.accountRegions.length})</Label>
+                    <Label className="text-xs font-medium">Regions ({availableOptions.accountRegions?.length || 0})</Label>
                     <MultiSelect
-                      options={availableOptions.accountRegions}
+                      options={availableOptions.accountRegions || []}
                       selected={pendingFilters.accountRegions}
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountRegions: selected }))}
                       placeholder="Select regions..."
