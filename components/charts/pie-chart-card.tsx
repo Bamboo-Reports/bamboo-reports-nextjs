@@ -13,17 +13,20 @@ interface PieChartCardProps {
 }
 
 export const PieChartCard = memo(({ title, data, dataKey = "value" }: PieChartCardProps) => {
+  // Safety check: ensure data is an array
+  const safeData = data || []
+
   // Create chart config from data
   const chartConfig = React.useMemo(() => {
     const config: ChartConfig = {}
-    data.forEach((item, index) => {
+    safeData.forEach((item, index) => {
       config[item.name] = {
         label: item.name,
         color: CHART_COLORS[index % CHART_COLORS.length],
       }
     })
     return config
-  }, [data])
+  }, [safeData])
 
   return (
     <Card>
@@ -34,14 +37,14 @@ export const PieChartCard = memo(({ title, data, dataKey = "value" }: PieChartCa
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {data.length > 0 ? (
+        {safeData.length > 0 ? (
           <ChartContainer config={chartConfig} className="h-[300px] w-full">
             <PieChart>
               <ChartTooltip
                 content={<ChartTooltipContent hideLabel />}
               />
               <Pie
-                data={data}
+                data={safeData}
                 dataKey={dataKey}
                 nameKey="name"
                 cx="50%"
@@ -49,7 +52,7 @@ export const PieChartCard = memo(({ title, data, dataKey = "value" }: PieChartCa
                 outerRadius={80}
                 label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
               >
-                {data.map((entry, index) => (
+                {safeData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                 ))}
               </Pie>
