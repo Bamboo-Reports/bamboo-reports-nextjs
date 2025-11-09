@@ -28,6 +28,7 @@ import {
   Building,
   Briefcase,
   PieChartIcon,
+  Table as TableIcon,
 } from "lucide-react"
 import { MultiSelect } from "@/components/multi-select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -441,6 +442,8 @@ function DashboardContent() {
   const [itemsPerPage] = useState(50)
   const [isApplying, setIsApplying] = useState(false)
   const [searchInput, setSearchInput] = useState("")
+  const [accountsView, setAccountsView] = useState<"chart" | "data">("chart")
+  const [centersView, setCentersView] = useState<"chart" | "data">("chart")
 
   // Load data from database on component mount
   useEffect(() => {
@@ -1864,37 +1867,61 @@ function DashboardContent() {
                 </TabsList>
 
               <TabsContent value="accounts">
-                {/* Charts Section */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <PieChartIcon className="h-5 w-5 text-blue-600" />
-                    <h2 className="text-lg font-semibold text-gray-900">Account Analytics</h2>
-                    <Badge variant="secondary" className="ml-auto">
-                      {filteredData.filteredAccounts.length} Accounts
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <PieChartCard
-                      title="Region Split"
-                      data={accountChartData.regionData}
-                    />
-                    <PieChartCard
-                      title="Primary Nature Split"
-                      data={accountChartData.primaryNatureData}
-                    />
-                    <PieChartCard
-                      title="Revenue Range Split"
-                      data={accountChartData.revenueRangeData}
-                    />
-                    <PieChartCard
-                      title="Employees Range Split"
-                      data={accountChartData.employeesRangeData}
-                    />
+                {/* Header with View Toggle */}
+                <div className="flex items-center gap-2 mb-4">
+                  <PieChartIcon className="h-5 w-5 text-blue-600" />
+                  <h2 className="text-lg font-semibold text-gray-900">Account Analytics</h2>
+                  <Badge variant="secondary" className="ml-2">
+                    {filteredData.filteredAccounts.length} Accounts
+                  </Badge>
+                  <div className="ml-auto flex items-center gap-2">
+                    <Button
+                      variant={accountsView === "chart" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setAccountsView("chart")}
+                      className="flex items-center gap-2"
+                    >
+                      <PieChartIcon className="h-4 w-4" />
+                      Charts
+                    </Button>
+                    <Button
+                      variant={accountsView === "data" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setAccountsView("data")}
+                      className="flex items-center gap-2"
+                    >
+                      <TableIcon className="h-4 w-4" />
+                      Data
+                    </Button>
                   </div>
                 </div>
 
+                {/* Charts Section */}
+                {accountsView === "chart" && (
+                  <div className="mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <PieChartCard
+                        title="Region Split"
+                        data={accountChartData.regionData}
+                      />
+                      <PieChartCard
+                        title="Primary Nature Split"
+                        data={accountChartData.primaryNatureData}
+                      />
+                      <PieChartCard
+                        title="Revenue Range Split"
+                        data={accountChartData.revenueRangeData}
+                      />
+                      <PieChartCard
+                        title="Employees Range Split"
+                        data={accountChartData.employeesRangeData}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Data Table */}
+                {accountsView === "data" && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Accounts Data</CardTitle>
@@ -1979,40 +2006,65 @@ function DashboardContent() {
                     )}
                   </CardContent>
                 </Card>
+                )}
               </TabsContent>
 
               <TabsContent value="centers">
-                {/* Charts Section */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <PieChartIcon className="h-5 w-5 text-green-600" />
-                    <h2 className="text-lg font-semibold text-gray-900">Center Analytics</h2>
-                    <Badge variant="secondary" className="ml-auto">
-                      {filteredData.filteredCenters.length} Centers
-                    </Badge>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <PieChartCard
-                      title="Center Type Distribution"
-                      data={centerChartData.centerTypeData}
-                    />
-                    <PieChartCard
-                      title="Employee Range Distribution"
-                      data={centerChartData.employeesRangeData}
-                    />
-                    <PieChartCard
-                      title="City Distribution (Top 5)"
-                      data={centerChartData.cityData}
-                    />
-                    <PieChartCard
-                      title="Functions Distribution"
-                      data={centerChartData.functionData}
-                    />
+                {/* Header with View Toggle */}
+                <div className="flex items-center gap-2 mb-4">
+                  <PieChartIcon className="h-5 w-5 text-green-600" />
+                  <h2 className="text-lg font-semibold text-gray-900">Center Analytics</h2>
+                  <Badge variant="secondary" className="ml-2">
+                    {filteredData.filteredCenters.length} Centers
+                  </Badge>
+                  <div className="ml-auto flex items-center gap-2">
+                    <Button
+                      variant={centersView === "chart" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCentersView("chart")}
+                      className="flex items-center gap-2"
+                    >
+                      <PieChartIcon className="h-4 w-4" />
+                      Charts
+                    </Button>
+                    <Button
+                      variant={centersView === "data" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCentersView("data")}
+                      className="flex items-center gap-2"
+                    >
+                      <TableIcon className="h-4 w-4" />
+                      Data
+                    </Button>
                   </div>
                 </div>
 
+                {/* Charts Section */}
+                {centersView === "chart" && (
+                  <div className="mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <PieChartCard
+                        title="Center Type Distribution"
+                        data={centerChartData.centerTypeData}
+                      />
+                      <PieChartCard
+                        title="Employee Range Distribution"
+                        data={centerChartData.employeesRangeData}
+                      />
+                      <PieChartCard
+                        title="City Distribution (Top 5)"
+                        data={centerChartData.cityData}
+                      />
+                      <PieChartCard
+                        title="Functions Distribution"
+                        data={centerChartData.functionData}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Data Table */}
+                {centersView === "data" && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Centers Data</CardTitle>
@@ -2095,6 +2147,7 @@ function DashboardContent() {
                     )}
                   </CardContent>
                 </Card>
+                )}
               </TabsContent>
 
               <TabsContent value="services">
