@@ -1,3 +1,4 @@
+import React from "react"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, RefreshCw, Database } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -9,9 +10,9 @@ interface HeaderProps {
   onClearCache: () => void
 }
 
-export function Header({ connectionStatus, onRefresh, onClearCache }: HeaderProps) {
+export const Header = React.memo(function Header({ connectionStatus, onRefresh, onClearCache }: HeaderProps) {
   return (
-    <div className="bg-background border-b shadow-sm sticky top-0 z-10">
+    <div className="bg-background border-b shadow-sm sticky top-0 z-10 animate-slide-down backdrop-blur-sm bg-background/95">
       <div className="max-w-full mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-2">
@@ -19,10 +20,10 @@ export function Header({ connectionStatus, onRefresh, onClearCache }: HeaderProp
             <p className="text-sm text-foreground/80">Intelligence-driven insights for accounts, centers, and services</p>
           </div>
           <div className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-[hsl(var(--chart-2))]" />
+            <CheckCircle className="h-4 w-4 text-[hsl(var(--chart-2))] animate-pulse-subtle" />
             <span className="text-sm text-foreground/70">Connected to Neon Database</span>
-            <Button variant="ghost" size="sm" onClick={onRefresh} className="h-8 px-3">
-              <RefreshCw className="h-3 w-3" />
+            <Button variant="ghost" size="sm" onClick={onRefresh} className="h-8 px-3 group">
+              <RefreshCw className="h-3 w-3 group-hover:rotate-180 transition-transform duration-500" />
             </Button>
             <Button variant="ghost" size="sm" onClick={onClearCache} className="h-8 px-3" title="Clear Cache">
               <Database className="h-3 w-3" />
@@ -30,8 +31,8 @@ export function Header({ connectionStatus, onRefresh, onClearCache }: HeaderProp
             <ThemeToggle />
           </div>
         </div>
-        {connectionStatus && <p className="text-xs text-muted-foreground mt-1">{connectionStatus}</p>}
+        {connectionStatus && <p className="text-xs text-muted-foreground mt-1 animate-fade-in">{connectionStatus}</p>}
       </div>
     </div>
   )
-}
+})

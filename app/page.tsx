@@ -123,11 +123,11 @@ function DashboardContent() {
     loadData()
   }, [])
 
-  // Debounced search handler
+  // Debounced search handler - optimized for fast response
   const debouncedSearch = useCallback(
     debounce((value: string) => {
       setPendingFilters((prev) => ({ ...prev, searchTerm: value }))
-    }, 500),
+    }, 150),
     []
   )
 

@@ -17,7 +17,71 @@ interface MultiSelectProps {
   className?: string
 }
 
-export function MultiSelect({
+// Memoized Badge component for performance
+const SelectBadge = React.memo(({ item, onRemove }: { item: string; onRemove: () => void }) => (
+  <Badge
+    variant="secondary"
+    key={item}
+    className="mr-1 mb-1 animate-badge-in hover:bg-secondary/80 transition-colors duration-100 cursor-pointer group"
+    onClick={(e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      onRemove()
+    }}
+  >
+    {item}
+    <X className="ml-1 h-3 w-3 group-hover:scale-110 transition-transform duration-100" />
+  </Badge>
+))
+SelectBadge.displayName = "SelectBadge"
+
+// Memoized Command Item for better performance
+const SelectItem = React.memo(({
+  value,
+  count,
+  disabled,
+  isSelected,
+  onSelect
+}: {
+  value: string
+  count?: number
+  disabled: boolean
+  isSelected: boolean
+  onSelect: () => void
+}) => (
+  <CommandItem
+    key={value}
+    onSelect={onSelect}
+    disabled={disabled}
+    className={cn(
+      "cursor-pointer transition-all duration-100",
+      disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-accent/50"
+    )}
+  >
+    <div className="flex items-center space-x-2 flex-1">
+      <Checkbox
+        checked={isSelected}
+        disabled={disabled}
+        className="h-4 w-4 transition-all duration-100"
+      />
+      <Check
+        className={cn(
+          "h-4 w-4 transition-all duration-100",
+          isSelected ? "opacity-100 scale-100" : "opacity-0 scale-75"
+        )}
+      />
+      <span className="flex-1">{value}</span>
+      {count !== undefined && (
+        <span className="text-xs text-muted-foreground ml-2 font-medium">
+          ({count})
+        </span>
+      )}
+    </div>
+  </CommandItem>
+))
+SelectItem.displayName = "SelectItem"
+
+export const MultiSelect = React.memo(function MultiSelect({
   options,
   selected,
   onChange,
@@ -26,11 +90,11 @@ export function MultiSelect({
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false)
 
-  const handleUnselect = (item: string) => {
+  const handleUnselect = React.useCallback((item: string) => {
     onChange(selected.filter((i) => i !== item))
-  }
+  }, [selected, onChange])
 
-  const handleSelect = (item: string) => {
+  const handleSelect = React.useCallback((item: string) => {
     const option = options.find((opt) => (typeof opt === "string" ? opt === item : opt.value === item))
     if (typeof option === "object" && option.disabled) return
 
@@ -39,7 +103,36 @@ export function MultiSelect({
     } else {
       onChange([...selected, item])
     }
-  }
+  }, [options, selected, onChange])
+
+  const renderBadges = React.useMemo(() => {
+    return selected.map((item) => (
+      <SelectBadge
+        key={item}
+        item={item}
+        onRemove={() => handleUnselect(item)}
+      />
+    ))
+  }, [selected, handleUnselect])
+
+  const renderOptions = React.useMemo(() => {
+    return options.map((option) => {
+      const value = typeof option === "string" ? option : option.value
+      const count = typeof option === "object" ? option.count : undefined
+      const disabled = typeof option === "object" ? option.disabled : false
+
+      return (
+        <SelectItem
+          key={value}
+          value={value}
+          count={count}
+          disabled={disabled}
+          isSelected={selected.includes(value)}
+          onSelect={() => handleSelect(value)}
+        />
+      )
+    })
+  }, [options, selected, handleSelect])
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
@@ -49,56 +142,25 @@ export function MultiSelect({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="justify-between h-auto min-h-10 bg-transparent"
+            className="justify-between h-auto min-h-10 bg-transparent hover:bg-accent/30 transition-all duration-150"
           >
             <div className="flex gap-1 flex-wrap">
-              {selected.length === 0 && placeholder}
-              {selected.map((item) => (
-                <Badge
-                  variant="secondary"
-                  key={item}
-                  className="mr-1 mb-1"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    handleUnselect(item)
-                  }}
-                >
-                  {item}
-                  <X className="ml-1 h-3 w-3" />
-                </Badge>
-              ))}
+              {selected.length === 0 && <span className="text-muted-foreground">{placeholder}</span>}
+              {renderBadges}
             </div>
-            <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+            <ChevronsUpDown className={cn(
+              "h-4 w-4 shrink-0 opacity-50 transition-transform duration-200",
+              open && "rotate-180"
+            )} />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0">
+        <PopoverContent className="w-full p-0 animate-slide-down">
           <Command>
-            <CommandInput placeholder="Search..." />
-            <CommandList>
+            <CommandInput placeholder="Search..." className="h-9" />
+            <CommandList className="max-h-64">
               <CommandEmpty>No item found.</CommandEmpty>
-              <CommandGroup className="max-h-64 overflow-auto">
-                {options.map((option) => {
-                  const value = typeof option === "string" ? option : option.value
-                  const count = typeof option === "object" ? option.count : undefined
-                  const disabled = typeof option === "object" ? option.disabled : false
-
-                  return (
-                    <CommandItem
-                      key={value}
-                      onSelect={() => handleSelect(value)}
-                      disabled={disabled}
-                      className={disabled ? "opacity-50 cursor-not-allowed" : ""}
-                    >
-                      <div className="flex items-center space-x-2 flex-1">
-                        <Checkbox checked={selected.includes(value)} disabled={disabled} className="h-4 w-4" />
-                        <Check className={cn("h-4 w-4", selected.includes(value) ? "opacity-100" : "opacity-0")} />
-                        <span className="flex-1">{value}</span>
-                        {count !== undefined && <span className="text-xs text-muted-foreground ml-2">({count})</span>}
-                      </div>
-                    </CommandItem>
-                  )
-                })}
+              <CommandGroup>
+                {renderOptions}
               </CommandGroup>
             </CommandList>
           </Command>
@@ -106,4 +168,6 @@ export function MultiSelect({
       </Popover>
     </div>
   )
-}
+})
+
+MultiSelect.displayName = "MultiSelect"
