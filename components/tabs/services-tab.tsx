@@ -7,6 +7,7 @@ import { TabsContent } from "@/components/ui/tabs"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Download } from "lucide-react"
 import { ServiceRow } from "@/components/tables"
+import { EmptyState } from "@/components/states/empty-state"
 import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
 import { exportToExcel } from "@/lib/utils/export-helpers"
 import type { Service } from "@/lib/types"
@@ -24,6 +25,15 @@ export function ServicesTab({
   setCurrentPage,
   itemsPerPage,
 }: ServicesTabProps) {
+  // Show empty state when no services
+  if (services.length === 0) {
+    return (
+      <TabsContent value="services">
+        <EmptyState type="no-results" />
+      </TabsContent>
+    )
+  }
+
   return (
     <TabsContent value="services">
       <Card>

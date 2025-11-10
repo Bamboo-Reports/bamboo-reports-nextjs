@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
+import { GeistSans } from 'geist/font/sans'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'Bamboo Reports - Business Intelligence Platform',
+  description: 'Intelligence-driven insights for accounts, centers, and services',
+  generator: 'Next.js',
 }
 
 export default function RootLayout({
@@ -15,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
+      <body className={GeistSans.className}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
