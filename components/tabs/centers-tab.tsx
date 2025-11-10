@@ -9,6 +9,7 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components
 import { Download, PieChartIcon, Table as TableIcon } from "lucide-react"
 import { CenterRow } from "@/components/tables"
 import { PieChartCard } from "@/components/charts/pie-chart-card"
+import { EmptyState } from "@/components/states/empty-state"
 import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
 import { exportToExcel } from "@/lib/utils/export-helpers"
 import type { Center, Function } from "@/lib/types"
@@ -38,11 +39,20 @@ export function CentersTab({
   setCurrentPage,
   itemsPerPage,
 }: CentersTabProps) {
+  // Show empty state when no centers
+  if (centers.length === 0) {
+    return (
+      <TabsContent value="centers">
+        <EmptyState type="no-results" />
+      </TabsContent>
+    )
+  }
+
   return (
     <TabsContent value="centers">
       {/* Header with View Toggle */}
       <div className="flex items-center gap-2 mb-4">
-        <PieChartIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
+        <PieChartIcon className="h-5 w-5 text-[hsl(var(--chart-2))]" />
         <h2 className="text-lg font-semibold text-foreground">Center Analytics</h2>
         <Badge variant="secondary" className="ml-2">
           {centers.length} Centers

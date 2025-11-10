@@ -9,6 +9,7 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components
 import { Download, PieChartIcon, Table as TableIcon } from "lucide-react"
 import { AccountRow } from "@/components/tables"
 import { PieChartCard } from "@/components/charts/pie-chart-card"
+import { EmptyState } from "@/components/states/empty-state"
 import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
 import { exportToExcel } from "@/lib/utils/export-helpers"
 import type { Account, Function } from "@/lib/types"
@@ -38,11 +39,20 @@ export function AccountsTab({
   setCurrentPage,
   itemsPerPage,
 }: AccountsTabProps) {
+  // Show empty state when no accounts
+  if (accounts.length === 0) {
+    return (
+      <TabsContent value="accounts">
+        <EmptyState type="no-results" />
+      </TabsContent>
+    )
+  }
+
   return (
     <TabsContent value="accounts">
       {/* Header with View Toggle */}
       <div className="flex items-center gap-2 mb-4">
-        <PieChartIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <PieChartIcon className="h-5 w-5 text-[hsl(var(--chart-1))]" />
         <h2 className="text-lg font-semibold text-foreground">Account Analytics</h2>
         <Badge variant="secondary" className="ml-2">
           {accounts.length} Accounts

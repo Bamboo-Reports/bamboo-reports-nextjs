@@ -66,10 +66,10 @@ export function FiltersSidebar({
   formatRevenueInMillions,
 }: FiltersSidebarProps) {
   return (
-    <div className="w-[30%] border-r bg-card overflow-y-auto">
+    <div className="w-[30%] border-r bg-sidebar overflow-y-auto animate-slide-in">
       <div className="p-4 space-y-4">
         {/* Filter Actions */}
-        <div className="flex flex-col gap-2 mb-4">
+        <div className="flex flex-col gap-2 mb-4 pb-4 border-b border-sidebar-border">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-semibold text-foreground">Filters</span>
@@ -126,7 +126,7 @@ export function FiltersSidebar({
           <AccordionItem value="accounts">
             <AccordionTrigger className="text-sm font-semibold">
               <div className="flex items-center gap-2">
-                <Building className="h-4 w-4 text-blue-600" />
+                <Building className="h-4 w-4 text-[hsl(var(--chart-1))]" />
                 Accounts
               </div>
             </AccordionTrigger>
@@ -243,7 +243,7 @@ export function FiltersSidebar({
                   </div>
 
                   {/* Revenue Range */}
-                  <div className="space-y-3 pt-2 border-t">
+                  <div className="space-y-3 pt-4 mt-4 border-t border-border">
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-medium">
                         Revenue: {formatRevenueInMillions(pendingFilters.accountRevenueRange[0])} -{" "}
@@ -322,7 +322,7 @@ export function FiltersSidebar({
           <AccordionItem value="centers">
             <AccordionTrigger className="text-sm font-semibold">
               <div className="flex items-center gap-2">
-                <Briefcase className="h-4 w-4 text-green-600" />
+                <Briefcase className="h-4 w-4 text-[hsl(var(--chart-2))]" />
                 Centers
               </div>
             </AccordionTrigger>
@@ -395,7 +395,7 @@ export function FiltersSidebar({
                   </div>
 
                   {/* Functions nested inside Centers */}
-                  <div className="space-y-2 pt-2 border-t">
+                  <div className="space-y-2 pt-4 mt-4 border-t border-border">
                     <Label className="text-xs font-medium">Functions ({availableOptions.functionTypes.length})</Label>
                     <MultiSelect
                       options={availableOptions.functionTypes}
