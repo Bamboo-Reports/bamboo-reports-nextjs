@@ -66,7 +66,7 @@ export function FiltersSidebar({
   formatRevenueInMillions,
 }: FiltersSidebarProps) {
   return (
-    <div className="w-[30%] border-r bg-sidebar overflow-y-auto animate-slide-in">
+    <div className="w-[30%] border-r bg-sidebar overflow-y-auto animate-slide-in will-change-auto">
       <div className="p-4 space-y-4">
         {/* Filter Actions */}
         <div className="flex flex-col gap-2 mb-4 pb-4 border-b border-sidebar-border">
@@ -142,7 +142,7 @@ export function FiltersSidebar({
                     className="text-sm"
                   />
                   {searchInput !== pendingFilters.searchTerm && (
-                    <p className="text-xs text-muted-foreground">Typing... (search will apply in 500ms)</p>
+                    <p className="text-xs text-muted-foreground animate-pulse-subtle">Typing...</p>
                   )}
                 </div>
 
