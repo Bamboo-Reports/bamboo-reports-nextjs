@@ -22,51 +22,37 @@ import type { Filters, AvailableOptions } from "@/lib/types"
 interface FiltersSidebarProps {
   // State values
   filters: Filters
-  pendingFilters: Filters
   availableOptions: AvailableOptions
-  searchInput: string
-  isApplying: boolean
   revenueRange: { min: number; max: number }
 
   // Callback functions
-  setPendingFilters: React.Dispatch<React.SetStateAction<Filters>>
-  applyFilters: () => void
+  setFilters: React.Dispatch<React.SetStateAction<Filters>>
   resetFilters: () => void
   handleExportAll: () => void
-  handleSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   handleMinRevenueChange: (value: string) => void
   handleMaxRevenueChange: (value: string) => void
 
   // Helper functions
   getTotalActiveFilters: () => number
-  getTotalPendingFilters: () => number
-  hasUnappliedChanges: () => boolean
   handleLoadSavedFilters: (savedFilters: Filters) => void
   formatRevenueInMillions: (value: number) => string
 }
 
 export function FiltersSidebar({
   filters,
-  pendingFilters,
   availableOptions,
-  searchInput,
-  isApplying,
   revenueRange,
-  setPendingFilters,
-  applyFilters,
+  setFilters,
   resetFilters,
   handleExportAll,
-  handleSearchChange,
   handleMinRevenueChange,
   handleMaxRevenueChange,
   getTotalActiveFilters,
-  getTotalPendingFilters,
-  hasUnappliedChanges,
   handleLoadSavedFilters,
   formatRevenueInMillions,
 }: FiltersSidebarProps) {
   return (
-    <div className="w-[30%] border-r bg-sidebar overflow-y-auto animate-slide-in will-change-auto">
+    <div className="w-[30%] border-r bg-sidebar overflow-y-auto">
       <div className="p-4 space-y-4">
         {/* Filter Actions */}
         <div className="flex flex-col gap-2 mb-4 pb-4 border-b border-sidebar-border">
@@ -76,11 +62,6 @@ export function FiltersSidebar({
             {getTotalActiveFilters() > 0 && (
               <Badge variant="secondary" className="ml-auto">{getTotalActiveFilters()} active</Badge>
             )}
-            {hasUnappliedChanges() && (
-              <Badge variant="outline" className="text-orange-600 border-orange-600">
-                Pending
-              </Badge>
-            )}
           </div>
           <div className="flex flex-col gap-2">
             <SavedFiltersManager
@@ -88,25 +69,6 @@ export function FiltersSidebar({
               onLoadFilters={handleLoadSavedFilters}
               totalActiveFilters={getTotalActiveFilters()}
             />
-            <Button
-              variant="default"
-              size="sm"
-              onClick={applyFilters}
-              disabled={!hasUnappliedChanges() || isApplying}
-              className="w-full flex items-center justify-center gap-2"
-            >
-              {isApplying ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Applying...
-                </>
-              ) : (
-                <>
-                  <Filter className="h-4 w-4" />
-                  Apply Filters {getTotalPendingFilters() > 0 && `(${getTotalPendingFilters()})`}
-                </>
-              )}
-            </Button>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={resetFilters} className="flex-1">
                 <RotateCcw className="h-4 w-4 mr-2" />
@@ -132,28 +94,23 @@ export function FiltersSidebar({
             </AccordionTrigger>
             <AccordionContent>
               <div className="space-y-4 pt-2">
-                {/* Search */}
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Search Account Name</Label>
-                  <Input
-                    placeholder="Search accounts..."
-                    value={searchInput}
-                    onChange={handleSearchChange}
-                    className="text-sm"
-                  />
-                  {searchInput !== pendingFilters.searchTerm && (
-                    <p className="text-xs text-muted-foreground animate-pulse-subtle">Typing...</p>
-                  )}
-                </div>
-
                 {/* Account Filters */}
                 <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Account Names ({availableOptions.accountNames?.length || 0})</Label>
+                    <MultiSelect
+                      options={availableOptions.accountNames || []}
+                      selected={filters.accountNames}
+                      onChange={(selected) => setFilters((prev) => ({ ...prev, accountNames: selected }))}
+                      placeholder="Search and select accounts..."
+                    />
+                  </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Countries ({availableOptions.accountCountries?.length || 0})</Label>
                     <MultiSelect
                       options={availableOptions.accountCountries || []}
-                      selected={pendingFilters.accountCountries}
-                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountCountries: selected }))}
+                      selected={filters.accountCountries}
+                      onChange={(selected) => setFilters((prev) => ({ ...prev, accountCountries: selected }))}
                       placeholder="Select countries..."
                     />
                   </div>
@@ -161,8 +118,8 @@ export function FiltersSidebar({
                     <Label className="text-xs font-medium">Regions ({availableOptions.accountRegions?.length || 0})</Label>
                     <MultiSelect
                       options={availableOptions.accountRegions || []}
-                      selected={pendingFilters.accountRegions}
-                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountRegions: selected }))}
+                      selected={filters.accountRegions}
+                      onChange={(selected) => setFilters((prev) => ({ ...prev, accountRegions: selected }))}
                       placeholder="Select regions..."
                     />
                   </div>
@@ -170,8 +127,8 @@ export function FiltersSidebar({
                     <Label className="text-xs font-medium">Industries ({availableOptions.accountIndustries.length})</Label>
                     <MultiSelect
                       options={availableOptions.accountIndustries}
-                      selected={pendingFilters.accountIndustries}
-                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountIndustries: selected }))}
+                      selected={filters.accountIndustries}
+                      onChange={(selected) => setFilters((prev) => ({ ...prev, accountIndustries: selected }))}
                       placeholder="Select industries..."
                     />
                   </div>
@@ -179,9 +136,9 @@ export function FiltersSidebar({
                     <Label className="text-xs font-medium">Sub Industries ({availableOptions.accountSubIndustries.length})</Label>
                     <MultiSelect
                       options={availableOptions.accountSubIndustries}
-                      selected={pendingFilters.accountSubIndustries}
+                      selected={filters.accountSubIndustries}
                       onChange={(selected) =>
-                        setPendingFilters((prev) => ({ ...prev, accountSubIndustries: selected }))
+                        setFilters((prev) => ({ ...prev, accountSubIndustries: selected }))
                       }
                       placeholder="Select sub industries..."
                     />
@@ -190,9 +147,9 @@ export function FiltersSidebar({
                     <Label className="text-xs font-medium">Primary Categories ({availableOptions.accountPrimaryCategories.length})</Label>
                     <MultiSelect
                       options={availableOptions.accountPrimaryCategories}
-                      selected={pendingFilters.accountPrimaryCategories}
+                      selected={filters.accountPrimaryCategories}
                       onChange={(selected) =>
-                        setPendingFilters((prev) => ({ ...prev, accountPrimaryCategories: selected }))
+                        setFilters((prev) => ({ ...prev, accountPrimaryCategories: selected }))
                       }
                       placeholder="Select categories..."
                     />
@@ -201,9 +158,9 @@ export function FiltersSidebar({
                     <Label className="text-xs font-medium">Primary Nature ({availableOptions.accountPrimaryNatures.length})</Label>
                     <MultiSelect
                       options={availableOptions.accountPrimaryNatures}
-                      selected={pendingFilters.accountPrimaryNatures}
+                      selected={filters.accountPrimaryNatures}
                       onChange={(selected) =>
-                        setPendingFilters((prev) => ({ ...prev, accountPrimaryNatures: selected }))
+                        setFilters((prev) => ({ ...prev, accountPrimaryNatures: selected }))
                       }
                       placeholder="Select nature..."
                     />
@@ -212,9 +169,9 @@ export function FiltersSidebar({
                     <Label className="text-xs font-medium">NASSCOM Status ({availableOptions.accountNasscomStatuses.length})</Label>
                     <MultiSelect
                       options={availableOptions.accountNasscomStatuses}
-                      selected={pendingFilters.accountNasscomStatuses}
+                      selected={filters.accountNasscomStatuses}
                       onChange={(selected) =>
-                        setPendingFilters((prev) => ({ ...prev, accountNasscomStatuses: selected }))
+                        setFilters((prev) => ({ ...prev, accountNasscomStatuses: selected }))
                       }
                       placeholder="Select NASSCOM status..."
                     />
@@ -223,9 +180,9 @@ export function FiltersSidebar({
                     <Label className="text-xs font-medium">Employees Range ({availableOptions.accountEmployeesRanges.length})</Label>
                     <MultiSelect
                       options={availableOptions.accountEmployeesRanges}
-                      selected={pendingFilters.accountEmployeesRanges}
+                      selected={filters.accountEmployeesRanges}
                       onChange={(selected) =>
-                        setPendingFilters((prev) => ({ ...prev, accountEmployeesRanges: selected }))
+                        setFilters((prev) => ({ ...prev, accountEmployeesRanges: selected }))
                       }
                       placeholder="Select employees range..."
                     />
@@ -234,9 +191,9 @@ export function FiltersSidebar({
                     <Label className="text-xs font-medium">Center Employees ({availableOptions.accountCenterEmployees.length})</Label>
                     <MultiSelect
                       options={availableOptions.accountCenterEmployees}
-                      selected={pendingFilters.accountCenterEmployees}
+                      selected={filters.accountCenterEmployees}
                       onChange={(selected) =>
-                        setPendingFilters((prev) => ({ ...prev, accountCenterEmployees: selected }))
+                        setFilters((prev) => ({ ...prev, accountCenterEmployees: selected }))
                       }
                       placeholder="Select center employees..."
                     />
@@ -246,16 +203,16 @@ export function FiltersSidebar({
                   <div className="space-y-3 pt-4 mt-4 border-t border-border">
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-medium">
-                        Revenue: {formatRevenueInMillions(pendingFilters.accountRevenueRange[0])} -{" "}
-                        {formatRevenueInMillions(pendingFilters.accountRevenueRange[1])}
+                        Revenue: {formatRevenueInMillions(filters.accountRevenueRange[0])} -{" "}
+                        {formatRevenueInMillions(filters.accountRevenueRange[1])}
                       </Label>
                       <div className="flex items-center space-x-2">
                         <input
                           type="checkbox"
                           id="include-null-revenue"
-                          checked={pendingFilters.includeNullRevenue || false}
+                          checked={filters.includeNullRevenue || false}
                           onChange={(e) =>
-                            setPendingFilters((prev) => ({
+                            setFilters((prev) => ({
                               ...prev,
                               includeNullRevenue: e.target.checked,
                             }))
@@ -273,10 +230,10 @@ export function FiltersSidebar({
                         <Input
                           id="min-revenue"
                           type="number"
-                          value={pendingFilters.accountRevenueRange[0]}
+                          value={filters.accountRevenueRange[0]}
                           onChange={(e) => handleMinRevenueChange(e.target.value)}
                           min={revenueRange.min}
-                          max={pendingFilters.accountRevenueRange[1]}
+                          max={filters.accountRevenueRange[1]}
                           className="text-xs h-8"
                         />
                       </div>
@@ -285,9 +242,9 @@ export function FiltersSidebar({
                         <Input
                           id="max-revenue"
                           type="number"
-                          value={pendingFilters.accountRevenueRange[1]}
+                          value={filters.accountRevenueRange[1]}
                           onChange={(e) => handleMaxRevenueChange(e.target.value)}
-                          min={pendingFilters.accountRevenueRange[0]}
+                          min={filters.accountRevenueRange[0]}
                           max={revenueRange.max}
                           className="text-xs h-8"
                         />
@@ -295,9 +252,9 @@ export function FiltersSidebar({
                     </div>
                     <div className="px-2">
                       <Slider
-                        value={pendingFilters.accountRevenueRange}
+                        value={filters.accountRevenueRange}
                         onValueChange={(value) =>
-                          setPendingFilters((prev) => ({
+                          setFilters((prev) => ({
                             ...prev,
                             accountRevenueRange: value as [number, number],
                           }))
@@ -334,8 +291,8 @@ export function FiltersSidebar({
                     <Label className="text-xs font-medium">Center Types ({availableOptions.centerTypes.length})</Label>
                     <MultiSelect
                       options={availableOptions.centerTypes}
-                      selected={pendingFilters.centerTypes}
-                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerTypes: selected }))}
+                      selected={filters.centerTypes}
+                      onChange={(selected) => setFilters((prev) => ({ ...prev, centerTypes: selected }))}
                       placeholder="Select types..."
                     />
                   </div>
@@ -343,8 +300,8 @@ export function FiltersSidebar({
                     <Label className="text-xs font-medium">Center Focus ({availableOptions.centerFocus.length})</Label>
                     <MultiSelect
                       options={availableOptions.centerFocus}
-                      selected={pendingFilters.centerFocus}
-                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerFocus: selected }))}
+                      selected={filters.centerFocus}
+                      onChange={(selected) => setFilters((prev) => ({ ...prev, centerFocus: selected }))}
                       placeholder="Select focus..."
                     />
                   </div>
@@ -352,8 +309,8 @@ export function FiltersSidebar({
                     <Label className="text-xs font-medium">Cities ({availableOptions.centerCities.length})</Label>
                     <MultiSelect
                       options={availableOptions.centerCities}
-                      selected={pendingFilters.centerCities}
-                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerCities: selected }))}
+                      selected={filters.centerCities}
+                      onChange={(selected) => setFilters((prev) => ({ ...prev, centerCities: selected }))}
                       placeholder="Select cities..."
                     />
                   </div>
@@ -361,8 +318,8 @@ export function FiltersSidebar({
                     <Label className="text-xs font-medium">States ({availableOptions.centerStates.length})</Label>
                     <MultiSelect
                       options={availableOptions.centerStates}
-                      selected={pendingFilters.centerStates}
-                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerStates: selected }))}
+                      selected={filters.centerStates}
+                      onChange={(selected) => setFilters((prev) => ({ ...prev, centerStates: selected }))}
                       placeholder="Select states..."
                     />
                   </div>
@@ -370,8 +327,8 @@ export function FiltersSidebar({
                     <Label className="text-xs font-medium">Countries ({availableOptions.centerCountries.length})</Label>
                     <MultiSelect
                       options={availableOptions.centerCountries}
-                      selected={pendingFilters.centerCountries}
-                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerCountries: selected }))}
+                      selected={filters.centerCountries}
+                      onChange={(selected) => setFilters((prev) => ({ ...prev, centerCountries: selected }))}
                       placeholder="Select countries..."
                     />
                   </div>
@@ -379,8 +336,8 @@ export function FiltersSidebar({
                     <Label className="text-xs font-medium">Center Employees ({availableOptions.centerEmployees.length})</Label>
                     <MultiSelect
                       options={availableOptions.centerEmployees}
-                      selected={pendingFilters.centerEmployees}
-                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerEmployees: selected }))}
+                      selected={filters.centerEmployees}
+                      onChange={(selected) => setFilters((prev) => ({ ...prev, centerEmployees: selected }))}
                       placeholder="Select employees range..."
                     />
                   </div>
@@ -388,8 +345,8 @@ export function FiltersSidebar({
                     <Label className="text-xs font-medium">Center Status ({availableOptions.centerStatuses.length})</Label>
                     <MultiSelect
                       options={availableOptions.centerStatuses}
-                      selected={pendingFilters.centerStatuses}
-                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerStatuses: selected }))}
+                      selected={filters.centerStatuses}
+                      onChange={(selected) => setFilters((prev) => ({ ...prev, centerStatuses: selected }))}
                       placeholder="Select status..."
                     />
                   </div>
@@ -399,8 +356,8 @@ export function FiltersSidebar({
                     <Label className="text-xs font-medium">Functions ({availableOptions.functionTypes.length})</Label>
                     <MultiSelect
                       options={availableOptions.functionTypes}
-                      selected={pendingFilters.functionTypes}
-                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, functionTypes: selected }))}
+                      selected={filters.functionTypes}
+                      onChange={(selected) => setFilters((prev) => ({ ...prev, functionTypes: selected }))}
                       placeholder="Select functions..."
                     />
                   </div>

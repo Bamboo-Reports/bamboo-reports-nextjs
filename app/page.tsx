@@ -87,34 +87,10 @@ function DashboardContent() {
     centerEmployees: [],
     centerStatuses: [],
     functionTypes: [],
-    searchTerm: "",
-  })
-  const [pendingFilters, setPendingFilters] = useState<Filters>({
-    accountCountries: [],
-    accountRegions: [],
-    accountIndustries: [],
-    accountSubIndustries: [],
-    accountPrimaryCategories: [],
-    accountPrimaryNatures: [],
-    accountNasscomStatuses: [],
-    accountEmployeesRanges: [],
-    accountCenterEmployees: [],
-    accountRevenueRange: [0, 1000000],
-    includeNullRevenue: false,
-    centerTypes: [],
-    centerFocus: [],
-    centerCities: [],
-    centerStates: [],
-    centerCountries: [],
-    centerEmployees: [],
-    centerStatuses: [],
-    functionTypes: [],
-    searchTerm: "",
+    accountNames: [],
   })
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(50)
-  const [isApplying, setIsApplying] = useState(false)
-  const [searchInput, setSearchInput] = useState("")
   const [accountsView, setAccountsView] = useState<"chart" | "data">("chart")
   const [centersView, setCentersView] = useState<"chart" | "data">("chart")
 
@@ -122,21 +98,6 @@ function DashboardContent() {
   useEffect(() => {
     loadData()
   }, [])
-
-  // Debounced search handler - optimized for fast response
-  const debouncedSearch = useCallback(
-    debounce((value: string) => {
-      setPendingFilters((prev) => ({ ...prev, searchTerm: value }))
-    }, 150),
-    []
-  )
-
-  // Handle search input change
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setSearchInput(value)
-    debouncedSearch(value)
-  }
 
   const checkDatabaseStatus = async () => {
     try {
@@ -297,7 +258,7 @@ function DashboardContent() {
         arrayFilterMatch(filters.accountEmployeesRanges, account["ACCOUNT EMPLOYEES RANGE"]) &&
         arrayFilterMatch(filters.accountCenterEmployees, account["ACCOUNT CENTER EMPLOYEES"]) &&
         rangeFilterMatch(filters.accountRevenueRange, account["ACCOUNT REVNUE"], filters.includeNullRevenue) &&
-        (filters.searchTerm === "" || account["ACCOUNT NAME"].toLowerCase().includes(filters.searchTerm.toLowerCase()))
+        arrayFilterMatch(filters.accountNames, account["ACCOUNT NAME"])
       )
     })
 
@@ -374,7 +335,7 @@ function DashboardContent() {
     filters.centerEmployees,
     filters.centerStatuses,
     filters.functionTypes,
-    filters.searchTerm,
+    filters.accountNames,
   ])
 
   // Calculate chart data for accounts
@@ -425,8 +386,7 @@ function DashboardContent() {
         arrayFilterMatch(tempFilters.accountNasscomStatuses, account["ACCOUNT NASSCOM STATUS"]) &&
         arrayFilterMatch(tempFilters.accountEmployeesRanges, account["ACCOUNT EMPLOYEES RANGE"]) &&
         arrayFilterMatch(tempFilters.accountCenterEmployees, account["ACCOUNT CENTER EMPLOYEES"]) &&
-        (tempFilters.searchTerm === "" ||
-          account["ACCOUNT NAME"].toLowerCase().includes(tempFilters.searchTerm.toLowerCase()))
+        arrayFilterMatch(tempFilters.accountNames, account["ACCOUNT NAME"])
       )
     })
 
@@ -453,14 +413,14 @@ function DashboardContent() {
     filters.accountNasscomStatuses,
     filters.accountEmployeesRanges,
     filters.accountCenterEmployees,
-    filters.searchTerm,
+    filters.accountNames,
   ])
 
   // Update revenueRange when dynamicRevenueRange changes
   useEffect(() => {
     setRevenueRange(dynamicRevenueRange)
 
-    setPendingFilters((prev) => {
+    setFilters((prev) => {
       const newMin = Math.max(prev.accountRevenueRange[0], dynamicRevenueRange.min)
       const newMax = Math.min(prev.accountRevenueRange[1], dynamicRevenueRange.max)
 
@@ -488,6 +448,7 @@ function DashboardContent() {
         accountNasscomStatuses: [],
         accountEmployeesRanges: [],
         accountCenterEmployees: [],
+        accountNames: [],
         centerTypes: [],
         centerFocus: [],
         centerCities: [],
@@ -509,16 +470,12 @@ function DashboardContent() {
       nasscomStatuses: new Map<string, number>(),
       employeesRanges: new Map<string, number>(),
       centerEmployees: new Map<string, number>(),
+      names: new Map<string, number>(),
     }
 
     const validAccountNames = new Set<string>()
 
     accounts.forEach((account) => {
-      const matchesSearch =
-        !filters.searchTerm || account["ACCOUNT NAME"].toLowerCase().includes(filters.searchTerm.toLowerCase())
-
-      if (!matchesSearch) return
-
       const revenue = parseRevenue(account["ACCOUNT REVNUE"])
       const matchesRevenue = filters.includeNullRevenue
         ? true
@@ -535,6 +492,7 @@ function DashboardContent() {
       const nasscom = account["ACCOUNT NASSCOM STATUS"]
       const empRange = account["ACCOUNT EMPLOYEES RANGE"]
       const centerEmp = account["ACCOUNT CENTER EMPLOYEES"]
+      const name = account["ACCOUNT NAME"]
 
       const matchesCountry = filters.accountCountries.length === 0 || filters.accountCountries.includes(country)
       const matchesRegion = filters.accountRegions.length === 0 || filters.accountRegions.includes(region)
@@ -551,6 +509,7 @@ function DashboardContent() {
         filters.accountEmployeesRanges.length === 0 || filters.accountEmployeesRanges.includes(empRange)
       const matchesCenterEmp =
         filters.accountCenterEmployees.length === 0 || filters.accountCenterEmployees.includes(centerEmp)
+      const matchesName = filters.accountNames.length === 0 || filters.accountNames.includes(name)
 
       if (
         matchesRegion &&
@@ -560,7 +519,8 @@ function DashboardContent() {
         matchesNature &&
         matchesNasscom &&
         matchesEmpRange &&
-        matchesCenterEmp
+        matchesCenterEmp &&
+        matchesName
       ) {
         accountCounts.countries.set(country, (accountCounts.countries.get(country) || 0) + 1)
       }
@@ -572,7 +532,8 @@ function DashboardContent() {
         matchesNature &&
         matchesNasscom &&
         matchesEmpRange &&
-        matchesCenterEmp
+        matchesCenterEmp &&
+        matchesName
       ) {
         accountCounts.regions.set(region, (accountCounts.regions.get(region) || 0) + 1)
       }
@@ -584,7 +545,8 @@ function DashboardContent() {
         matchesNature &&
         matchesNasscom &&
         matchesEmpRange &&
-        matchesCenterEmp
+        matchesCenterEmp &&
+        matchesName
       ) {
         accountCounts.industries.set(industry, (accountCounts.industries.get(industry) || 0) + 1)
       }
@@ -596,7 +558,8 @@ function DashboardContent() {
         matchesNature &&
         matchesNasscom &&
         matchesEmpRange &&
-        matchesCenterEmp
+        matchesCenterEmp &&
+        matchesName
       ) {
         accountCounts.subIndustries.set(subIndustry, (accountCounts.subIndustries.get(subIndustry) || 0) + 1)
       }
@@ -608,7 +571,8 @@ function DashboardContent() {
         matchesNature &&
         matchesNasscom &&
         matchesEmpRange &&
-        matchesCenterEmp
+        matchesCenterEmp &&
+        matchesName
       ) {
         accountCounts.primaryCategories.set(category, (accountCounts.primaryCategories.get(category) || 0) + 1)
       }
@@ -620,7 +584,8 @@ function DashboardContent() {
         matchesCategory &&
         matchesNasscom &&
         matchesEmpRange &&
-        matchesCenterEmp
+        matchesCenterEmp &&
+        matchesName
       ) {
         accountCounts.primaryNatures.set(nature, (accountCounts.primaryNatures.get(nature) || 0) + 1)
       }
@@ -632,7 +597,8 @@ function DashboardContent() {
         matchesCategory &&
         matchesNature &&
         matchesEmpRange &&
-        matchesCenterEmp
+        matchesCenterEmp &&
+        matchesName
       ) {
         accountCounts.nasscomStatuses.set(nasscom, (accountCounts.nasscomStatuses.get(nasscom) || 0) + 1)
       }
@@ -644,7 +610,8 @@ function DashboardContent() {
         matchesCategory &&
         matchesNature &&
         matchesNasscom &&
-        matchesCenterEmp
+        matchesCenterEmp &&
+        matchesName
       ) {
         accountCounts.employeesRanges.set(empRange, (accountCounts.employeesRanges.get(empRange) || 0) + 1)
       }
@@ -656,9 +623,23 @@ function DashboardContent() {
         matchesCategory &&
         matchesNature &&
         matchesNasscom &&
-        matchesEmpRange
+        matchesEmpRange &&
+        matchesName
       ) {
         accountCounts.centerEmployees.set(centerEmp, (accountCounts.centerEmployees.get(centerEmp) || 0) + 1)
+      }
+      if (
+        matchesCountry &&
+        matchesRegion &&
+        matchesIndustry &&
+        matchesSubIndustry &&
+        matchesCategory &&
+        matchesNature &&
+        matchesNasscom &&
+        matchesEmpRange &&
+        matchesCenterEmp
+      ) {
+        accountCounts.names.set(name, (accountCounts.names.get(name) || 0) + 1)
       }
 
       if (
@@ -670,7 +651,8 @@ function DashboardContent() {
         matchesNature &&
         matchesNasscom &&
         matchesEmpRange &&
-        matchesCenterEmp
+        matchesCenterEmp &&
+        matchesName
       ) {
         validAccountNames.add(account["ACCOUNT NAME"])
       }
@@ -766,6 +748,7 @@ function DashboardContent() {
       accountNasscomStatuses: mapToSortedArray(accountCounts.nasscomStatuses),
       accountEmployeesRanges: mapToSortedArray(accountCounts.employeesRanges),
       accountCenterEmployees: mapToSortedArray(accountCounts.centerEmployees),
+      accountNames: mapToSortedArray(accountCounts.names),
       centerTypes: mapToSortedArray(centerCounts.types),
       centerFocus: mapToSortedArray(centerCounts.focus),
       centerCities: mapToSortedArray(centerCounts.cities),
@@ -776,14 +759,6 @@ function DashboardContent() {
       functionTypes: mapToSortedArray(functionCounts),
     }
   }, [accounts, centers, functions, filters])
-
-  const applyFilters = useCallback(() => {
-    setIsApplying(true)
-    setTimeout(() => {
-      setFilters(pendingFilters)
-      setIsApplying(false)
-    }, 0)
-  }, [pendingFilters])
 
   const resetFilters = () => {
     const emptyFilters = {
@@ -806,43 +781,9 @@ function DashboardContent() {
       centerEmployees: [],
       centerStatuses: [],
       functionTypes: [],
-      searchTerm: "",
+      accountNames: [],
     }
     setFilters(emptyFilters)
-    setPendingFilters(emptyFilters)
-    setSearchInput("")
-  }
-
-  const getTotalPendingFilters = () => {
-    return (
-      pendingFilters.accountCountries.length +
-      pendingFilters.accountRegions.length +
-      pendingFilters.accountIndustries.length +
-      pendingFilters.accountSubIndustries.length +
-      pendingFilters.accountPrimaryCategories.length +
-      pendingFilters.accountPrimaryNatures.length +
-      pendingFilters.accountNasscomStatuses.length +
-      pendingFilters.accountEmployeesRanges.length +
-      pendingFilters.accountCenterEmployees.length +
-      (pendingFilters.accountRevenueRange[0] !== revenueRange.min ||
-      pendingFilters.accountRevenueRange[1] !== revenueRange.max
-        ? 1
-        : 0) +
-      (pendingFilters.includeNullRevenue ? 1 : 0) +
-      pendingFilters.centerTypes.length +
-      pendingFilters.centerFocus.length +
-      pendingFilters.centerCities.length +
-      pendingFilters.centerStates.length +
-      pendingFilters.centerCountries.length +
-      pendingFilters.centerEmployees.length +
-      pendingFilters.centerStatuses.length +
-      pendingFilters.functionTypes.length +
-      (pendingFilters.searchTerm ? 1 : 0)
-    )
-  }
-
-  const hasUnappliedChanges = () => {
-    return JSON.stringify(filters) !== JSON.stringify(pendingFilters)
   }
 
   const getTotalActiveFilters = () => {
@@ -868,14 +809,12 @@ function DashboardContent() {
       filters.centerEmployees.length +
       filters.centerStatuses.length +
       filters.functionTypes.length +
-      (filters.searchTerm ? 1 : 0)
+      filters.accountNames.length
     )
   }
 
   const handleLoadSavedFilters = (savedFilters: Filters) => {
-    setPendingFilters(savedFilters)
     setFilters(savedFilters)
-    setSearchInput(savedFilters.searchTerm)
   }
 
   const handleExportAll = () => {
@@ -889,8 +828,8 @@ function DashboardContent() {
 
   const handleMinRevenueChange = (value: string) => {
     const numValue = Number.parseFloat(value) || revenueRange.min
-    const clampedValue = Math.max(revenueRange.min, Math.min(numValue, pendingFilters.accountRevenueRange[1]))
-    setPendingFilters((prev) => ({
+    const clampedValue = Math.max(revenueRange.min, Math.min(numValue, filters.accountRevenueRange[1]))
+    setFilters((prev) => ({
       ...prev,
       accountRevenueRange: [clampedValue, prev.accountRevenueRange[1]],
     }))
@@ -898,8 +837,8 @@ function DashboardContent() {
 
   const handleMaxRevenueChange = (value: string) => {
     const numValue = Number.parseFloat(value) || revenueRange.max
-    const clampedValue = Math.min(revenueRange.max, Math.max(numValue, pendingFilters.accountRevenueRange[0]))
-    setPendingFilters((prev) => ({
+    const clampedValue = Math.min(revenueRange.max, Math.max(numValue, filters.accountRevenueRange[0]))
+    setFilters((prev) => ({
       ...prev,
       accountRevenueRange: [prev.accountRevenueRange[0], clampedValue],
     }))
@@ -924,21 +863,14 @@ function DashboardContent() {
         <div className="flex h-[calc(100vh-88px)]">
           <FiltersSidebar
             filters={filters}
-            pendingFilters={pendingFilters}
             availableOptions={availableOptions}
-            searchInput={searchInput}
-            isApplying={isApplying}
             revenueRange={revenueRange}
-            setPendingFilters={setPendingFilters}
-            applyFilters={applyFilters}
+            setFilters={setFilters}
             resetFilters={resetFilters}
             handleExportAll={handleExportAll}
-            handleSearchChange={handleSearchChange}
             handleMinRevenueChange={handleMinRevenueChange}
             handleMaxRevenueChange={handleMaxRevenueChange}
             getTotalActiveFilters={getTotalActiveFilters}
-            getTotalPendingFilters={getTotalPendingFilters}
-            hasUnappliedChanges={hasUnappliedChanges}
             handleLoadSavedFilters={handleLoadSavedFilters}
             formatRevenueInMillions={formatRevenueInMillions}
           />

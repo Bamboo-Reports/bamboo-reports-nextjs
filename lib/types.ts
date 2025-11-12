@@ -74,7 +74,7 @@ export interface Filters {
   centerEmployees: string[]
   centerStatuses: string[]
   functionTypes: string[]
-  searchTerm: string
+  accountNames: string[]
 }
 
 export interface FilterOption {
@@ -93,6 +93,7 @@ export interface AvailableOptions {
   accountNasscomStatuses: FilterOption[]
   accountEmployeesRanges: FilterOption[]
   accountCenterEmployees: FilterOption[]
+  accountNames: FilterOption[]
   centerTypes: FilterOption[]
   centerFocus: FilterOption[]
   centerCities: FilterOption[]
