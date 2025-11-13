@@ -92,6 +92,7 @@ function DashboardContent() {
     prospectDepartments: [],
     prospectLevels: [],
     prospectCities: [],
+    prospectTitleKeywords: [],
     searchTerm: "",
   })
   const [pendingFilters, setPendingFilters] = useState<Filters>({
@@ -117,6 +118,7 @@ function DashboardContent() {
     prospectDepartments: [],
     prospectLevels: [],
     prospectCities: [],
+    prospectTitleKeywords: [],
     searchTerm: "",
   })
   const [currentPage, setCurrentPage] = useState(1)
@@ -352,10 +354,18 @@ function DashboardContent() {
 
     // Step 5: Filter prospects based on prospect filters and filtered accounts
     let filteredProspects = prospects.filter((prospect) => {
+      // Check if title contains any of the keywords (OR condition)
+      const titleKeywordMatch =
+        filters.prospectTitleKeywords.length === 0 ||
+        filters.prospectTitleKeywords.some((keyword) =>
+          prospect.TITLE.toLowerCase().includes(keyword.toLowerCase())
+        )
+
       const prospectFilterMatch =
         arrayFilterMatch(filters.prospectDepartments, prospect.DEPARTMENT) &&
         arrayFilterMatch(filters.prospectLevels, prospect.LEVEL) &&
         arrayFilterMatch(filters.prospectCities, prospect.CITY) &&
+        titleKeywordMatch &&
         (filters.searchTerm === "" || prospect.TITLE.toLowerCase().includes(filters.searchTerm.toLowerCase()))
 
       const accountFilterMatch =
@@ -368,7 +378,8 @@ function DashboardContent() {
     const hasProspectFilters =
       filters.prospectDepartments.length > 0 ||
       filters.prospectLevels.length > 0 ||
-      filters.prospectCities.length > 0
+      filters.prospectCities.length > 0 ||
+      filters.prospectTitleKeywords.length > 0
 
     if (hasProspectFilters) {
       const accountNamesWithMatchingProspects = [...new Set(filteredProspects.map((p) => p["ACCOUNT NAME"]))]
@@ -437,6 +448,7 @@ function DashboardContent() {
     filters.prospectDepartments,
     filters.prospectLevels,
     filters.prospectCities,
+    filters.prospectTitleKeywords,
     filters.searchTerm,
   ])
 
@@ -917,6 +929,7 @@ function DashboardContent() {
       prospectDepartments: [],
       prospectLevels: [],
       prospectCities: [],
+      prospectTitleKeywords: [],
       searchTerm: "",
     }
     setFilters(emptyFilters)
@@ -951,6 +964,7 @@ function DashboardContent() {
       pendingFilters.prospectDepartments.length +
       pendingFilters.prospectLevels.length +
       pendingFilters.prospectCities.length +
+      pendingFilters.prospectTitleKeywords.length +
       (pendingFilters.searchTerm ? 1 : 0)
     )
   }
@@ -985,6 +999,7 @@ function DashboardContent() {
       filters.prospectDepartments.length +
       filters.prospectLevels.length +
       filters.prospectCities.length +
+      filters.prospectTitleKeywords.length +
       (filters.searchTerm ? 1 : 0)
     )
   }

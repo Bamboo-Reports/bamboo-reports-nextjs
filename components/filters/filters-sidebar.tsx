@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,6 +15,7 @@ import {
   Building,
   Briefcase,
   Users,
+  X,
 } from "lucide-react"
 import { MultiSelect } from "@/components/multi-select"
 import { SavedFiltersManager } from "@/components/saved-filters-manager"
@@ -450,8 +451,14 @@ export function FiltersSidebar({
                     />
                   </div>
                   <div className="space-y-2 pt-4 mt-4 border-t border-border">
-                    <Label className="text-xs font-medium text-muted-foreground">Search by Title</Label>
-                    <p className="text-xs text-muted-foreground">Use the "Search Account Name" field above to filter prospects by title.</p>
+                    <Label className="text-xs font-medium">Title Keywords</Label>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Add keywords to search in job titles (press Enter to add)
+                    </p>
+                    <TitleKeywordInput
+                      keywords={pendingFilters.prospectTitleKeywords}
+                      onChange={(keywords) => setPendingFilters((prev) => ({ ...prev, prospectTitleKeywords: keywords }))}
+                    />
                   </div>
                 </div>
               </div>
@@ -459,6 +466,59 @@ export function FiltersSidebar({
           </AccordionItem>
         </Accordion>
       </div>
+    </div>
+  )
+}
+
+// Title Keyword Input Component
+function TitleKeywordInput({ keywords, onChange }: { keywords: string[]; onChange: (keywords: string[]) => void }) {
+  const [inputValue, setInputValue] = useState("")
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && inputValue.trim()) {
+      e.preventDefault()
+      const trimmedValue = inputValue.trim()
+      if (!keywords.includes(trimmedValue)) {
+        onChange([...keywords, trimmedValue])
+      }
+      setInputValue("")
+    }
+  }
+
+  const removeKeyword = (keywordToRemove: string) => {
+    onChange(keywords.filter((k) => k !== keywordToRemove))
+  }
+
+  return (
+    <div className="space-y-2">
+      <Input
+        type="text"
+        placeholder="e.g., Manager, Director, VP..."
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        className="text-sm"
+      />
+      {keywords.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {keywords.map((keyword) => (
+            <Badge
+              key={keyword}
+              variant="secondary"
+              className="flex items-center gap-1 px-2 py-1 text-xs"
+            >
+              {keyword}
+              <button
+                onClick={() => removeKeyword(keyword)}
+                className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
+                type="button"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

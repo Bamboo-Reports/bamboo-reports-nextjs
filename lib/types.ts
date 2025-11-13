@@ -92,6 +92,7 @@ export interface Filters {
   prospectDepartments: string[]
   prospectLevels: string[]
   prospectCities: string[]
+  prospectTitleKeywords: string[]
   searchTerm: string
 }
 
