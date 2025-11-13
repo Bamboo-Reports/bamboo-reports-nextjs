@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState } from "react"
+import React, { useMemo, useState, useEffect } from "react"
 import { Map, Source, Layer } from "react-map-gl/mapbox"
 import type { Center } from "@/lib/types"
 import "mapbox-gl/dist/mapbox-gl.css"
@@ -18,38 +18,56 @@ interface CityCluster {
 
 export function CentersMap({ centers }: CentersMapProps) {
   const [hoveredCity, setHoveredCity] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+    console.log("[CentersMap] Component mounted")
+    console.log("[CentersMap] Centers count:", centers?.length)
+    console.log("[CentersMap] Mapbox token exists:", !!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN)
+  }, [centers])
 
   // Aggregate centers by city and calculate cluster data
   const cityData = useMemo(() => {
-    const cityMap = new Map<string, CityCluster>()
+    try {
+      console.log("[CentersMap] Calculating city data...")
+      const cityMap = new Map<string, CityCluster>()
 
-    centers.forEach((center) => {
-      const city = center["CENTER CITY"]
-      const lat = center.LAT ? parseFloat(center.LAT) : null
-      const lng = center.LANG ? parseFloat(center.LANG) : null
+      centers.forEach((center) => {
+        const city = center["CENTER CITY"]
+        const lat = center.LAT ? parseFloat(center.LAT) : null
+        const lng = center.LANG ? parseFloat(center.LANG) : null
 
-      // Skip if no coordinates
-      if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
-        return
-      }
+        // Skip if no coordinates
+        if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+          return
+        }
 
-      if (cityMap.has(city)) {
-        const existing = cityMap.get(city)!
-        cityMap.set(city, {
-          ...existing,
-          count: existing.count + 1,
-        })
-      } else {
-        cityMap.set(city, {
-          city,
-          lat,
-          lng,
-          count: 1,
-        })
-      }
-    })
+        if (cityMap.has(city)) {
+          const existing = cityMap.get(city)!
+          cityMap.set(city, {
+            ...existing,
+            count: existing.count + 1,
+          })
+        } else {
+          cityMap.set(city, {
+            city,
+            lat,
+            lng,
+            count: 1,
+          })
+        }
+      })
 
-    return Array.from(cityMap.values())
+      const result = Array.from(cityMap.values())
+      console.log("[CentersMap] City data calculated:", result.length, "cities")
+      return result
+    } catch (err) {
+      console.error("[CentersMap] Error calculating city data:", err)
+      setError(err instanceof Error ? err.message : "Error calculating city data")
+      return []
+    }
   }, [centers])
 
   // Calculate center of all points for initial view
@@ -97,7 +115,32 @@ export function CentersMap({ centers }: CentersMapProps) {
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
+  // Show error if any
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-[600px] bg-muted rounded-lg">
+        <div className="text-center">
+          <p className="text-lg font-semibold text-red-500 mb-2">Error Loading Map</p>
+          <p className="text-sm text-muted-foreground">{error}</p>
+          <p className="text-xs text-muted-foreground mt-2">Check browser console for details</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Wait for client-side rendering
+  if (!isClient) {
+    return (
+      <div className="flex items-center justify-center h-[600px] bg-muted rounded-lg">
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">Loading map...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!mapboxToken) {
+    console.error("[CentersMap] Mapbox token is missing")
     return (
       <div className="flex items-center justify-center h-[600px] bg-muted rounded-lg">
         <div className="text-center">
@@ -113,6 +156,7 @@ export function CentersMap({ centers }: CentersMapProps) {
   }
 
   if (cityData.length === 0) {
+    console.warn("[CentersMap] No city data with coordinates")
     return (
       <div className="flex items-center justify-center h-[600px] bg-muted rounded-lg">
         <div className="text-center">
@@ -125,9 +169,12 @@ export function CentersMap({ centers }: CentersMapProps) {
     )
   }
 
-  return (
-    <div className="relative w-full h-[600px] rounded-lg overflow-hidden border">
-      <Map
+  console.log("[CentersMap] Rendering map with", cityData.length, "cities")
+
+  try {
+    return (
+      <div className="relative w-full h-[600px] rounded-lg overflow-hidden border">
+        <Map
         initialViewState={initialViewState}
         mapStyle="mapbox://styles/abhishekfx/cltyaz9ek00nx01p783ygdi9z"
         mapboxAccessToken={mapboxToken}
@@ -142,6 +189,10 @@ export function CentersMap({ centers }: CentersMapProps) {
           }
         }}
         onMouseLeave={() => setHoveredCity(null)}
+        onError={(e) => {
+          console.error("[CentersMap] Map error:", e)
+          setError(`Map error: ${e.error?.message || "Unknown error"}`)
+        }}
       >
         <Source id="centers" type="geojson" data={geojsonData}>
           {/* Circle layer */}
@@ -216,5 +267,19 @@ export function CentersMap({ centers }: CentersMapProps) {
         </div>
       </div>
     </div>
-  )
+    )
+  } catch (err) {
+    console.error("[CentersMap] Render error:", err)
+    return (
+      <div className="flex items-center justify-center h-[600px] bg-muted rounded-lg">
+        <div className="text-center">
+          <p className="text-lg font-semibold text-red-500 mb-2">Map Rendering Error</p>
+          <p className="text-sm text-muted-foreground">
+            {err instanceof Error ? err.message : "Unknown error occurred"}
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">Check browser console for details</p>
+        </div>
+      </div>
+    )
+  }
 }
