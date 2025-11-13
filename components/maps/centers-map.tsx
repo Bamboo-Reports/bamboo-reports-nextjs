@@ -91,10 +91,12 @@ export function CentersMap({ centers }: CentersMapProps) {
   }, [cityData])
 
   // Convert city data to GeoJSON
+  // Sort by count descending so larger circles render first (at bottom)
   const geojsonData = useMemo(() => {
+    const sortedCities = [...cityData].sort((a, b) => b.count - a.count)
     return {
       type: "FeatureCollection" as const,
-      features: cityData.map((city) => ({
+      features: sortedCities.map((city) => ({
         type: "Feature" as const,
         properties: {
           city: city.city,
@@ -212,9 +214,9 @@ export function CentersMap({ centers }: CentersMapProps) {
                 ["linear"],
                 ["get", "count"],
                 1,
-                6,
+                4,
                 maxCount,
-                25,
+                15,
               ],
               "circle-color": [
                 "interpolate",
@@ -250,29 +252,6 @@ export function CentersMap({ centers }: CentersMapProps) {
           </div>
         )}
       </MapGL>
-
-      {/* Legend */}
-      <div className="absolute bottom-4 right-4 bg-background border rounded-lg shadow-lg px-4 py-3 z-10">
-        <p className="text-sm font-semibold mb-2">Number of Centers</p>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full opacity-70" style={{ backgroundColor: "#60a5fa" }} />
-            <span className="text-xs text-muted-foreground">Low (1-{Math.floor(maxCount / 3)})</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full opacity-70" style={{ backgroundColor: "#3b82f6" }} />
-            <span className="text-xs text-muted-foreground">
-              Medium ({Math.floor(maxCount / 3) + 1}-{Math.floor((maxCount * 2) / 3)})
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full opacity-70" style={{ backgroundColor: "#2563eb" }} />
-            <span className="text-xs text-muted-foreground">
-              High ({Math.floor((maxCount * 2) / 3) + 1}+)
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
     )
   } catch (err) {
