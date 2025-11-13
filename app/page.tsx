@@ -35,7 +35,7 @@ import { ErrorState } from "@/components/states/error-state"
 import { Header } from "@/components/layout/header"
 import { FiltersSidebar } from "@/components/filters/filters-sidebar"
 import { SummaryCards } from "@/components/dashboard/summary-cards"
-import { AccountsTab, CentersTab, ServicesTab } from "@/components/tabs"
+import { AccountsTab, CentersTab } from "@/components/tabs"
 import { ProspectsTab } from "@/components/tabs/prospects-tab"
 import {
   parseRevenue,
@@ -1088,16 +1088,15 @@ function DashboardContent() {
                 totalAccountsCount={accounts.length}
                 filteredCentersCount={filteredData.filteredCenters.length}
                 totalCentersCount={centers.length}
-                filteredServicesCount={filteredData.filteredServices.length}
-                totalServicesCount={services.length}
+                filteredProspectsCount={filteredData.filteredProspects.length}
+                totalProspectsCount={prospects.length}
               />
 
               {/* Data Tables */}
               <Tabs defaultValue="accounts" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="accounts">Accounts ({filteredData.filteredAccounts.length})</TabsTrigger>
                   <TabsTrigger value="centers">Centers ({filteredData.filteredCenters.length})</TabsTrigger>
-                  <TabsTrigger value="services">Services ({filteredData.filteredServices.length})</TabsTrigger>
                   <TabsTrigger value="prospects">Prospects ({filteredData.filteredProspects.length})</TabsTrigger>
                 </TabsList>
 
@@ -1118,13 +1117,6 @@ function DashboardContent() {
                 centerChartData={centerChartData}
                 centersView={centersView}
                 setCentersView={setCentersView}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-              />
-
-              <ServicesTab
-                services={filteredData.filteredServices}
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
                 itemsPerPage={itemsPerPage}
