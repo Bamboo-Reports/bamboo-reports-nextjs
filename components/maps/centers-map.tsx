@@ -1,8 +1,7 @@
 "use client"
 
-import React, { useMemo, useState, useEffect, useRef } from "react"
+import React, { useMemo, useState, useEffect } from "react"
 import { Map as MapGL, Source, Layer, NavigationControl, FullscreenControl } from "react-map-gl/mapbox"
-import type { MapRef } from "react-map-gl/mapbox"
 import type { Center } from "@/lib/types"
 import "mapbox-gl/dist/mapbox-gl.css"
 
@@ -21,7 +20,6 @@ export function CentersMap({ centers }: CentersMapProps) {
   const [hoveredCity, setHoveredCity] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
-  const mapRef = useRef<MapRef>(null)
 
   useEffect(() => {
     setIsClient(true)
@@ -117,17 +115,6 @@ export function CentersMap({ centers }: CentersMapProps) {
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
-  // Function to reset map to initial view
-  const handleRecenter = () => {
-    if (mapRef.current) {
-      mapRef.current.flyTo({
-        center: [initialViewState.longitude, initialViewState.latitude],
-        zoom: initialViewState.zoom,
-        duration: 1000,
-      })
-    }
-  }
-
   // Show error if any
   if (error) {
     return (
@@ -188,7 +175,6 @@ export function CentersMap({ centers }: CentersMapProps) {
     return (
       <div className="relative w-full h-[600px] rounded-lg overflow-hidden border">
         <MapGL
-        ref={mapRef}
         initialViewState={initialViewState}
         mapStyle="mapbox://styles/abhishekfx/cltyaz9ek00nx01p783ygdi9z"
         mapboxAccessToken={mapboxToken}
@@ -214,38 +200,6 @@ export function CentersMap({ centers }: CentersMapProps) {
 
         {/* Fullscreen Control */}
         <FullscreenControl position="top-left" />
-
-        {/* Custom Recenter Button */}
-        <div className="absolute top-[132px] left-[10px] z-10">
-          <button
-            onClick={handleRecenter}
-            className="mapboxgl-ctrl mapboxgl-ctrl-group"
-            title="Reset to initial view"
-            type="button"
-            aria-label="Reset to initial view"
-          >
-            <span className="mapboxgl-ctrl-icon" aria-hidden="true" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <circle cx="12" cy="12" r="1" />
-                <path d="M12 2v4" />
-                <path d="M12 18v4" />
-                <path d="M2 12h4" />
-                <path d="M18 12h4" />
-              </svg>
-            </span>
-          </button>
-        </div>
 
         <Source id="centers" type="geojson" data={geojsonData}>
           {/* Circle layer */}
