@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/states/empty-state"
 import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
 import { exportToExcel } from "@/lib/utils/export-helpers"
 import { CentersMap } from "@/components/maps/centers-map"
+import { MapErrorBoundary } from "@/components/maps/map-error-boundary"
 import type { Center, Function } from "@/lib/types"
 
 interface CentersTabProps {
@@ -116,7 +117,9 @@ export function CentersTab({
       {/* Map Section */}
       {centersView === "map" && (
         <div className="mb-6">
-          <CentersMap centers={centers} />
+          <MapErrorBoundary>
+            <CentersMap centers={centers} />
+          </MapErrorBoundary>
         </div>
       )}
 
