@@ -216,32 +216,34 @@ export function CentersMap({ centers }: CentersMapProps) {
         <FullscreenControl position="top-left" />
 
         {/* Custom Recenter Button */}
-        <div className="absolute top-[116px] left-[10px] z-10">
+        <div className="absolute top-[132px] left-[10px] z-10">
           <button
             onClick={handleRecenter}
             className="mapboxgl-ctrl mapboxgl-ctrl-group"
             title="Reset to initial view"
             type="button"
+            aria-label="Reset to initial view"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ display: "block" }}
-            >
-              <circle cx="12" cy="12" r="10" />
-              <circle cx="12" cy="12" r="1" />
-              <path d="M12 2v4" />
-              <path d="M12 18v4" />
-              <path d="M2 12h4" />
-              <path d="M18 12h4" />
-            </svg>
+            <span className="mapboxgl-ctrl-icon" aria-hidden="true" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <circle cx="12" cy="12" r="1" />
+                <path d="M12 2v4" />
+                <path d="M12 18v4" />
+                <path d="M2 12h4" />
+                <path d="M18 12h4" />
+              </svg>
+            </span>
           </button>
         </div>
 
