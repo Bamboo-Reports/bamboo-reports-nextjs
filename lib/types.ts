@@ -71,31 +71,36 @@ export interface Prospect {
   COUNTRY: string
 }
 
+export interface FilterValue {
+  value: string
+  mode: 'include' | 'exclude'
+}
+
 export interface Filters {
-  accountCountries: string[]
-  accountRegions: string[]
-  accountIndustries: string[]
-  accountSubIndustries: string[]
-  accountPrimaryCategories: string[]
-  accountPrimaryNatures: string[]
-  accountNasscomStatuses: string[]
-  accountEmployeesRanges: string[]
-  accountCenterEmployees: string[]
+  accountCountries: FilterValue[]
+  accountRegions: FilterValue[]
+  accountIndustries: FilterValue[]
+  accountSubIndustries: FilterValue[]
+  accountPrimaryCategories: FilterValue[]
+  accountPrimaryNatures: FilterValue[]
+  accountNasscomStatuses: FilterValue[]
+  accountEmployeesRanges: FilterValue[]
+  accountCenterEmployees: FilterValue[]
   accountRevenueRange: [number, number]
   includeNullRevenue: boolean
-  accountNameKeywords: string[]
-  centerTypes: string[]
-  centerFocus: string[]
-  centerCities: string[]
-  centerStates: string[]
-  centerCountries: string[]
-  centerEmployees: string[]
-  centerStatuses: string[]
-  functionTypes: string[]
-  prospectDepartments: string[]
-  prospectLevels: string[]
-  prospectCities: string[]
-  prospectTitleKeywords: string[]
+  accountNameKeywords: FilterValue[]
+  centerTypes: FilterValue[]
+  centerFocus: FilterValue[]
+  centerCities: FilterValue[]
+  centerStates: FilterValue[]
+  centerCountries: FilterValue[]
+  centerEmployees: FilterValue[]
+  centerStatuses: FilterValue[]
+  functionTypes: FilterValue[]
+  prospectDepartments: FilterValue[]
+  prospectLevels: FilterValue[]
+  prospectCities: FilterValue[]
+  prospectTitleKeywords: FilterValue[]
   searchTerm: string
 }
 
