@@ -34,7 +34,7 @@ const EnhancedSelectBadge = React.memo(({
     <Badge
       variant="secondary"
       className={cn(
-        "mr-1 mb-1 animate-badge-in transition-all duration-200 flex items-center gap-1 pr-1",
+        "mr-1 mb-1 flex items-center gap-1 pr-1",
         isInclude
           ? "bg-green-500/20 text-green-700 dark:bg-green-500/30 dark:text-green-300 border-green-500/50 hover:bg-green-500/30"
           : "bg-red-500/20 text-red-700 dark:bg-red-500/30 dark:text-red-300 border-red-500/50 hover:bg-red-500/30"
@@ -47,7 +47,7 @@ const EnhancedSelectBadge = React.memo(({
           onToggleMode()
         }}
         className={cn(
-          "flex items-center justify-center w-4 h-4 rounded-sm transition-all duration-200",
+          "flex items-center justify-center w-4 h-4 rounded-sm",
           isInclude
             ? "bg-green-600/30 hover:bg-green-600/50"
             : "bg-red-600/30 hover:bg-red-600/50"
@@ -67,7 +67,7 @@ const EnhancedSelectBadge = React.memo(({
           e.stopPropagation()
           onRemove()
         }}
-        className="ml-1 hover:scale-110 transition-transform duration-100"
+        className="ml-1"
       >
         <X className="h-3 w-3" />
       </button>
@@ -100,7 +100,7 @@ const EnhancedSelectItem = React.memo(({
       onSelect={onSelect}
       disabled={disabled}
       className={cn(
-        "cursor-pointer transition-all duration-100",
+        "cursor-pointer",
         disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-accent/50",
         isSelected && (isInclude
           ? "bg-green-500/10 hover:bg-green-500/20"
@@ -112,7 +112,7 @@ const EnhancedSelectItem = React.memo(({
           checked={isSelected}
           disabled={disabled}
           className={cn(
-            "h-4 w-4 transition-all duration-100",
+            "h-4 w-4",
             isSelected && (isInclude
               ? "border-green-500 data-[state=checked]:bg-green-500"
               : "border-red-500 data-[state=checked]:bg-red-500")
@@ -120,8 +120,8 @@ const EnhancedSelectItem = React.memo(({
         />
         <Check
           className={cn(
-            "h-4 w-4 transition-all duration-100",
-            isSelected ? "opacity-100 scale-100" : "opacity-0 scale-75",
+            "h-4 w-4",
+            isSelected ? "opacity-100" : "opacity-0",
             isInclude ? "text-green-600" : "text-red-600"
           )}
         />
@@ -237,7 +237,7 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="justify-between h-auto min-h-10 bg-transparent hover:bg-accent/30 transition-all duration-150"
+            className="justify-between h-auto min-h-10 bg-transparent hover:bg-accent/30"
           >
             <div className="flex gap-1 flex-wrap items-center w-full">
               {selected.length === 0 && <span className="text-muted-foreground">{placeholder}</span>}
@@ -258,12 +258,12 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
               {renderBadges}
             </div>
             <ChevronsUpDown className={cn(
-              "h-4 w-4 shrink-0 opacity-50 transition-transform duration-200 ml-2",
+              "h-4 w-4 shrink-0 opacity-50 ml-2",
               open && "rotate-180"
             )} />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0 animate-slide-down" align="start">
+        <PopoverContent className="w-full p-0" align="start">
           <Command>
             <CommandInput placeholder="Search..." className="h-9" />
             <CommandList className="max-h-64">

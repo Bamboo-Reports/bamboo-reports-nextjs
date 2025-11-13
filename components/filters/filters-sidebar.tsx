@@ -59,7 +59,7 @@ export function FiltersSidebar({
   formatRevenueInMillions,
 }: FiltersSidebarProps) {
   return (
-    <div className="w-[30%] border-r bg-sidebar overflow-y-auto animate-slide-in will-change-auto">
+    <div className="w-[30%] border-r bg-sidebar overflow-y-auto">
       <div className="p-4 space-y-4">
         {/* Filter Actions */}
         <div className="flex flex-col gap-2 mb-4 pb-4 border-b border-sidebar-border">
@@ -502,7 +502,7 @@ function TitleKeywordInput({
                 key={keyword.value}
                 variant="secondary"
                 className={cn(
-                  "flex items-center gap-1 px-2 py-1 text-xs transition-all duration-200",
+                  "flex items-center gap-1 px-2 py-1 text-xs",
                   isInclude
                     ? "bg-green-500/20 text-green-700 dark:bg-green-500/30 dark:text-green-300 border-green-500/50 hover:bg-green-500/30"
                     : "bg-red-500/20 text-red-700 dark:bg-red-500/30 dark:text-red-300 border-red-500/50 hover:bg-red-500/30"
@@ -511,7 +511,7 @@ function TitleKeywordInput({
                 <button
                   onClick={() => toggleKeywordMode(keyword)}
                   className={cn(
-                    "flex items-center justify-center w-3 h-3 rounded-sm transition-all duration-200",
+                    "flex items-center justify-center w-3 h-3 rounded-sm",
                     isInclude
                       ? "bg-green-600/30 hover:bg-green-600/50"
                       : "bg-red-600/30 hover:bg-red-600/50"
