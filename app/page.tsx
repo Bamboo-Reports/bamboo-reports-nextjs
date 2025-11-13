@@ -321,8 +321,7 @@ function DashboardContent() {
         arrayFilterMatch(filters.accountEmployeesRanges, account["ACCOUNT EMPLOYEES RANGE"]) &&
         arrayFilterMatch(filters.accountCenterEmployees, account["ACCOUNT CENTER EMPLOYEES"]) &&
         rangeFilterMatch(filters.accountRevenueRange, account["ACCOUNT REVNUE"], filters.includeNullRevenue) &&
-        accountNameKeywordMatch &&
-        (filters.searchTerm === "" || account["ACCOUNT NAME"].toLowerCase().includes(filters.searchTerm.toLowerCase()))
+        accountNameKeywordMatch
       )
     })
 
@@ -375,8 +374,7 @@ function DashboardContent() {
         arrayFilterMatch(filters.prospectDepartments, prospect.DEPARTMENT) &&
         arrayFilterMatch(filters.prospectLevels, prospect.LEVEL) &&
         arrayFilterMatch(filters.prospectCities, prospect.CITY) &&
-        titleKeywordMatch &&
-        (filters.searchTerm === "" || prospect.TITLE.toLowerCase().includes(filters.searchTerm.toLowerCase()))
+        titleKeywordMatch
 
       const accountFilterMatch =
         filteredAccountNames.length === accounts.length || filteredAccountNames.includes(prospect["ACCOUNT NAME"])
@@ -460,7 +458,6 @@ function DashboardContent() {
     filters.prospectLevels,
     filters.prospectCities,
     filters.prospectTitleKeywords,
-    filters.searchTerm,
   ])
 
   // Calculate chart data for accounts
@@ -946,7 +943,6 @@ function DashboardContent() {
     }
     setFilters(emptyFilters)
     setPendingFilters(emptyFilters)
-    setSearchInput("")
   }
 
   const getTotalPendingFilters = () => {
@@ -977,8 +973,7 @@ function DashboardContent() {
       pendingFilters.prospectDepartments.length +
       pendingFilters.prospectLevels.length +
       pendingFilters.prospectCities.length +
-      pendingFilters.prospectTitleKeywords.length +
-      (pendingFilters.searchTerm ? 1 : 0)
+      pendingFilters.prospectTitleKeywords.length
     )
   }
 
@@ -1013,15 +1008,13 @@ function DashboardContent() {
       filters.prospectDepartments.length +
       filters.prospectLevels.length +
       filters.prospectCities.length +
-      filters.prospectTitleKeywords.length +
-      (filters.searchTerm ? 1 : 0)
+      filters.prospectTitleKeywords.length
     )
   }
 
   const handleLoadSavedFilters = (savedFilters: Filters) => {
     setPendingFilters(savedFilters)
     setFilters(savedFilters)
-    setSearchInput(savedFilters.searchTerm)
   }
 
   const handleExportAll = () => {
@@ -1072,14 +1065,12 @@ function DashboardContent() {
             filters={filters}
             pendingFilters={pendingFilters}
             availableOptions={availableOptions}
-            searchInput={searchInput}
             isApplying={isApplying}
             revenueRange={revenueRange}
             setPendingFilters={setPendingFilters}
             applyFilters={applyFilters}
             resetFilters={resetFilters}
             handleExportAll={handleExportAll}
-            handleSearchChange={handleSearchChange}
             handleMinRevenueChange={handleMinRevenueChange}
             handleMaxRevenueChange={handleMaxRevenueChange}
             getTotalActiveFilters={getTotalActiveFilters}

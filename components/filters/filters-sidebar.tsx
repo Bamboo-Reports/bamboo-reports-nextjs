@@ -26,7 +26,6 @@ interface FiltersSidebarProps {
   filters: Filters
   pendingFilters: Filters
   availableOptions: AvailableOptions
-  searchInput: string
   isApplying: boolean
   revenueRange: { min: number; max: number }
 
@@ -35,7 +34,6 @@ interface FiltersSidebarProps {
   applyFilters: () => void
   resetFilters: () => void
   handleExportAll: () => void
-  handleSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   handleMinRevenueChange: (value: string) => void
   handleMaxRevenueChange: (value: string) => void
 
@@ -51,14 +49,12 @@ export function FiltersSidebar({
   filters,
   pendingFilters,
   availableOptions,
-  searchInput,
   isApplying,
   revenueRange,
   setPendingFilters,
   applyFilters,
   resetFilters,
   handleExportAll,
-  handleSearchChange,
   handleMinRevenueChange,
   handleMaxRevenueChange,
   getTotalActiveFilters,
@@ -134,23 +130,9 @@ export function FiltersSidebar({
             </AccordionTrigger>
             <AccordionContent>
               <div className="space-y-4 pt-2">
-                {/* Search */}
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Search Account Name</Label>
-                  <Input
-                    placeholder="Search accounts..."
-                    value={searchInput}
-                    onChange={handleSearchChange}
-                    className="text-sm"
-                  />
-                  {searchInput !== pendingFilters.searchTerm && (
-                    <p className="text-xs text-muted-foreground animate-pulse-subtle">Typing...</p>
-                  )}
-                </div>
-
-                {/* Account Name Keywords */}
+                {/* Account Name Search Keywords */}
                 <div className="space-y-2 pb-4 border-b border-border">
-                  <Label className="text-xs font-medium">Account Name Keywords</Label>
+                  <Label className="text-xs font-medium">Search Account Name</Label>
                   <p className="text-xs text-muted-foreground mb-2">
                     Add keywords to search in account names (press Enter to add)
                   </p>
