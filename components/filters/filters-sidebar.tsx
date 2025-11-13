@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,9 +18,9 @@ import {
   Users,
   X,
 } from "lucide-react"
-import { MultiSelect } from "@/components/multi-select"
+import { EnhancedMultiSelect } from "@/components/enhanced-multi-select"
 import { SavedFiltersManager } from "@/components/saved-filters-manager"
-import type { Filters, AvailableOptions } from "@/lib/types"
+import type { Filters, AvailableOptions, FilterValue } from "@/lib/types"
 
 interface FiltersSidebarProps {
   // State values
@@ -31,7 +32,6 @@ interface FiltersSidebarProps {
 
   // Callback functions
   setPendingFilters: React.Dispatch<React.SetStateAction<Filters>>
-  applyFilters: () => void
   resetFilters: () => void
   handleExportAll: () => void
   handleMinRevenueChange: (value: string) => void
@@ -39,8 +39,6 @@ interface FiltersSidebarProps {
 
   // Helper functions
   getTotalActiveFilters: () => number
-  getTotalPendingFilters: () => number
-  hasUnappliedChanges: () => boolean
   handleLoadSavedFilters: (savedFilters: Filters) => void
   formatRevenueInMillions: (value: number) => string
 }
@@ -52,14 +50,11 @@ export function FiltersSidebar({
   isApplying,
   revenueRange,
   setPendingFilters,
-  applyFilters,
   resetFilters,
   handleExportAll,
   handleMinRevenueChange,
   handleMaxRevenueChange,
   getTotalActiveFilters,
-  getTotalPendingFilters,
-  hasUnappliedChanges,
   handleLoadSavedFilters,
   formatRevenueInMillions,
 }: FiltersSidebarProps) {
@@ -74,9 +69,10 @@ export function FiltersSidebar({
             {getTotalActiveFilters() > 0 && (
               <Badge variant="secondary" className="ml-auto">{getTotalActiveFilters()} active</Badge>
             )}
-            {hasUnappliedChanges() && (
-              <Badge variant="outline" className="text-orange-600 border-orange-600">
-                Pending
+            {isApplying && (
+              <Badge variant="outline" className="text-blue-600 border-blue-600 flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Auto-applying
               </Badge>
             )}
           </div>
@@ -86,25 +82,6 @@ export function FiltersSidebar({
               onLoadFilters={handleLoadSavedFilters}
               totalActiveFilters={getTotalActiveFilters()}
             />
-            <Button
-              variant="default"
-              size="sm"
-              onClick={applyFilters}
-              disabled={!hasUnappliedChanges() || isApplying}
-              className="w-full flex items-center justify-center gap-2"
-            >
-              {isApplying ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Applying...
-                </>
-              ) : (
-                <>
-                  <Filter className="h-4 w-4" />
-                  Apply Filters {getTotalPendingFilters() > 0 && `(${getTotalPendingFilters()})`}
-                </>
-              )}
-            </Button>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={resetFilters} className="flex-1">
                 <RotateCcw className="h-4 w-4 mr-2" />
@@ -114,6 +91,9 @@ export function FiltersSidebar({
                 <Download className="h-4 w-4" />
                 Export
               </Button>
+            </div>
+            <div className="text-xs text-muted-foreground px-1">
+              Filters auto-apply as you select. Use +/- to include/exclude.
             </div>
           </div>
         </div>
@@ -147,7 +127,7 @@ export function FiltersSidebar({
                 <div className="space-y-3">
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Countries ({availableOptions.accountCountries?.length || 0})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.accountCountries || []}
                       selected={pendingFilters.accountCountries}
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountCountries: selected }))}
@@ -156,7 +136,7 @@ export function FiltersSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Regions ({availableOptions.accountRegions?.length || 0})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.accountRegions || []}
                       selected={pendingFilters.accountRegions}
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountRegions: selected }))}
@@ -165,7 +145,7 @@ export function FiltersSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Industries ({availableOptions.accountIndustries.length})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.accountIndustries}
                       selected={pendingFilters.accountIndustries}
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountIndustries: selected }))}
@@ -174,7 +154,7 @@ export function FiltersSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Sub Industries ({availableOptions.accountSubIndustries.length})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.accountSubIndustries}
                       selected={pendingFilters.accountSubIndustries}
                       onChange={(selected) =>
@@ -185,7 +165,7 @@ export function FiltersSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Primary Categories ({availableOptions.accountPrimaryCategories.length})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.accountPrimaryCategories}
                       selected={pendingFilters.accountPrimaryCategories}
                       onChange={(selected) =>
@@ -196,7 +176,7 @@ export function FiltersSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Primary Nature ({availableOptions.accountPrimaryNatures.length})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.accountPrimaryNatures}
                       selected={pendingFilters.accountPrimaryNatures}
                       onChange={(selected) =>
@@ -207,7 +187,7 @@ export function FiltersSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">NASSCOM Status ({availableOptions.accountNasscomStatuses.length})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.accountNasscomStatuses}
                       selected={pendingFilters.accountNasscomStatuses}
                       onChange={(selected) =>
@@ -218,7 +198,7 @@ export function FiltersSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Employees Range ({availableOptions.accountEmployeesRanges.length})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.accountEmployeesRanges}
                       selected={pendingFilters.accountEmployeesRanges}
                       onChange={(selected) =>
@@ -229,7 +209,7 @@ export function FiltersSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Center Employees ({availableOptions.accountCenterEmployees.length})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.accountCenterEmployees}
                       selected={pendingFilters.accountCenterEmployees}
                       onChange={(selected) =>
@@ -329,7 +309,7 @@ export function FiltersSidebar({
                 <div className="space-y-3">
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Center Types ({availableOptions.centerTypes.length})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.centerTypes}
                       selected={pendingFilters.centerTypes}
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerTypes: selected }))}
@@ -338,7 +318,7 @@ export function FiltersSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Center Focus ({availableOptions.centerFocus.length})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.centerFocus}
                       selected={pendingFilters.centerFocus}
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerFocus: selected }))}
@@ -347,7 +327,7 @@ export function FiltersSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Cities ({availableOptions.centerCities.length})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.centerCities}
                       selected={pendingFilters.centerCities}
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerCities: selected }))}
@@ -356,7 +336,7 @@ export function FiltersSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">States ({availableOptions.centerStates.length})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.centerStates}
                       selected={pendingFilters.centerStates}
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerStates: selected }))}
@@ -365,7 +345,7 @@ export function FiltersSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Countries ({availableOptions.centerCountries.length})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.centerCountries}
                       selected={pendingFilters.centerCountries}
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerCountries: selected }))}
@@ -374,7 +354,7 @@ export function FiltersSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Center Employees ({availableOptions.centerEmployees.length})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.centerEmployees}
                       selected={pendingFilters.centerEmployees}
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerEmployees: selected }))}
@@ -383,7 +363,7 @@ export function FiltersSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Center Status ({availableOptions.centerStatuses.length})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.centerStatuses}
                       selected={pendingFilters.centerStatuses}
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerStatuses: selected }))}
@@ -394,7 +374,7 @@ export function FiltersSidebar({
                   {/* Functions nested inside Centers */}
                   <div className="space-y-2 pt-4 mt-4 border-t border-border">
                     <Label className="text-xs font-medium">Functions ({availableOptions.functionTypes.length})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.functionTypes}
                       selected={pendingFilters.functionTypes}
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, functionTypes: selected }))}
@@ -420,7 +400,7 @@ export function FiltersSidebar({
                 <div className="space-y-3">
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Departments ({availableOptions.prospectDepartments?.length || 0})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.prospectDepartments || []}
                       selected={pendingFilters.prospectDepartments}
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, prospectDepartments: selected }))}
@@ -429,7 +409,7 @@ export function FiltersSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Levels ({availableOptions.prospectLevels?.length || 0})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.prospectLevels || []}
                       selected={pendingFilters.prospectLevels}
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, prospectLevels: selected }))}
@@ -438,7 +418,7 @@ export function FiltersSidebar({
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Cities ({availableOptions.prospectCities?.length || 0})</Label>
-                    <MultiSelect
+                    <EnhancedMultiSelect
                       options={availableOptions.prospectCities || []}
                       selected={pendingFilters.prospectCities}
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, prospectCities: selected }))}
@@ -466,23 +446,41 @@ export function FiltersSidebar({
   )
 }
 
-// Title Keyword Input Component
-function TitleKeywordInput({ keywords, onChange, placeholder = "e.g., Manager, Director, VP..." }: { keywords: string[]; onChange: (keywords: string[]) => void; placeholder?: string }) {
+// Title Keyword Input Component with include/exclude support
+function TitleKeywordInput({
+  keywords,
+  onChange,
+  placeholder = "e.g., Manager, Director, VP..."
+}: {
+  keywords: FilterValue[]
+  onChange: (keywords: FilterValue[]) => void
+  placeholder?: string
+}) {
   const [inputValue, setInputValue] = useState("")
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && inputValue.trim()) {
       e.preventDefault()
       const trimmedValue = inputValue.trim()
-      if (!keywords.includes(trimmedValue)) {
-        onChange([...keywords, trimmedValue])
+      if (!keywords.find((k) => k.value === trimmedValue)) {
+        onChange([...keywords, { value: trimmedValue, mode: 'include' }])
       }
       setInputValue("")
     }
   }
 
-  const removeKeyword = (keywordToRemove: string) => {
-    onChange(keywords.filter((k) => k !== keywordToRemove))
+  const removeKeyword = (keywordToRemove: FilterValue) => {
+    onChange(keywords.filter((k) => k.value !== keywordToRemove.value))
+  }
+
+  const toggleKeywordMode = (keyword: FilterValue) => {
+    onChange(
+      keywords.map((k) =>
+        k.value === keyword.value
+          ? { ...k, mode: k.mode === 'include' ? 'exclude' : 'include' }
+          : k
+      )
+    )
   }
 
   return (
@@ -497,22 +495,43 @@ function TitleKeywordInput({ keywords, onChange, placeholder = "e.g., Manager, D
       />
       {keywords.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-2">
-          {keywords.map((keyword) => (
-            <Badge
-              key={keyword}
-              variant="secondary"
-              className="flex items-center gap-1 px-2 py-1 text-xs"
-            >
-              {keyword}
-              <button
-                onClick={() => removeKeyword(keyword)}
-                className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
-                type="button"
+          {keywords.map((keyword) => {
+            const isInclude = keyword.mode === 'include'
+            return (
+              <Badge
+                key={keyword.value}
+                variant="secondary"
+                className={cn(
+                  "flex items-center gap-1 px-2 py-1 text-xs transition-all duration-200",
+                  isInclude
+                    ? "bg-green-500/20 text-green-700 dark:bg-green-500/30 dark:text-green-300 border-green-500/50 hover:bg-green-500/30"
+                    : "bg-red-500/20 text-red-700 dark:bg-red-500/30 dark:text-red-300 border-red-500/50 hover:bg-red-500/30"
+                )}
               >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
+                <button
+                  onClick={() => toggleKeywordMode(keyword)}
+                  className={cn(
+                    "flex items-center justify-center w-3 h-3 rounded-sm transition-all duration-200",
+                    isInclude
+                      ? "bg-green-600/30 hover:bg-green-600/50"
+                      : "bg-red-600/30 hover:bg-red-600/50"
+                  )}
+                  title={isInclude ? "Click to exclude" : "Click to include"}
+                  type="button"
+                >
+                  {isInclude ? "+" : "-"}
+                </button>
+                {keyword.value}
+                <button
+                  onClick={() => removeKeyword(keyword)}
+                  className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
+                  type="button"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            )
+          })}
         </div>
       )}
     </div>

@@ -47,6 +47,12 @@ import {
   copyToClipboard,
 } from "@/lib/utils/helpers"
 import {
+  enhancedFilterMatch,
+  enhancedKeywordMatch,
+  toFilterValues,
+  extractFilterValues,
+} from "@/lib/utils/filter-helpers"
+import {
   calculateChartData,
   calculateCenterChartData,
   calculateCityChartData,
@@ -135,6 +141,20 @@ function DashboardContent() {
   useEffect(() => {
     loadData()
   }, [])
+
+  // Auto-apply filters with debouncing for smooth performance
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setFilters(pendingFilters)
+      setIsApplying(false)
+    }, 300) // 300ms debounce for optimal responsiveness
+
+    setIsApplying(true)
+
+    return () => {
+      clearTimeout(timeoutId)
+    }
+  }, [pendingFilters])
 
   // Debounced search handler - optimized for fast response
   const debouncedSearch = useCallback(
@@ -283,10 +303,6 @@ function DashboardContent() {
 
   // Main filtering logic - memoized with stable dependencies
   const filteredData = useMemo(() => {
-    const arrayFilterMatch = (filterArray: string[], value: string) => {
-      return filterArray.length === 0 || filterArray.includes(value)
-    }
-
     const rangeFilterMatch = (range: [number, number], value: string | number, includeNull: boolean) => {
       const numValue = parseRevenue(value)
 
@@ -303,25 +319,18 @@ function DashboardContent() {
 
     // Step 1: Filter accounts based on account filters
     let filteredAccounts = accounts.filter((account) => {
-      // Check if account name contains any of the keywords (OR condition)
-      const accountNameKeywordMatch =
-        filters.accountNameKeywords.length === 0 ||
-        filters.accountNameKeywords.some((keyword) =>
-          account["ACCOUNT NAME"].toLowerCase().includes(keyword.toLowerCase())
-        )
-
       return (
-        arrayFilterMatch(filters.accountCountries, account["ACCOUNT COUNTRY"]) &&
-        arrayFilterMatch(filters.accountRegions, account["ACCOUNT REGION"]) &&
-        arrayFilterMatch(filters.accountIndustries, account["ACCOUNT INDUSTRY"]) &&
-        arrayFilterMatch(filters.accountSubIndustries, account["ACCOUNT SUB INDUSTRY"]) &&
-        arrayFilterMatch(filters.accountPrimaryCategories, account["ACCOUNT PRIMARY CATEGORY"]) &&
-        arrayFilterMatch(filters.accountPrimaryNatures, account["ACCOUNT PRIMARY NATURE"]) &&
-        arrayFilterMatch(filters.accountNasscomStatuses, account["ACCOUNT NASSCOM STATUS"]) &&
-        arrayFilterMatch(filters.accountEmployeesRanges, account["ACCOUNT EMPLOYEES RANGE"]) &&
-        arrayFilterMatch(filters.accountCenterEmployees, account["ACCOUNT CENTER EMPLOYEES"]) &&
+        enhancedFilterMatch(filters.accountCountries, account["ACCOUNT COUNTRY"]) &&
+        enhancedFilterMatch(filters.accountRegions, account["ACCOUNT REGION"]) &&
+        enhancedFilterMatch(filters.accountIndustries, account["ACCOUNT INDUSTRY"]) &&
+        enhancedFilterMatch(filters.accountSubIndustries, account["ACCOUNT SUB INDUSTRY"]) &&
+        enhancedFilterMatch(filters.accountPrimaryCategories, account["ACCOUNT PRIMARY CATEGORY"]) &&
+        enhancedFilterMatch(filters.accountPrimaryNatures, account["ACCOUNT PRIMARY NATURE"]) &&
+        enhancedFilterMatch(filters.accountNasscomStatuses, account["ACCOUNT NASSCOM STATUS"]) &&
+        enhancedFilterMatch(filters.accountEmployeesRanges, account["ACCOUNT EMPLOYEES RANGE"]) &&
+        enhancedFilterMatch(filters.accountCenterEmployees, account["ACCOUNT CENTER EMPLOYEES"]) &&
         rangeFilterMatch(filters.accountRevenueRange, account["ACCOUNT REVNUE"], filters.includeNullRevenue) &&
-        accountNameKeywordMatch
+        enhancedKeywordMatch(filters.accountNameKeywords, account["ACCOUNT NAME"])
       )
     })
 
@@ -330,13 +339,13 @@ function DashboardContent() {
     // Step 2: Filter centers based on center filters and filtered accounts
     let filteredCenters = centers.filter((center) => {
       const centerFilterMatch =
-        arrayFilterMatch(filters.centerTypes, center["CENTER TYPE"]) &&
-        arrayFilterMatch(filters.centerFocus, center["CENTER FOCUS"]) &&
-        arrayFilterMatch(filters.centerCities, center["CENTER CITY"]) &&
-        arrayFilterMatch(filters.centerStates, center["CENTER STATE"]) &&
-        arrayFilterMatch(filters.centerCountries, center["CENTER COUNTRY"]) &&
-        arrayFilterMatch(filters.centerEmployees, center["CENTER EMPLOYEES RANGE"]) &&
-        arrayFilterMatch(filters.centerStatuses, center["CENTER STATUS"])
+        enhancedFilterMatch(filters.centerTypes, center["CENTER TYPE"]) &&
+        enhancedFilterMatch(filters.centerFocus, center["CENTER FOCUS"]) &&
+        enhancedFilterMatch(filters.centerCities, center["CENTER CITY"]) &&
+        enhancedFilterMatch(filters.centerStates, center["CENTER STATE"]) &&
+        enhancedFilterMatch(filters.centerCountries, center["CENTER COUNTRY"]) &&
+        enhancedFilterMatch(filters.centerEmployees, center["CENTER EMPLOYEES RANGE"]) &&
+        enhancedFilterMatch(filters.centerStatuses, center["CENTER STATUS"])
 
       const accountFilterMatch =
         filteredAccountNames.length === accounts.length || filteredAccountNames.includes(center["ACCOUNT NAME"])
@@ -346,7 +355,7 @@ function DashboardContent() {
 
     // Step 3: Filter functions based on function filters and filtered centers
     let filteredFunctions = functions.filter((func) => {
-      const functionFilterMatch = arrayFilterMatch(filters.functionTypes, func["FUNCTION"])
+      const functionFilterMatch = enhancedFilterMatch(filters.functionTypes, func["FUNCTION"])
       const filteredCenterKeys = filteredCenters.map((c) => c["CN UNIQUE KEY"])
       const centerRelationMatch = filteredCenterKeys.includes(func["CN UNIQUE KEY"])
 
@@ -363,18 +372,11 @@ function DashboardContent() {
 
     // Step 5: Filter prospects based on prospect filters and filtered accounts
     let filteredProspects = prospects.filter((prospect) => {
-      // Check if title contains any of the keywords (OR condition)
-      const titleKeywordMatch =
-        filters.prospectTitleKeywords.length === 0 ||
-        filters.prospectTitleKeywords.some((keyword) =>
-          prospect.TITLE.toLowerCase().includes(keyword.toLowerCase())
-        )
-
       const prospectFilterMatch =
-        arrayFilterMatch(filters.prospectDepartments, prospect.DEPARTMENT) &&
-        arrayFilterMatch(filters.prospectLevels, prospect.LEVEL) &&
-        arrayFilterMatch(filters.prospectCities, prospect.CITY) &&
-        titleKeywordMatch
+        enhancedFilterMatch(filters.prospectDepartments, prospect.DEPARTMENT) &&
+        enhancedFilterMatch(filters.prospectLevels, prospect.LEVEL) &&
+        enhancedFilterMatch(filters.prospectCities, prospect.CITY) &&
+        enhancedKeywordMatch(filters.prospectTitleKeywords, prospect.TITLE)
 
       const accountFilterMatch =
         filteredAccountNames.length === accounts.length || filteredAccountNames.includes(prospect["ACCOUNT NAME"])
@@ -632,21 +634,15 @@ function DashboardContent() {
       const empRange = account["ACCOUNT EMPLOYEES RANGE"]
       const centerEmp = account["ACCOUNT CENTER EMPLOYEES"]
 
-      const matchesCountry = filters.accountCountries.length === 0 || filters.accountCountries.includes(country)
-      const matchesRegion = filters.accountRegions.length === 0 || filters.accountRegions.includes(region)
-      const matchesIndustry = filters.accountIndustries.length === 0 || filters.accountIndustries.includes(industry)
-      const matchesSubIndustry =
-        filters.accountSubIndustries.length === 0 || filters.accountSubIndustries.includes(subIndustry)
-      const matchesCategory =
-        filters.accountPrimaryCategories.length === 0 || filters.accountPrimaryCategories.includes(category)
-      const matchesNature =
-        filters.accountPrimaryNatures.length === 0 || filters.accountPrimaryNatures.includes(nature)
-      const matchesNasscom =
-        filters.accountNasscomStatuses.length === 0 || filters.accountNasscomStatuses.includes(nasscom)
-      const matchesEmpRange =
-        filters.accountEmployeesRanges.length === 0 || filters.accountEmployeesRanges.includes(empRange)
-      const matchesCenterEmp =
-        filters.accountCenterEmployees.length === 0 || filters.accountCenterEmployees.includes(centerEmp)
+      const matchesCountry = enhancedFilterMatch(filters.accountCountries, country)
+      const matchesRegion = enhancedFilterMatch(filters.accountRegions, region)
+      const matchesIndustry = enhancedFilterMatch(filters.accountIndustries, industry)
+      const matchesSubIndustry = enhancedFilterMatch(filters.accountSubIndustries, subIndustry)
+      const matchesCategory = enhancedFilterMatch(filters.accountPrimaryCategories, category)
+      const matchesNature = enhancedFilterMatch(filters.accountPrimaryNatures, nature)
+      const matchesNasscom = enhancedFilterMatch(filters.accountNasscomStatuses, nasscom)
+      const matchesEmpRange = enhancedFilterMatch(filters.accountEmployeesRanges, empRange)
+      const matchesCenterEmp = enhancedFilterMatch(filters.accountCenterEmployees, centerEmp)
 
       if (
         matchesRegion &&
@@ -795,13 +791,13 @@ function DashboardContent() {
       const employees = center["CENTER EMPLOYEES RANGE"]
       const status = center["CENTER STATUS"]
 
-      const matchesType = filters.centerTypes.length === 0 || filters.centerTypes.includes(type)
-      const matchesFocus = filters.centerFocus.length === 0 || filters.centerFocus.includes(focus)
-      const matchesCity = filters.centerCities.length === 0 || filters.centerCities.includes(city)
-      const matchesState = filters.centerStates.length === 0 || filters.centerStates.includes(state)
-      const matchesCountry = filters.centerCountries.length === 0 || filters.centerCountries.includes(country)
-      const matchesEmployees = filters.centerEmployees.length === 0 || filters.centerEmployees.includes(employees)
-      const matchesStatus = filters.centerStatuses.length === 0 || filters.centerStatuses.includes(status)
+      const matchesType = enhancedFilterMatch(filters.centerTypes, type)
+      const matchesFocus = enhancedFilterMatch(filters.centerFocus, focus)
+      const matchesCity = enhancedFilterMatch(filters.centerCities, city)
+      const matchesState = enhancedFilterMatch(filters.centerStates, state)
+      const matchesCountry = enhancedFilterMatch(filters.centerCountries, country)
+      const matchesEmployees = enhancedFilterMatch(filters.centerEmployees, employees)
+      const matchesStatus = enhancedFilterMatch(filters.centerStatuses, status)
 
       if (matchesFocus && matchesCity && matchesState && matchesCountry && matchesEmployees && matchesStatus) {
         centerCounts.types.set(type, (centerCounts.types.get(type) || 0) + 1)
@@ -860,9 +856,9 @@ function DashboardContent() {
       const level = prospect.LEVEL
       const city = prospect.CITY
 
-      const matchesDepartment = filters.prospectDepartments.length === 0 || filters.prospectDepartments.includes(department)
-      const matchesLevel = filters.prospectLevels.length === 0 || filters.prospectLevels.includes(level)
-      const matchesCity = filters.prospectCities.length === 0 || filters.prospectCities.includes(city)
+      const matchesDepartment = enhancedFilterMatch(filters.prospectDepartments, department)
+      const matchesLevel = enhancedFilterMatch(filters.prospectLevels, level)
+      const matchesCity = enhancedFilterMatch(filters.prospectCities, city)
 
       if (matchesLevel && matchesCity) {
         prospectCounts.departments.set(department, (prospectCounts.departments.get(department) || 0) + 1)
@@ -1068,14 +1064,11 @@ function DashboardContent() {
             isApplying={isApplying}
             revenueRange={revenueRange}
             setPendingFilters={setPendingFilters}
-            applyFilters={applyFilters}
             resetFilters={resetFilters}
             handleExportAll={handleExportAll}
             handleMinRevenueChange={handleMinRevenueChange}
             handleMaxRevenueChange={handleMaxRevenueChange}
             getTotalActiveFilters={getTotalActiveFilters}
-            getTotalPendingFilters={getTotalPendingFilters}
-            hasUnappliedChanges={hasUnappliedChanges}
             handleLoadSavedFilters={handleLoadSavedFilters}
             formatRevenueInMillions={formatRevenueInMillions}
           />
