@@ -22,7 +22,7 @@ const SelectBadge = React.memo(({ item, onRemove }: { item: string; onRemove: ()
   <Badge
     variant="secondary"
     key={item}
-    className="mr-1 mb-1 animate-badge-in hover:bg-secondary/80 transition-colors duration-100 cursor-pointer group"
+    className="mr-1 mb-1 hover:bg-secondary/80 cursor-pointer group"
     onClick={(e) => {
       e.preventDefault()
       e.stopPropagation()
@@ -30,7 +30,7 @@ const SelectBadge = React.memo(({ item, onRemove }: { item: string; onRemove: ()
     }}
   >
     {item}
-    <X className="ml-1 h-3 w-3 group-hover:scale-110 transition-transform duration-100" />
+    <X className="ml-1 h-3 w-3" />
   </Badge>
 ))
 SelectBadge.displayName = "SelectBadge"
@@ -54,7 +54,7 @@ const SelectItem = React.memo(({
     onSelect={onSelect}
     disabled={disabled}
     className={cn(
-      "cursor-pointer transition-all duration-100",
+      "cursor-pointer",
       disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-accent/50"
     )}
   >
@@ -62,12 +62,12 @@ const SelectItem = React.memo(({
       <Checkbox
         checked={isSelected}
         disabled={disabled}
-        className="h-4 w-4 transition-all duration-100"
+        className="h-4 w-4"
       />
       <Check
         className={cn(
-          "h-4 w-4 transition-all duration-100",
-          isSelected ? "opacity-100 scale-100" : "opacity-0 scale-75"
+          "h-4 w-4",
+          isSelected ? "opacity-100" : "opacity-0"
         )}
       />
       <span className="flex-1">{value}</span>
@@ -142,19 +142,19 @@ export const MultiSelect = React.memo(function MultiSelect({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="justify-between h-auto min-h-10 bg-transparent hover:bg-accent/30 transition-all duration-150"
+            className="justify-between h-auto min-h-10 bg-transparent hover:bg-accent/30"
           >
             <div className="flex gap-1 flex-wrap">
               {selected.length === 0 && <span className="text-muted-foreground">{placeholder}</span>}
               {renderBadges}
             </div>
             <ChevronsUpDown className={cn(
-              "h-4 w-4 shrink-0 opacity-50 transition-transform duration-200",
+              "h-4 w-4 shrink-0 opacity-50",
               open && "rotate-180"
             )} />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0 animate-slide-down">
+        <PopoverContent className="w-full p-0">
           <Command>
             <CommandInput placeholder="Search..." className="h-9" />
             <CommandList className="max-h-64">
