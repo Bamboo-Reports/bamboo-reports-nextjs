@@ -178,6 +178,7 @@ export function CentersMap({ centers }: CentersMapProps) {
         initialViewState={initialViewState}
         mapStyle="mapbox://styles/abhishekfx/cltyaz9ek00nx01p783ygdi9z"
         mapboxAccessToken={mapboxToken}
+        projection="mercator"
         interactiveLayerIds={["centers-circles"]}
         onMouseMove={(e) => {
           const features = e.features
@@ -205,9 +206,9 @@ export function CentersMap({ centers }: CentersMapProps) {
                 ["linear"],
                 ["get", "count"],
                 1,
-                10,
+                6,
                 maxCount,
-                50,
+                25,
               ],
               "circle-color": [
                 "interpolate",
