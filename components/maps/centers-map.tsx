@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useMemo, useState, useEffect, useRef } from "react"
-import { Map as MapGL, Source, Layer, NavigationControl, FullscreenControl, GeolocateControl } from "react-map-gl/mapbox"
+import { Map as MapGL, Source, Layer, NavigationControl, FullscreenControl } from "react-map-gl/mapbox"
 import type { MapRef } from "react-map-gl/mapbox"
 import type { Center } from "@/lib/types"
 import "mapbox-gl/dist/mapbox-gl.css"
@@ -215,12 +215,35 @@ export function CentersMap({ centers }: CentersMapProps) {
         {/* Fullscreen Control */}
         <FullscreenControl position="top-left" />
 
-        {/* Geolocate Control - Find user's location */}
-        <GeolocateControl
-          position="top-left"
-          trackUserLocation={false}
-          showUserHeading={true}
-        />
+        {/* Custom Recenter Button */}
+        <div className="absolute top-[116px] left-[10px] z-10">
+          <button
+            onClick={handleRecenter}
+            className="mapboxgl-ctrl mapboxgl-ctrl-group"
+            title="Reset to initial view"
+            type="button"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ display: "block" }}
+            >
+              <circle cx="12" cy="12" r="10" />
+              <circle cx="12" cy="12" r="1" />
+              <path d="M12 2v4" />
+              <path d="M12 18v4" />
+              <path d="M2 12h4" />
+              <path d="M18 12h4" />
+            </svg>
+          </button>
+        </div>
 
         <Source id="centers" type="geojson" data={geojsonData}>
           {/* Circle layer */}
@@ -271,33 +294,6 @@ export function CentersMap({ centers }: CentersMapProps) {
           </div>
         )}
       </MapGL>
-
-      {/* Custom Recenter Button */}
-      <button
-        onClick={handleRecenter}
-        className="absolute top-[200px] left-2 bg-background border rounded shadow-md p-2 hover:bg-accent transition-colors z-10 flex items-center gap-2"
-        title="Reset map to initial view"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <circle cx="12" cy="12" r="1" />
-          <path d="M12 2v4" />
-          <path d="M12 18v4" />
-          <path d="M2 12h4" />
-          <path d="M18 12h4" />
-        </svg>
-        <span className="text-xs font-medium">Recenter</span>
-      </button>
 
       {/* Legend */}
       <div className="absolute bottom-4 right-4 bg-background border rounded-lg shadow-lg px-4 py-3 z-10">
