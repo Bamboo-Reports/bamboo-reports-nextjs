@@ -14,6 +14,7 @@ import {
   Loader2,
   Building,
   Briefcase,
+  Users,
 } from "lucide-react"
 import { MultiSelect } from "@/components/multi-select"
 import { SavedFiltersManager } from "@/components/saved-filters-manager"
@@ -403,6 +404,54 @@ export function FiltersSidebar({
                       onChange={(selected) => setPendingFilters((prev) => ({ ...prev, functionTypes: selected }))}
                       placeholder="Select functions..."
                     />
+                  </div>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Prospects Accordion */}
+          <AccordionItem value="prospects">
+            <AccordionTrigger className="text-sm font-semibold">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-[hsl(var(--chart-3))]" />
+                Prospects
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2">
+                {/* Prospect Filters */}
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Departments ({availableOptions.prospectDepartments?.length || 0})</Label>
+                    <MultiSelect
+                      options={availableOptions.prospectDepartments || []}
+                      selected={pendingFilters.prospectDepartments}
+                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, prospectDepartments: selected }))}
+                      placeholder="Select departments..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Levels ({availableOptions.prospectLevels?.length || 0})</Label>
+                    <MultiSelect
+                      options={availableOptions.prospectLevels || []}
+                      selected={pendingFilters.prospectLevels}
+                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, prospectLevels: selected }))}
+                      placeholder="Select levels..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Cities ({availableOptions.prospectCities?.length || 0})</Label>
+                    <MultiSelect
+                      options={availableOptions.prospectCities || []}
+                      selected={pendingFilters.prospectCities}
+                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, prospectCities: selected }))}
+                      placeholder="Select cities..."
+                    />
+                  </div>
+                  <div className="space-y-2 pt-4 mt-4 border-t border-border">
+                    <Label className="text-xs font-medium text-muted-foreground">Search by Title</Label>
+                    <p className="text-xs text-muted-foreground">Use the "Search Account Name" field above to filter prospects by title.</p>
                   </div>
                 </div>
               </div>
