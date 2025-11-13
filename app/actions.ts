@@ -179,6 +179,31 @@ export async function getServices() {
   }
 }
 
+export async function getProspects() {
+  try {
+    if (!sql) {
+      throw new Error("Database connection not initialized")
+    }
+
+    // Check cache first
+    const cacheKey = "prospects"
+    const cached = getCachedData(cacheKey)
+    if (cached) return cached
+
+    console.log("Fetching prospects from database...")
+    const prospects = await fetchWithRetry(() => sql`SELECT * FROM prospects ORDER BY "LAST NAME", "FIRST NAME"`)
+    console.log(`Successfully fetched ${prospects.length} prospects`)
+
+    // Cache the result
+    setCachedData(cacheKey, prospects)
+
+    return prospects
+  } catch (error) {
+    console.error("Error fetching prospects:", error)
+    return []
+  }
+}
+
 // ============================================
 // SAVED FILTERS FUNCTIONS
 // ============================================
@@ -309,6 +334,7 @@ export async function getAllData() {
         centers: [],
         functions: [],
         services: [],
+        prospects: [],
         error: "Database configuration missing",
       }
     }
@@ -320,6 +346,7 @@ export async function getAllData() {
         centers: [],
         functions: [],
         services: [],
+        prospects: [],
         error: "Database connection failed",
       }
     }
@@ -333,11 +360,12 @@ export async function getAllData() {
     }
 
     // Fetch all data in parallel with retry logic
-    const [accounts, centers, functions, services] = await Promise.all([
+    const [accounts, centers, functions, services, prospects] = await Promise.all([
       getAccounts(),
       getCenters(),
       getFunctions(),
       getServices(),
+      getProspects(),
     ])
 
     console.log("Successfully fetched all data:", {
@@ -345,6 +373,7 @@ export async function getAllData() {
       centers: centers.length,
       functions: functions.length,
       services: services.length,
+      prospects: prospects.length,
     })
 
     const allData = {
@@ -352,6 +381,7 @@ export async function getAllData() {
       centers,
       functions,
       services,
+      prospects,
       error: null,
     }
 
@@ -366,6 +396,7 @@ export async function getAllData() {
       centers: [],
       functions: [],
       services: [],
+      prospects: [],
       error: error instanceof Error ? error.message : "Unknown database error",
     }
   }

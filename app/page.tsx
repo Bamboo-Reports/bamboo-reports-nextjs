@@ -35,7 +35,8 @@ import { ErrorState } from "@/components/states/error-state"
 import { Header } from "@/components/layout/header"
 import { FiltersSidebar } from "@/components/filters/filters-sidebar"
 import { SummaryCards } from "@/components/dashboard/summary-cards"
-import { AccountsTab, CentersTab, ServicesTab } from "@/components/tabs"
+import { AccountsTab, CentersTab } from "@/components/tabs"
+import { ProspectsTab } from "@/components/tabs/prospects-tab"
 import {
   parseRevenue,
   formatRevenueInMillions,
@@ -55,13 +56,14 @@ import {
   exportToExcel,
   exportAllData as exportAll,
 } from "@/lib/utils/export-helpers"
-import type { Account, Center, Function, Service, Filters, FilterOption, AvailableOptions } from "@/lib/types"
+import type { Account, Center, Function, Service, Prospect, Filters, FilterOption, AvailableOptions } from "@/lib/types"
 
 function DashboardContent() {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [centers, setCenters] = useState<Center[]>([])
   const [functions, setFunctions] = useState<Function[]>([])
   const [services, setServices] = useState<Service[]>([])
+  const [prospects, setProspects] = useState<Prospect[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [connectionStatus, setConnectionStatus] = useState<string>("")
@@ -79,6 +81,7 @@ function DashboardContent() {
     accountCenterEmployees: [],
     accountRevenueRange: [0, 1000000],
     includeNullRevenue: false,
+    accountNameKeywords: [],
     centerTypes: [],
     centerFocus: [],
     centerCities: [],
@@ -87,6 +90,10 @@ function DashboardContent() {
     centerEmployees: [],
     centerStatuses: [],
     functionTypes: [],
+    prospectDepartments: [],
+    prospectLevels: [],
+    prospectCities: [],
+    prospectTitleKeywords: [],
     searchTerm: "",
   })
   const [pendingFilters, setPendingFilters] = useState<Filters>({
@@ -101,6 +108,7 @@ function DashboardContent() {
     accountCenterEmployees: [],
     accountRevenueRange: [0, 1000000],
     includeNullRevenue: false,
+    accountNameKeywords: [],
     centerTypes: [],
     centerFocus: [],
     centerCities: [],
@@ -109,6 +117,10 @@ function DashboardContent() {
     centerEmployees: [],
     centerStatuses: [],
     functionTypes: [],
+    prospectDepartments: [],
+    prospectLevels: [],
+    prospectCities: [],
+    prospectTitleKeywords: [],
     searchTerm: "",
   })
   const [currentPage, setCurrentPage] = useState(1)
@@ -117,6 +129,7 @@ function DashboardContent() {
   const [searchInput, setSearchInput] = useState("")
   const [accountsView, setAccountsView] = useState<"chart" | "data">("chart")
   const [centersView, setCentersView] = useState<"chart" | "data">("chart")
+  const [prospectsView, setProspectsView] = useState<"chart" | "data">("chart")
 
   // Load data from database on component mount
   useEffect(() => {
@@ -202,12 +215,14 @@ function DashboardContent() {
       const centersData = Array.isArray(data.centers) ? data.centers : []
       const functionsData = Array.isArray(data.functions) ? data.functions : []
       const servicesData = Array.isArray(data.services) ? data.services : []
+      const prospectsData = Array.isArray(data.prospects) ? data.prospects : []
 
       if (
         accountsData.length === 0 &&
         centersData.length === 0 &&
         functionsData.length === 0 &&
-        servicesData.length === 0
+        servicesData.length === 0 &&
+        prospectsData.length === 0
       ) {
         setError("No data found in database tables. Please check if your tables contain data.")
         setConnectionStatus("No data available")
@@ -218,6 +233,7 @@ function DashboardContent() {
       setCenters(centersData as Center[])
       setFunctions(functionsData as Function[])
       setServices(servicesData as Service[])
+      setProspects(prospectsData as Prospect[])
 
       const revenues = accountsData
         .map((account: Account) => parseRevenue(account["ACCOUNT REVNUE"]))
@@ -234,7 +250,7 @@ function DashboardContent() {
       }
 
       setConnectionStatus(
-        `Successfully loaded: ${accountsData.length} accounts, ${centersData.length} centers, ${functionsData.length} functions, ${servicesData.length} services`
+        `Successfully loaded: ${accountsData.length} accounts, ${centersData.length} centers, ${functionsData.length} functions, ${servicesData.length} services, ${prospectsData.length} prospects`
       )
     } catch (err) {
       console.error("Error loading data:", err)
@@ -285,7 +301,15 @@ function DashboardContent() {
       return numValue >= range[0] && numValue <= range[1]
     }
 
-    const filteredAccounts = accounts.filter((account) => {
+    // Step 1: Filter accounts based on account filters
+    let filteredAccounts = accounts.filter((account) => {
+      // Check if account name contains any of the keywords (OR condition)
+      const accountNameKeywordMatch =
+        filters.accountNameKeywords.length === 0 ||
+        filters.accountNameKeywords.some((keyword) =>
+          account["ACCOUNT NAME"].toLowerCase().includes(keyword.toLowerCase())
+        )
+
       return (
         arrayFilterMatch(filters.accountCountries, account["ACCOUNT COUNTRY"]) &&
         arrayFilterMatch(filters.accountRegions, account["ACCOUNT REGION"]) &&
@@ -297,12 +321,13 @@ function DashboardContent() {
         arrayFilterMatch(filters.accountEmployeesRanges, account["ACCOUNT EMPLOYEES RANGE"]) &&
         arrayFilterMatch(filters.accountCenterEmployees, account["ACCOUNT CENTER EMPLOYEES"]) &&
         rangeFilterMatch(filters.accountRevenueRange, account["ACCOUNT REVNUE"], filters.includeNullRevenue) &&
-        (filters.searchTerm === "" || account["ACCOUNT NAME"].toLowerCase().includes(filters.searchTerm.toLowerCase()))
+        accountNameKeywordMatch
       )
     })
 
-    const filteredAccountNames = filteredAccounts.map((a) => a["ACCOUNT NAME"])
+    let filteredAccountNames = filteredAccounts.map((a) => a["ACCOUNT NAME"])
 
+    // Step 2: Filter centers based on center filters and filtered accounts
     let filteredCenters = centers.filter((center) => {
       const centerFilterMatch =
         arrayFilterMatch(filters.centerTypes, center["CENTER TYPE"]) &&
@@ -319,6 +344,7 @@ function DashboardContent() {
       return centerFilterMatch && accountFilterMatch
     })
 
+    // Step 3: Filter functions based on function filters and filtered centers
     let filteredFunctions = functions.filter((func) => {
       const functionFilterMatch = arrayFilterMatch(filters.functionTypes, func["FUNCTION"])
       const filteredCenterKeys = filteredCenters.map((c) => c["CN UNIQUE KEY"])
@@ -327,6 +353,7 @@ function DashboardContent() {
       return functionFilterMatch && centerRelationMatch
     })
 
+    // Step 4: If function filters are applied, filter centers back to only those with matching functions
     if (filters.functionTypes.length > 0) {
       const centerKeysWithMatchingFunctions = filteredFunctions.map((f) => f["CN UNIQUE KEY"])
       filteredCenters = filteredCenters.filter((center) =>
@@ -334,14 +361,64 @@ function DashboardContent() {
       )
     }
 
+    // Step 5: Filter prospects based on prospect filters and filtered accounts
+    let filteredProspects = prospects.filter((prospect) => {
+      // Check if title contains any of the keywords (OR condition)
+      const titleKeywordMatch =
+        filters.prospectTitleKeywords.length === 0 ||
+        filters.prospectTitleKeywords.some((keyword) =>
+          prospect.TITLE.toLowerCase().includes(keyword.toLowerCase())
+        )
+
+      const prospectFilterMatch =
+        arrayFilterMatch(filters.prospectDepartments, prospect.DEPARTMENT) &&
+        arrayFilterMatch(filters.prospectLevels, prospect.LEVEL) &&
+        arrayFilterMatch(filters.prospectCities, prospect.CITY) &&
+        titleKeywordMatch
+
+      const accountFilterMatch =
+        filteredAccountNames.length === accounts.length || filteredAccountNames.includes(prospect["ACCOUNT NAME"])
+
+      return prospectFilterMatch && accountFilterMatch
+    })
+
+    // Step 6: If prospect filters are applied, filter accounts back to only those with matching prospects
+    const hasProspectFilters =
+      filters.prospectDepartments.length > 0 ||
+      filters.prospectLevels.length > 0 ||
+      filters.prospectCities.length > 0 ||
+      filters.prospectTitleKeywords.length > 0
+
+    if (hasProspectFilters) {
+      const accountNamesWithMatchingProspects = [...new Set(filteredProspects.map((p) => p["ACCOUNT NAME"]))]
+      filteredAccounts = filteredAccounts.filter((account) =>
+        accountNamesWithMatchingProspects.includes(account["ACCOUNT NAME"])
+      )
+
+      // Update filtered account names after prospect filtering
+      filteredAccountNames = filteredAccounts.map((a) => a["ACCOUNT NAME"])
+
+      // Re-filter centers based on the updated accounts
+      filteredCenters = filteredCenters.filter((center) =>
+        filteredAccountNames.includes(center["ACCOUNT NAME"])
+      )
+    }
+
+    // Step 7: Finalize center keys and re-filter functions and services
     const finalCenterKeys = filteredCenters.map((c) => c["CN UNIQUE KEY"])
     filteredFunctions = filteredFunctions.filter((func) => finalCenterKeys.includes(func["CN UNIQUE KEY"]))
 
     const filteredServices = services.filter((service) => finalCenterKeys.includes(service["CN UNIQUE KEY"]))
 
+    // Step 8: Final account filtering based on centers that made it through
     const finalAccountNames = [...new Set(filteredCenters.map((c) => c["ACCOUNT NAME"]))]
     const finalFilteredAccounts = filteredAccounts.filter((account) =>
       finalAccountNames.includes(account["ACCOUNT NAME"])
+    )
+
+    // Step 9: Final prospect filtering based on final accounts
+    const finalFilteredProspects = filteredProspects.filter((prospect) =>
+      finalAccountNames.includes(prospect["ACCOUNT NAME"])
     )
 
     return {
@@ -349,12 +426,14 @@ function DashboardContent() {
       filteredCenters,
       filteredFunctions,
       filteredServices,
+      filteredProspects: finalFilteredProspects,
     }
   }, [
     accounts,
     centers,
     functions,
     services,
+    prospects,
     filters.accountCountries,
     filters.accountRegions,
     filters.accountIndustries,
@@ -366,6 +445,7 @@ function DashboardContent() {
     filters.accountCenterEmployees,
     filters.accountRevenueRange,
     filters.includeNullRevenue,
+    filters.accountNameKeywords,
     filters.centerTypes,
     filters.centerFocus,
     filters.centerCities,
@@ -374,7 +454,10 @@ function DashboardContent() {
     filters.centerEmployees,
     filters.centerStatuses,
     filters.functionTypes,
-    filters.searchTerm,
+    filters.prospectDepartments,
+    filters.prospectLevels,
+    filters.prospectCities,
+    filters.prospectTitleKeywords,
   ])
 
   // Calculate chart data for accounts
@@ -401,6 +484,16 @@ function DashboardContent() {
       functionData: calculateFunctionChartData(filteredData.filteredFunctions, centerKeys),
     }
   }, [filteredData.filteredCenters, filteredData.filteredFunctions])
+
+  // Calculate chart data for prospects
+  const prospectChartData = useMemo(() => {
+    const prospects = filteredData.filteredProspects
+
+    return {
+      departmentData: calculateChartData(prospects, "DEPARTMENT"),
+      levelData: calculateChartData(prospects, "LEVEL"),
+    }
+  }, [filteredData.filteredProspects])
 
   // Dynamic revenue range calculation
   const dynamicRevenueRange = useMemo(() => {
@@ -496,6 +589,9 @@ function DashboardContent() {
         centerEmployees: [],
         centerStatuses: [],
         functionTypes: [],
+        prospectDepartments: [],
+        prospectLevels: [],
+        prospectCities: [],
       }
     }
 
@@ -750,6 +846,35 @@ function DashboardContent() {
       functionCounts.set(funcType, (functionCounts.get(funcType) || 0) + 1)
     })
 
+    // Calculate prospect counts
+    const prospectCounts = {
+      departments: new Map<string, number>(),
+      levels: new Map<string, number>(),
+      cities: new Map<string, number>(),
+    }
+
+    prospects.forEach((prospect) => {
+      if (!validAccountNames.has(prospect["ACCOUNT NAME"])) return
+
+      const department = prospect.DEPARTMENT
+      const level = prospect.LEVEL
+      const city = prospect.CITY
+
+      const matchesDepartment = filters.prospectDepartments.length === 0 || filters.prospectDepartments.includes(department)
+      const matchesLevel = filters.prospectLevels.length === 0 || filters.prospectLevels.includes(level)
+      const matchesCity = filters.prospectCities.length === 0 || filters.prospectCities.includes(city)
+
+      if (matchesLevel && matchesCity) {
+        prospectCounts.departments.set(department, (prospectCounts.departments.get(department) || 0) + 1)
+      }
+      if (matchesDepartment && matchesCity) {
+        prospectCounts.levels.set(level, (prospectCounts.levels.get(level) || 0) + 1)
+      }
+      if (matchesDepartment && matchesLevel) {
+        prospectCounts.cities.set(city, (prospectCounts.cities.get(city) || 0) + 1)
+      }
+    })
+
     const mapToSortedArray = (map: Map<string, number>): FilterOption[] => {
       return Array.from(map.entries())
         .map(([value, count]) => ({ value, count }))
@@ -774,8 +899,11 @@ function DashboardContent() {
       centerEmployees: mapToSortedArray(centerCounts.employees),
       centerStatuses: mapToSortedArray(centerCounts.statuses),
       functionTypes: mapToSortedArray(functionCounts),
+      prospectDepartments: mapToSortedArray(prospectCounts.departments),
+      prospectLevels: mapToSortedArray(prospectCounts.levels),
+      prospectCities: mapToSortedArray(prospectCounts.cities),
     }
-  }, [accounts, centers, functions, filters])
+  }, [accounts, centers, functions, prospects, filters])
 
   const applyFilters = useCallback(() => {
     setIsApplying(true)
@@ -798,6 +926,7 @@ function DashboardContent() {
       accountCenterEmployees: [],
       accountRevenueRange: [revenueRange.min, revenueRange.max] as [number, number],
       includeNullRevenue: false,
+      accountNameKeywords: [],
       centerTypes: [],
       centerFocus: [],
       centerCities: [],
@@ -806,11 +935,14 @@ function DashboardContent() {
       centerEmployees: [],
       centerStatuses: [],
       functionTypes: [],
+      prospectDepartments: [],
+      prospectLevels: [],
+      prospectCities: [],
+      prospectTitleKeywords: [],
       searchTerm: "",
     }
     setFilters(emptyFilters)
     setPendingFilters(emptyFilters)
-    setSearchInput("")
   }
 
   const getTotalPendingFilters = () => {
@@ -829,6 +961,7 @@ function DashboardContent() {
         ? 1
         : 0) +
       (pendingFilters.includeNullRevenue ? 1 : 0) +
+      pendingFilters.accountNameKeywords.length +
       pendingFilters.centerTypes.length +
       pendingFilters.centerFocus.length +
       pendingFilters.centerCities.length +
@@ -837,7 +970,10 @@ function DashboardContent() {
       pendingFilters.centerEmployees.length +
       pendingFilters.centerStatuses.length +
       pendingFilters.functionTypes.length +
-      (pendingFilters.searchTerm ? 1 : 0)
+      pendingFilters.prospectDepartments.length +
+      pendingFilters.prospectLevels.length +
+      pendingFilters.prospectCities.length +
+      pendingFilters.prospectTitleKeywords.length
     )
   }
 
@@ -860,6 +996,7 @@ function DashboardContent() {
         ? 1
         : 0) +
       (filters.includeNullRevenue ? 1 : 0) +
+      filters.accountNameKeywords.length +
       filters.centerTypes.length +
       filters.centerFocus.length +
       filters.centerCities.length +
@@ -868,14 +1005,16 @@ function DashboardContent() {
       filters.centerEmployees.length +
       filters.centerStatuses.length +
       filters.functionTypes.length +
-      (filters.searchTerm ? 1 : 0)
+      filters.prospectDepartments.length +
+      filters.prospectLevels.length +
+      filters.prospectCities.length +
+      filters.prospectTitleKeywords.length
     )
   }
 
   const handleLoadSavedFilters = (savedFilters: Filters) => {
     setPendingFilters(savedFilters)
     setFilters(savedFilters)
-    setSearchInput(savedFilters.searchTerm)
   }
 
   const handleExportAll = () => {
@@ -906,7 +1045,7 @@ function DashboardContent() {
   }
 
   const dataLoaded =
-    !loading && accounts.length > 0 && centers.length > 0 && services.length > 0
+    !loading && accounts.length > 0 && centers.length > 0 && services.length > 0 && prospects.length > 0
 
   if (loading) {
     return <LoadingState connectionStatus={connectionStatus} dbStatus={dbStatus} />
@@ -926,14 +1065,12 @@ function DashboardContent() {
             filters={filters}
             pendingFilters={pendingFilters}
             availableOptions={availableOptions}
-            searchInput={searchInput}
             isApplying={isApplying}
             revenueRange={revenueRange}
             setPendingFilters={setPendingFilters}
             applyFilters={applyFilters}
             resetFilters={resetFilters}
             handleExportAll={handleExportAll}
-            handleSearchChange={handleSearchChange}
             handleMinRevenueChange={handleMinRevenueChange}
             handleMaxRevenueChange={handleMaxRevenueChange}
             getTotalActiveFilters={getTotalActiveFilters}
@@ -951,8 +1088,8 @@ function DashboardContent() {
                 totalAccountsCount={accounts.length}
                 filteredCentersCount={filteredData.filteredCenters.length}
                 totalCentersCount={centers.length}
-                filteredServicesCount={filteredData.filteredServices.length}
-                totalServicesCount={services.length}
+                filteredProspectsCount={filteredData.filteredProspects.length}
+                totalProspectsCount={prospects.length}
               />
 
               {/* Data Tables */}
@@ -960,7 +1097,7 @@ function DashboardContent() {
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="accounts">Accounts ({filteredData.filteredAccounts.length})</TabsTrigger>
                   <TabsTrigger value="centers">Centers ({filteredData.filteredCenters.length})</TabsTrigger>
-                  <TabsTrigger value="services">Services ({filteredData.filteredServices.length})</TabsTrigger>
+                  <TabsTrigger value="prospects">Prospects ({filteredData.filteredProspects.length})</TabsTrigger>
                 </TabsList>
 
               <AccountsTab
@@ -985,8 +1122,11 @@ function DashboardContent() {
                 itemsPerPage={itemsPerPage}
               />
 
-              <ServicesTab
-                services={filteredData.filteredServices}
+              <ProspectsTab
+                prospects={filteredData.filteredProspects}
+                prospectChartData={prospectChartData}
+                prospectsView={prospectsView}
+                setProspectsView={setProspectsView}
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
                 itemsPerPage={itemsPerPage}

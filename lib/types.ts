@@ -54,6 +54,21 @@ export interface Service {
   "SOFTWARE IN USE": string
 }
 
+export interface Prospect {
+  "ACCOUNT NAME": string
+  "CENTER NAME": string
+  "FIRST NAME": string
+  "LAST NAME": string
+  TITLE: string
+  DEPARTMENT: string
+  LEVEL: string
+  "LINKEDIN LINK": string
+  EMAIL: string
+  CITY: string
+  STATE: string
+  COUNTRY: string
+}
+
 export interface Filters {
   accountCountries: string[]
   accountRegions: string[]
@@ -66,6 +81,7 @@ export interface Filters {
   accountCenterEmployees: string[]
   accountRevenueRange: [number, number]
   includeNullRevenue: boolean
+  accountNameKeywords: string[]
   centerTypes: string[]
   centerFocus: string[]
   centerCities: string[]
@@ -74,6 +90,10 @@ export interface Filters {
   centerEmployees: string[]
   centerStatuses: string[]
   functionTypes: string[]
+  prospectDepartments: string[]
+  prospectLevels: string[]
+  prospectCities: string[]
+  prospectTitleKeywords: string[]
   searchTerm: string
 }
 
@@ -101,6 +121,9 @@ export interface AvailableOptions {
   centerEmployees: FilterOption[]
   centerStatuses: FilterOption[]
   functionTypes: FilterOption[]
+  prospectDepartments: FilterOption[]
+  prospectLevels: FilterOption[]
+  prospectCities: FilterOption[]
 }
 
 export interface ChartData {

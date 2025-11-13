@@ -6,8 +6,8 @@ interface SummaryCardsProps {
   totalAccountsCount: number
   filteredCentersCount: number
   totalCentersCount: number
-  filteredServicesCount: number
-  totalServicesCount: number
+  filteredProspectsCount: number
+  totalProspectsCount: number
 }
 
 export const SummaryCards = React.memo(function SummaryCards({
@@ -15,8 +15,8 @@ export const SummaryCards = React.memo(function SummaryCards({
   totalAccountsCount,
   filteredCentersCount,
   totalCentersCount,
-  filteredServicesCount,
-  totalServicesCount,
+  filteredProspectsCount,
+  totalProspectsCount,
 }: SummaryCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -44,13 +44,13 @@ export const SummaryCards = React.memo(function SummaryCards({
       </Card>
       <Card className="hover:scale-[1.02] transition-transform duration-200" style={{ animationDelay: "100ms" }}>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-sidebar-foreground">Total Services</CardTitle>
+          <CardTitle className="text-sm font-medium text-sidebar-foreground">Total Prospects</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-[hsl(var(--chart-3))] transition-all duration-300">
-            {filteredServicesCount}
+            {filteredProspectsCount}
           </div>
-          <p className="text-xs text-muted-foreground">of {totalServicesCount} total</p>
+          <p className="text-xs text-muted-foreground">of {totalProspectsCount} total</p>
         </CardContent>
       </Card>
     </div>

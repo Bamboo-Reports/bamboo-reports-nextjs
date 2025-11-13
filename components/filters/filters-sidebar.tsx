@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,6 +14,8 @@ import {
   Loader2,
   Building,
   Briefcase,
+  Users,
+  X,
 } from "lucide-react"
 import { MultiSelect } from "@/components/multi-select"
 import { SavedFiltersManager } from "@/components/saved-filters-manager"
@@ -24,7 +26,6 @@ interface FiltersSidebarProps {
   filters: Filters
   pendingFilters: Filters
   availableOptions: AvailableOptions
-  searchInput: string
   isApplying: boolean
   revenueRange: { min: number; max: number }
 
@@ -33,7 +34,6 @@ interface FiltersSidebarProps {
   applyFilters: () => void
   resetFilters: () => void
   handleExportAll: () => void
-  handleSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   handleMinRevenueChange: (value: string) => void
   handleMaxRevenueChange: (value: string) => void
 
@@ -49,14 +49,12 @@ export function FiltersSidebar({
   filters,
   pendingFilters,
   availableOptions,
-  searchInput,
   isApplying,
   revenueRange,
   setPendingFilters,
   applyFilters,
   resetFilters,
   handleExportAll,
-  handleSearchChange,
   handleMinRevenueChange,
   handleMaxRevenueChange,
   getTotalActiveFilters,
@@ -132,18 +130,17 @@ export function FiltersSidebar({
             </AccordionTrigger>
             <AccordionContent>
               <div className="space-y-4 pt-2">
-                {/* Search */}
-                <div className="space-y-2">
+                {/* Account Name Search Keywords */}
+                <div className="space-y-2 pb-4 border-b border-border">
                   <Label className="text-xs font-medium">Search Account Name</Label>
-                  <Input
-                    placeholder="Search accounts..."
-                    value={searchInput}
-                    onChange={handleSearchChange}
-                    className="text-sm"
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Add keywords to search in account names (press Enter to add)
+                  </p>
+                  <TitleKeywordInput
+                    keywords={pendingFilters.accountNameKeywords}
+                    onChange={(keywords) => setPendingFilters((prev) => ({ ...prev, accountNameKeywords: keywords }))}
+                    placeholder="e.g., 3M, ABB, Google..."
                   />
-                  {searchInput !== pendingFilters.searchTerm && (
-                    <p className="text-xs text-muted-foreground animate-pulse-subtle">Typing...</p>
-                  )}
                 </div>
 
                 {/* Account Filters */}
@@ -408,8 +405,116 @@ export function FiltersSidebar({
               </div>
             </AccordionContent>
           </AccordionItem>
+
+          {/* Prospects Accordion */}
+          <AccordionItem value="prospects">
+            <AccordionTrigger className="text-sm font-semibold">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-[hsl(var(--chart-3))]" />
+                Prospects
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2">
+                {/* Prospect Filters */}
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Departments ({availableOptions.prospectDepartments?.length || 0})</Label>
+                    <MultiSelect
+                      options={availableOptions.prospectDepartments || []}
+                      selected={pendingFilters.prospectDepartments}
+                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, prospectDepartments: selected }))}
+                      placeholder="Select departments..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Levels ({availableOptions.prospectLevels?.length || 0})</Label>
+                    <MultiSelect
+                      options={availableOptions.prospectLevels || []}
+                      selected={pendingFilters.prospectLevels}
+                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, prospectLevels: selected }))}
+                      placeholder="Select levels..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Cities ({availableOptions.prospectCities?.length || 0})</Label>
+                    <MultiSelect
+                      options={availableOptions.prospectCities || []}
+                      selected={pendingFilters.prospectCities}
+                      onChange={(selected) => setPendingFilters((prev) => ({ ...prev, prospectCities: selected }))}
+                      placeholder="Select cities..."
+                    />
+                  </div>
+                  <div className="space-y-2 pt-4 mt-4 border-t border-border">
+                    <Label className="text-xs font-medium">Title Keywords</Label>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Add keywords to search in job titles (press Enter to add)
+                    </p>
+                    <TitleKeywordInput
+                      keywords={pendingFilters.prospectTitleKeywords}
+                      onChange={(keywords) => setPendingFilters((prev) => ({ ...prev, prospectTitleKeywords: keywords }))}
+                      placeholder="e.g., Manager, Director, VP..."
+                    />
+                  </div>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
         </Accordion>
       </div>
+    </div>
+  )
+}
+
+// Title Keyword Input Component
+function TitleKeywordInput({ keywords, onChange, placeholder = "e.g., Manager, Director, VP..." }: { keywords: string[]; onChange: (keywords: string[]) => void; placeholder?: string }) {
+  const [inputValue, setInputValue] = useState("")
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && inputValue.trim()) {
+      e.preventDefault()
+      const trimmedValue = inputValue.trim()
+      if (!keywords.includes(trimmedValue)) {
+        onChange([...keywords, trimmedValue])
+      }
+      setInputValue("")
+    }
+  }
+
+  const removeKeyword = (keywordToRemove: string) => {
+    onChange(keywords.filter((k) => k !== keywordToRemove))
+  }
+
+  return (
+    <div className="space-y-2">
+      <Input
+        type="text"
+        placeholder={placeholder}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        className="text-sm"
+      />
+      {keywords.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {keywords.map((keyword) => (
+            <Badge
+              key={keyword}
+              variant="secondary"
+              className="flex items-center gap-1 px-2 py-1 text-xs"
+            >
+              {keyword}
+              <button
+                onClick={() => removeKeyword(keyword)}
+                className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
+                type="button"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
