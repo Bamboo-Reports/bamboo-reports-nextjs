@@ -142,7 +142,6 @@ export function CentersMap({ centers }: CentersMapProps) {
           }
         }}
         onMouseLeave={() => setHoveredCity(null)}
-        style={{ width: "100%", height: "100%" }}
       >
         <Source id="centers" type="geojson" data={geojsonData}>
           {/* Circle layer */}
@@ -164,11 +163,11 @@ export function CentersMap({ centers }: CentersMapProps) {
                 ["linear"],
                 ["get", "count"],
                 1,
-                "hsl(var(--chart-1))",
+                "#60a5fa",
                 maxCount / 2,
-                "hsl(var(--chart-2))",
+                "#3b82f6",
                 maxCount,
-                "hsl(var(--chart-3))",
+                "#2563eb",
               ],
               "circle-opacity": 0.7,
               "circle-stroke-width": 2,
@@ -199,17 +198,17 @@ export function CentersMap({ centers }: CentersMapProps) {
         <p className="text-sm font-semibold mb-2">Number of Centers</p>
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-[hsl(var(--chart-1))] opacity-70" />
+            <div className="w-4 h-4 rounded-full opacity-70" style={{ backgroundColor: "#60a5fa" }} />
             <span className="text-xs text-muted-foreground">Low (1-{Math.floor(maxCount / 3)})</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-[hsl(var(--chart-2))] opacity-70" />
+            <div className="w-6 h-6 rounded-full opacity-70" style={{ backgroundColor: "#3b82f6" }} />
             <span className="text-xs text-muted-foreground">
               Medium ({Math.floor(maxCount / 3) + 1}-{Math.floor((maxCount * 2) / 3)})
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[hsl(var(--chart-3))] opacity-70" />
+            <div className="w-8 h-8 rounded-full opacity-70" style={{ backgroundColor: "#2563eb" }} />
             <span className="text-xs text-muted-foreground">
               High ({Math.floor((maxCount * 2) / 3) + 1}+)
             </span>
