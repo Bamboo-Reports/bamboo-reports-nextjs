@@ -13,10 +13,10 @@ interface CompanyLogoProps {
 }
 
 const sizeMap = {
-  sm: { container: "h-8 w-8", icon: "h-4 w-4", img: 32 },
-  md: { container: "h-12 w-12", icon: "h-6 w-6", img: 48 },
-  lg: { container: "h-16 w-16", icon: "h-8 w-8", img: 64 },
-  xl: { container: "h-24 w-24", icon: "h-12 w-12", img: 96 },
+  sm: { container: "h-8 w-8", icon: "h-4 w-4", img: 80 },
+  md: { container: "h-12 w-12", icon: "h-6 w-6", img: 100 },
+  lg: { container: "h-16 w-16", icon: "h-8 w-8", img: 128 },
+  xl: { container: "h-24 w-24", icon: "h-12 w-12", img: 150 },
 }
 
 export function CompanyLogo({

@@ -74,6 +74,14 @@ import { CompanyLogo } from "@/components/ui/company-logo"
 />
 ```
 
+### Size Options
+- `sm`: 32px container, 80px image requested (for tables)
+- `md`: 48px container, 100px image requested (for dialogs)
+- `lg`: 64px container, 128px image requested
+- `xl`: 96px container, 150px image requested
+
+Higher resolution images are requested to maintain quality when scaled 1.5x.
+
 ## How It Works
 
 ### Domain Extraction
@@ -105,7 +113,8 @@ The component automatically cleans domain URLs:
 ### Account Details Dialog
 - Logo appears in the header next to account name
 - Uses `ACCOUNT WEBSITE` field for domain
-- Size: `md` (48px)
+- Container: `md` (48px)
+- Image requested: 100px from API
 - Theme: `auto`
 - Format: PNG
 - Scale: 1.5x with 8% padding
@@ -115,7 +124,8 @@ Location: `/components/dialogs/account-details-dialog.tsx:73-78`
 ### Center Details Dialog
 - Logo appears in the header next to center name
 - Uses `CENTER ACCOUNT WEBSITE` field for domain
-- Size: `md` (48px)
+- Container: `md` (48px)
+- Image requested: 100px from API
 - Theme: `auto`
 - Format: PNG
 - Scale: 1.5x with 8% padding
@@ -125,7 +135,8 @@ Location: `/components/dialogs/center-details-dialog.tsx:131-136`
 ### Accounts Table View
 - Logo appears in the first column next to account name
 - Uses `ACCOUNT WEBSITE` field for domain
-- Size: `sm` (32px)
+- Container: `sm` (32px)
+- Image requested: 80px from API
 - Theme: `auto`
 - Format: PNG
 - Scale: 1.5x with 8% padding
@@ -135,7 +146,8 @@ Location: `/components/tables/account-row.tsx:23-28`
 ### Centers Table View
 - Logo appears in the first column next to account name
 - Uses `CENTER ACCOUNT WEBSITE` field for domain
-- Size: `sm` (32px)
+- Container: `sm` (32px)
+- Image requested: 80px from API
 - Theme: `auto`
 - Format: PNG
 - Scale: 1.5x with 8% padding
