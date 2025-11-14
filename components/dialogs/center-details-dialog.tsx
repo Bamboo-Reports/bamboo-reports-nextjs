@@ -26,6 +26,7 @@ import {
   MoreHorizontal,
 } from "lucide-react"
 import type { Center, Service } from "@/lib/types"
+import { CompanyLogo } from "@/components/ui/company-logo"
 
 interface CenterDetailsDialogProps {
   center: Center | null
@@ -128,9 +129,12 @@ export function CenterDetailsDialog({
       <DialogContent className="max-w-[85vw] max-h-[90vh] overflow-y-auto glassmorphism-dialog">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-3">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Building2 className="h-6 w-6 text-primary" />
-            </div>
+            <CompanyLogo
+              domain={center["CENTER ACCOUNT WEBSITE"]}
+              companyName={center["ACCOUNT NAME"]}
+              size="md"
+              theme="auto"
+            />
             <div className="flex-1">
               <div className="flex items-center gap-3">
                 <span>{center["CENTER NAME"]}</span>

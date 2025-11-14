@@ -20,6 +20,7 @@ export interface Account {
   "ACCOUNT FORTUNE"?: string
   "ACCOUNT FIRST CENTER"?: string
   "YEARS IN INDIA"?: string
+  "ACCOUNT WEBSITE"?: string
 }
 
 export interface Center {
@@ -38,6 +39,7 @@ export interface Center {
   "BUSINESS SGEMENT"?: string
   "BUSINESS SUB-SEGMENT"?: string
   "BOARDLINE NUMBER"?: string
+  "CENTER ACCOUNT WEBSITE"?: string
   LAT?: string
   LANG?: string
 }

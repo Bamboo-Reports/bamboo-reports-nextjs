@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import { formatRevenueInMillions, parseRevenue } from "@/lib/utils/helpers"
 import type { Account } from "@/lib/types"
+import { CompanyLogo } from "@/components/ui/company-logo"
 
 interface AccountDetailsDialogProps {
   account: Account | null
@@ -70,9 +71,12 @@ export function AccountDetailsDialog({
       <DialogContent className="max-w-[85vw] max-h-[90vh] overflow-y-auto glassmorphism-dialog">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-3">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Building2 className="h-6 w-6 text-primary" />
-            </div>
+            <CompanyLogo
+              domain={account["ACCOUNT WEBSITE"]}
+              companyName={account["ACCOUNT NAME"]}
+              size="md"
+              theme="auto"
+            />
             <div className="flex-1">
               <div>{account["ACCOUNT NAME"]}</div>
               <p className="text-sm font-normal text-muted-foreground mt-1">
