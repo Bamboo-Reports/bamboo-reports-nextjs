@@ -112,6 +112,7 @@ export function ProspectsTab({
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-16"></TableHead>
                     <TableHead>First Name</TableHead>
                     <TableHead>Last Name</TableHead>
                     <TableHead>Job Title</TableHead>
