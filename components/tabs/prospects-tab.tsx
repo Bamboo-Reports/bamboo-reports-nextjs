@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -10,6 +10,7 @@ import { Download, PieChartIcon, Table as TableIcon } from "lucide-react"
 import { ProspectRow } from "@/components/tables/prospect-row"
 import { PieChartCard } from "@/components/charts/pie-chart-card"
 import { EmptyState } from "@/components/states/empty-state"
+import { ProspectDetailsDialog } from "@/components/dialogs/prospect-details-dialog"
 import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
 import { exportToExcel } from "@/lib/utils/export-helpers"
 import type { Prospect } from "@/lib/types"
@@ -36,6 +37,14 @@ export function ProspectsTab({
   setCurrentPage,
   itemsPerPage,
 }: ProspectsTabProps) {
+  const [selectedProspect, setSelectedProspect] = useState<Prospect | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+  const handleProspectClick = (prospect: Prospect) => {
+    setSelectedProspect(prospect)
+    setIsDialogOpen(true)
+  }
+
   // Show empty state when no prospects
   if (prospects.length === 0) {
     return (
@@ -103,24 +112,21 @@ export function ProspectsTab({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Account Name</TableHead>
-                    <TableHead>Center Name</TableHead>
+                    <TableHead className="w-16"></TableHead>
                     <TableHead>First Name</TableHead>
                     <TableHead>Last Name</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Department</TableHead>
-                    <TableHead>Level</TableHead>
-                    <TableHead>LinkedIn</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>City</TableHead>
-                    <TableHead>State</TableHead>
-                    <TableHead>Country</TableHead>
+                    <TableHead>Job Title</TableHead>
+                    <TableHead>Account Name</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {getPaginatedData(prospects, currentPage, itemsPerPage).map(
                     (prospect, index) => (
-                      <ProspectRow key={`${prospect.EMAIL}-${index}`} prospect={prospect} />
+                      <ProspectRow
+                        key={`${prospect.EMAIL}-${index}`}
+                        prospect={prospect}
+                        onClick={() => handleProspectClick(prospect)}
+                      />
                     )
                   )}
                 </TableBody>
@@ -179,6 +185,13 @@ export function ProspectsTab({
           </CardContent>
         </Card>
       )}
+
+      {/* Prospect Details Dialog */}
+      <ProspectDetailsDialog
+        prospect={selectedProspect}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
     </TabsContent>
   )
 }
