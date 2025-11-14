@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -10,15 +10,17 @@ import { Download, PieChartIcon, Table as TableIcon, MapIcon } from "lucide-reac
 import { CenterRow } from "@/components/tables"
 import { PieChartCard } from "@/components/charts/pie-chart-card"
 import { EmptyState } from "@/components/states/empty-state"
+import { CenterDetailsDialog } from "@/components/dialogs/center-details-dialog"
 import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
 import { exportToExcel } from "@/lib/utils/export-helpers"
 import { CentersMap } from "@/components/maps/centers-map"
 import { MapErrorBoundary } from "@/components/maps/map-error-boundary"
-import type { Center, Function } from "@/lib/types"
+import type { Center, Function, Service } from "@/lib/types"
 
 interface CentersTabProps {
   centers: Center[]
   functions: Function[]
+  services: Service[]
   centerChartData: {
     centerTypeData: Array<{ name: string; value: number; fill?: string }>
     employeesRangeData: Array<{ name: string; value: number; fill?: string }>
@@ -34,6 +36,7 @@ interface CentersTabProps {
 
 export function CentersTab({
   centers,
+  services,
   centerChartData,
   centersView,
   setCentersView,
@@ -41,6 +44,14 @@ export function CentersTab({
   setCurrentPage,
   itemsPerPage,
 }: CentersTabProps) {
+  const [selectedCenter, setSelectedCenter] = useState<Center | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+  const handleCenterClick = (center: Center) => {
+    setSelectedCenter(center)
+    setIsDialogOpen(true)
+  }
+
   // Show empty state when no centers
   if (centers.length === 0) {
     return (
@@ -134,22 +145,20 @@ export function CentersTab({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Center Name</TableHead>
-                    <TableHead>CN Unique Key</TableHead>
                     <TableHead>Account Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>City</TableHead>
-                    <TableHead>State</TableHead>
-                    <TableHead>Country</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Employees</TableHead>
-                    <TableHead>Employees Range</TableHead>
+                    <TableHead>Center Name</TableHead>
+                    <TableHead>Center Type</TableHead>
+                    <TableHead>Employee Range</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {getPaginatedData(centers, currentPage, itemsPerPage).map(
                     (center, index) => (
-                      <CenterRow key={`${center["CN UNIQUE KEY"]}-${index}`} center={center} />
+                      <CenterRow
+                        key={`${center["CN UNIQUE KEY"]}-${index}`}
+                        center={center}
+                        onClick={() => handleCenterClick(center)}
+                      />
                     )
                   )}
                 </TableBody>
@@ -208,6 +217,14 @@ export function CentersTab({
           </CardContent>
         </Card>
       )}
+
+      {/* Center Details Dialog */}
+      <CenterDetailsDialog
+        center={selectedCenter}
+        services={services}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
     </TabsContent>
   )
 }

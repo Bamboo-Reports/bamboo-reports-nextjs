@@ -1,6 +1,10 @@
 export interface Account {
   "ACCOUNT NASSCOM STATUS": string
   "ACCOUNT NAME": string
+  "ACCOUNT TYPE"?: string
+  "ACCOUNT ABOUT"?: string
+  "ACCOUNT KEY OFFERINGS"?: string
+  "ACCOUNT CITY"?: string
   "ACCOUNT COUNTRY": string
   "ACCOUNT REGION": string
   "ACCOUNT SUB INDUSTRY": string
@@ -12,6 +16,10 @@ export interface Account {
   "ACCOUNT EMPLOYEES": string
   "ACCOUNT EMPLOYEES RANGE": string
   "ACCOUNT CENTER EMPLOYEES": string
+  "ACCOUNT FORBES"?: string
+  "ACCOUNT FORTUNE"?: string
+  "ACCOUNT FIRST CENTER"?: string
+  "YEARS IN INDIA"?: string
 }
 
 export interface Center {
@@ -27,6 +35,9 @@ export interface Center {
   "CENTER COUNTRY": string
   "CENTER EMPLOYEES": string
   "CENTER EMPLOYEES RANGE": string
+  "BUSINESS SGEMENT"?: string
+  "BUSINESS SUB-SEGMENT"?: string
+  "BOARDLINE NUMBER"?: string
   LAT?: string
   LANG?: string
 }

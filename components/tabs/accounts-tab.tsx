@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -10,6 +10,7 @@ import { Download, PieChartIcon, Table as TableIcon } from "lucide-react"
 import { AccountRow } from "@/components/tables"
 import { PieChartCard } from "@/components/charts/pie-chart-card"
 import { EmptyState } from "@/components/states/empty-state"
+import { AccountDetailsDialog } from "@/components/dialogs/account-details-dialog"
 import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
 import { exportToExcel } from "@/lib/utils/export-helpers"
 import type { Account, Function } from "@/lib/types"
@@ -39,6 +40,14 @@ export function AccountsTab({
   setCurrentPage,
   itemsPerPage,
 }: AccountsTabProps) {
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+  const handleAccountClick = (account: Account) => {
+    setSelectedAccount(account)
+    setIsDialogOpen(true)
+  }
+
   // Show empty state when no accounts
   if (accounts.length === 0) {
     return (
@@ -115,23 +124,19 @@ export function AccountsTab({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Account Name</TableHead>
-                    <TableHead>Country</TableHead>
-                    <TableHead>Region</TableHead>
+                    <TableHead>Location</TableHead>
                     <TableHead>Industry</TableHead>
-                    <TableHead>Sub Industry</TableHead>
-                    <TableHead>Primary Category</TableHead>
-                    <TableHead>Primary Nature</TableHead>
-                    <TableHead>NASSCOM Status</TableHead>
-                    <TableHead>Revenue</TableHead>
                     <TableHead>Revenue Range</TableHead>
-                    <TableHead>Employees Range</TableHead>
-                    <TableHead>Center Employees</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {getPaginatedData(accounts, currentPage, itemsPerPage).map(
                     (account, index) => (
-                      <AccountRow key={`${account["ACCOUNT NAME"]}-${index}`} account={account} />
+                      <AccountRow
+                        key={`${account["ACCOUNT NAME"]}-${index}`}
+                        account={account}
+                        onClick={() => handleAccountClick(account)}
+                      />
                     )
                   )}
                 </TableBody>
@@ -190,6 +195,13 @@ export function AccountsTab({
           </CardContent>
         </Card>
       )}
+
+      {/* Account Details Dialog */}
+      <AccountDetailsDialog
+        account={selectedAccount}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
     </TabsContent>
   )
 }
