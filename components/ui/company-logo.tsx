@@ -85,7 +85,7 @@ export function CompanyLogo({
   const apiToken = process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN || "pk_REPLACE_WITH_YOUR_TOKEN"
   logoUrl.searchParams.set("token", apiToken)
   logoUrl.searchParams.set("size", sizeConfig.img.toString())
-  logoUrl.searchParams.set("format", "png") // PNG for better quality with transparency
+  logoUrl.searchParams.set("format", "webp") // WebP for better performance and smaller file size
 
   // Add theme parameter if not auto
   if (theme !== "auto") {
@@ -113,7 +113,7 @@ export function CompanyLogo({
         src={logoUrl.toString()}
         alt={`${companyName} logo`}
         className={cn(
-          "object-contain transition-opacity duration-300 p-1",
+          "object-contain transition-opacity duration-300",
           imageLoaded ? "opacity-100" : "opacity-0"
         )}
         loading="lazy"
@@ -125,6 +125,8 @@ export function CompanyLogo({
         style={{
           width: "100%",
           height: "100%",
+          padding: "10%",
+          transform: "scale(1.15)",
         }}
       />
     </div>

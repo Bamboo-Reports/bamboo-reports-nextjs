@@ -5,12 +5,14 @@ This application now supports displaying company logos for accounts and centers 
 ## Features
 
 ✅ **Automatic logo fetching** - Displays company logos based on domain names
-✅ **Multiple formats** - Supports WebP, PNG, and JPG with automatic format selection
+✅ **WebP format** - Uses WebP format for optimal performance and smaller file sizes
 ✅ **Responsive sizing** - 4 size options (sm, md, lg, xl)
 ✅ **Smart fallbacks** - Shows building icon when logo is unavailable
 ✅ **Lazy loading** - Optimized for performance with lazy image loading
 ✅ **Theme support** - Automatic light/dark mode logo selection
 ✅ **Domain cleaning** - Automatically extracts clean domain from various URL formats
+✅ **Optimized scaling** - Logos scaled 1.15x to better fill circular containers
+✅ **Table integration** - Logos appear in both detail dialogs and data table views
 
 ## Setup Instructions
 
@@ -90,7 +92,8 @@ The component automatically cleans domain URLs:
 - **Lazy loading**: Images load only when they enter the viewport
 - **Optimized sizes**: Requests appropriate image size based on display size
 - **Caching**: Browser caches logos for faster subsequent loads
-- **Format selection**: PNG format for best quality with transparency
+- **WebP format**: Uses WebP for 25-35% smaller file sizes compared to PNG
+- **Smart scaling**: Logos scaled 1.15x with 10% padding to optimally fill circular containers
 
 ### Theme Support
 - `auto`: Logo.dev automatically detects and serves appropriate logo
@@ -104,16 +107,36 @@ The component automatically cleans domain URLs:
 - Uses `ACCOUNT WEBSITE` field for domain
 - Size: `md` (48px)
 - Theme: `auto`
+- Format: WebP
 
-Location: `/components/dialogs/account-details-dialog.tsx:74-79`
+Location: `/components/dialogs/account-details-dialog.tsx:73-78`
 
 ### Center Details Dialog
 - Logo appears in the header next to center name
 - Uses `CENTER ACCOUNT WEBSITE` field for domain
 - Size: `md` (48px)
 - Theme: `auto`
+- Format: WebP
 
-Location: `/components/dialogs/center-details-dialog.tsx:132-137`
+Location: `/components/dialogs/center-details-dialog.tsx:131-136`
+
+### Accounts Table View
+- Logo appears in the first column next to account name
+- Uses `ACCOUNT WEBSITE` field for domain
+- Size: `sm` (32px)
+- Theme: `auto`
+- Format: WebP
+
+Location: `/components/tables/account-row.tsx:23-28`
+
+### Centers Table View
+- Logo appears in the first column next to account name
+- Uses `CENTER ACCOUNT WEBSITE` field for domain
+- Size: `sm` (32px)
+- Theme: `auto`
+- Format: WebP
+
+Location: `/components/tables/center-row.tsx:18-23`
 
 ## Troubleshooting
 
