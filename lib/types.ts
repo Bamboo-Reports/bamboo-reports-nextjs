@@ -27,6 +27,9 @@ export interface Center {
   "CENTER COUNTRY": string
   "CENTER EMPLOYEES": string
   "CENTER EMPLOYEES RANGE": string
+  "BUSINESS SGEMENT"?: string
+  "BUSINESS SUB-SEGMENT"?: string
+  "BOARDLINE NUMBER"?: string
   LAT?: string
   LANG?: string
 }
