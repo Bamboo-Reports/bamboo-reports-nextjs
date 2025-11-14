@@ -84,13 +84,20 @@ export function AccountDetailsDialog({
 
         <div className="mt-6 space-y-6">
           {/* Company Overview Section */}
-          {(account["ACCOUNT ABOUT"] || account["ACCOUNT KEY OFFERINGS"]) && (
+          {(account["ACCOUNT TYPE"] || account["ACCOUNT ABOUT"] || account["ACCOUNT KEY OFFERINGS"]) && (
             <div>
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                 <Info className="h-4 w-4" />
                 Company Overview
               </h3>
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <InfoRow
+                  icon={Building2}
+                  label="Account Type"
+                  value={account["ACCOUNT TYPE"]}
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-3 mt-3">
                 <InfoRow
                   icon={Building2}
                   label="About"

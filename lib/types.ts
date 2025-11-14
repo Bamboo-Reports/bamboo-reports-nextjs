@@ -1,6 +1,7 @@
 export interface Account {
   "ACCOUNT NASSCOM STATUS": string
   "ACCOUNT NAME": string
+  "ACCOUNT TYPE"?: string
   "ACCOUNT ABOUT"?: string
   "ACCOUNT KEY OFFERINGS"?: string
   "ACCOUNT CITY"?: string
