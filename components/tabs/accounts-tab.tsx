@@ -10,13 +10,16 @@ import { Download, PieChartIcon, Table as TableIcon } from "lucide-react"
 import { AccountRow } from "@/components/tables"
 import { PieChartCard } from "@/components/charts/pie-chart-card"
 import { EmptyState } from "@/components/states/empty-state"
-import { AccountDetailsDialog } from "@/components/dialogs/account-details-dialog"
+import { AccountDetailsDialog } from "@/components/dialogs/account-details-tabbed-dialog"
 import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
 import { exportToExcel } from "@/lib/utils/export-helpers"
-import type { Account, Function } from "@/lib/types"
+import type { Account, Center, Prospect, Service, Function } from "@/lib/types"
 
 interface AccountsTabProps {
   accounts: Account[]
+  centers: Center[]
+  prospects: Prospect[]
+  services: Service[]
   functions: Function[]
   accountChartData: {
     regionData: Array<{ name: string; value: number; fill?: string }>
@@ -33,6 +36,9 @@ interface AccountsTabProps {
 
 export function AccountsTab({
   accounts,
+  centers,
+  prospects,
+  services,
   accountChartData,
   accountsView,
   setAccountsView,
@@ -199,6 +205,9 @@ export function AccountsTab({
       {/* Account Details Dialog */}
       <AccountDetailsDialog
         account={selectedAccount}
+        centers={centers}
+        prospects={prospects}
+        services={services}
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
       />

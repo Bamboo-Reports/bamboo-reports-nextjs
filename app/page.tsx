@@ -1095,6 +1095,9 @@ function DashboardContent() {
 
               <AccountsTab
                 accounts={filteredData.filteredAccounts}
+                centers={filteredData.filteredCenters}
+                prospects={filteredData.filteredProspects}
+                services={filteredData.filteredServices}
                 functions={functions}
                 accountChartData={accountChartData}
                 accountsView={accountsView}
