@@ -351,9 +351,6 @@ export function AccountDetailsDialog({
                             <div
                               className={`h-2 w-2 rounded-full ${getStatusColor(center["CENTER STATUS"])}`}
                             />
-                            <span className="text-xs text-muted-foreground">
-                              {center["CENTER STATUS"]}
-                            </span>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2 text-sm">
                             <div className="flex items-center gap-1.5 text-muted-foreground">
