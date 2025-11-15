@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import { EnhancedMultiSelect } from "@/components/enhanced-multi-select"
 import { SavedFiltersManager } from "@/components/saved-filters-manager"
+import { AccountAutocomplete } from "@/components/filters/account-autocomplete"
 import type { Filters, AvailableOptions, FilterValue } from "@/lib/types"
 
 interface FiltersSidebarProps {
@@ -31,6 +32,7 @@ interface FiltersSidebarProps {
   availableOptions: AvailableOptions
   isApplying: boolean
   revenueRange: { min: number; max: number }
+  accountNames: string[]
 
   // Callback functions
   setPendingFilters: React.Dispatch<React.SetStateAction<Filters>>
@@ -51,6 +53,7 @@ export function FiltersSidebar({
   availableOptions,
   isApplying,
   revenueRange,
+  accountNames,
   setPendingFilters,
   resetFilters,
   handleExportAll,
@@ -147,16 +150,14 @@ export function FiltersSidebar({
             </AccordionTrigger>
             <AccordionContent>
               <div className="space-y-4 pt-2">
-                {/* Account Name Search Keywords */}
+                {/* Account Name Search with Autocomplete */}
                 <div className="space-y-2 pb-4 border-b border-border">
                   <Label className="text-xs font-medium">Search Account Name</Label>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    Add keywords to search in account names (press Enter to add)
-                  </p>
-                  <TitleKeywordInput
-                    keywords={pendingFilters.accountNameKeywords}
+                  <AccountAutocomplete
+                    accountNames={accountNames}
+                    selectedAccounts={pendingFilters.accountNameKeywords}
                     onChange={(keywords) => setPendingFilters((prev) => ({ ...prev, accountNameKeywords: keywords }))}
-                    placeholder="e.g., 3M, ABB, Google..."
+                    placeholder="Type to search account names..."
                   />
                 </div>
 

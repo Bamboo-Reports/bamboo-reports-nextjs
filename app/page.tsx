@@ -301,6 +301,11 @@ function DashboardContent() {
 
   const isUpdatingOptions = useRef(false)
 
+  // Extract unique account names for autocomplete - memoized for performance
+  const accountNames = useMemo(() => {
+    return accounts.map(account => account["ACCOUNT NAME"]).filter(Boolean)
+  }, [accounts])
+
   // Main filtering logic - memoized with stable dependencies
   const filteredData = useMemo(() => {
     const rangeFilterMatch = (range: [number, number], value: string | number, includeNull: boolean) => {
@@ -1063,6 +1068,7 @@ function DashboardContent() {
             availableOptions={availableOptions}
             isApplying={isApplying}
             revenueRange={revenueRange}
+            accountNames={accountNames}
             setPendingFilters={setPendingFilters}
             resetFilters={resetFilters}
             handleExportAll={handleExportAll}
