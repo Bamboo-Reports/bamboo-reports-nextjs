@@ -1053,7 +1053,7 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header connectionStatus={connectionStatus} onRefresh={loadData} onClearCache={handleClearCache} />
+      <Header onRefresh={loadData} />
 
       {dataLoaded && (
         <div className="flex h-[calc(100vh-88px)]">
