@@ -17,6 +17,8 @@ import {
   Briefcase,
   Users,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import { EnhancedMultiSelect } from "@/components/enhanced-multi-select"
 import { SavedFiltersManager } from "@/components/saved-filters-manager"
@@ -58,9 +60,44 @@ export function FiltersSidebar({
   handleLoadSavedFilters,
   formatRevenueInMillions,
 }: FiltersSidebarProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false)
+
   return (
-    <div className="w-[30%] border-r bg-sidebar overflow-y-auto">
-      <div className="p-4 space-y-4">
+    <div className={cn(
+      "border-r bg-sidebar overflow-y-auto transition-all duration-300 relative",
+      isCollapsed ? "w-12" : "w-[30%]"
+    )}>
+      {/* Collapse/Expand Button */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className={cn(
+          "absolute top-4 z-10 h-8 w-8 p-0 hover:bg-accent",
+          isCollapsed ? "left-2" : "right-2"
+        )}
+        title={isCollapsed ? "Expand filters" : "Collapse filters"}
+      >
+        {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+      </Button>
+
+      {/* Collapsed State */}
+      {isCollapsed && (
+        <div className="flex flex-col items-center pt-16 space-y-4">
+          <div className="flex flex-col items-center gap-2">
+            <Filter className="h-5 w-5 text-muted-foreground" />
+            {getTotalActiveFilters() > 0 && (
+              <Badge variant="secondary" className="w-6 h-6 p-0 flex items-center justify-center text-xs">
+                {getTotalActiveFilters()}
+              </Badge>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Expanded State */}
+      {!isCollapsed && (
+        <div className="p-4 space-y-4 pt-16">
         {/* Filter Actions */}
         <div className="flex flex-col gap-2 mb-4 pb-4 border-b border-sidebar-border">
           <div className="flex items-center gap-2">
@@ -441,7 +478,8 @@ export function FiltersSidebar({
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-      </div>
+        </div>
+      )}
     </div>
   )
 }
