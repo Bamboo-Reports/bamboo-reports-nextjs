@@ -1,13 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronsUpDown, X, Plus, Minus } from "lucide-react"
+import { ChevronsUpDown, X, Plus, Minus } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
 import type { FilterValue } from "@/lib/types"
 
 interface EnhancedMultiSelectProps {
@@ -83,7 +82,9 @@ const EnhancedSelectItem = React.memo(({
   disabled,
   isSelected,
   filterValue,
-  onSelect
+  onSelect,
+  onSelectInclude,
+  onSelectExclude
 }: {
   value: string
   count?: number
@@ -91,6 +92,8 @@ const EnhancedSelectItem = React.memo(({
   isSelected: boolean
   filterValue?: FilterValue
   onSelect: () => void
+  onSelectInclude: () => void
+  onSelectExclude: () => void
 }) => {
   const isInclude = filterValue?.mode === 'include'
 
@@ -107,40 +110,39 @@ const EnhancedSelectItem = React.memo(({
           : "bg-red-500/10 hover:bg-red-500/20")
       )}
     >
-      <div className="flex items-center space-x-2 flex-1">
-        <Checkbox
-          checked={isSelected}
-          disabled={disabled}
-          className={cn(
-            "h-4 w-4",
-            isSelected && (isInclude
-              ? "border-green-500 data-[state=checked]:bg-green-500"
-              : "border-red-500 data-[state=checked]:bg-red-500")
-          )}
-        />
-        <Check
-          className={cn(
-            "h-4 w-4",
-            isSelected ? "opacity-100" : "opacity-0",
-            isInclude ? "text-green-600" : "text-red-600"
-          )}
-        />
+      <div className="flex items-center justify-between flex-1">
         <span className="flex-1">{value}</span>
         {count !== undefined && (
           <span className="text-xs text-muted-foreground ml-2 font-medium">
             ({count})
           </span>
         )}
-        {isSelected && (
-          <span className={cn(
-            "text-xs px-1.5 py-0.5 rounded",
-            isInclude
-              ? "bg-green-500/20 text-green-700 dark:text-green-300"
-              : "bg-red-500/20 text-red-700 dark:text-red-300"
-          )}>
-            {isInclude ? "Include" : "Exclude"}
-          </span>
-        )}
+        <div className="flex gap-1 ml-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0 hover:bg-green-100 dark:hover:bg-green-900/20"
+            onClick={(e) => {
+              e.stopPropagation()
+              onSelectInclude()
+            }}
+            title="Include"
+          >
+            <Plus className="h-3 w-3 text-green-600" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0 hover:bg-red-100 dark:hover:bg-red-900/20"
+            onClick={(e) => {
+              e.stopPropagation()
+              onSelectExclude()
+            }}
+            title="Exclude"
+          >
+            <Minus className="h-3 w-3 text-red-600" />
+          </Button>
+        </div>
       </div>
     </CommandItem>
   )
@@ -170,25 +172,34 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
     )
   }, [selected, onChange])
 
-  const handleSelect = React.useCallback((value: string) => {
+  const handleSelect = React.useCallback((value: string, mode?: 'include' | 'exclude') => {
     const option = options.find((opt) => (typeof opt === "string" ? opt === value : opt.value === value))
     if (typeof option === "object" && option.disabled) return
 
     const existingIndex = selected.findIndex((i) => i.value === value)
 
     if (existingIndex >= 0) {
-      // If already selected, toggle mode instead of removing
-      const currentMode = selected[existingIndex].mode
-      onChange(
-        selected.map((i, idx) =>
-          idx === existingIndex
-            ? { ...i, mode: currentMode === 'include' ? 'exclude' : 'include' }
-            : i
+      if (mode) {
+        // If mode is explicitly provided, set it
+        onChange(
+          selected.map((i, idx) =>
+            idx === existingIndex ? { ...i, mode } : i
+          )
         )
-      )
+      } else {
+        // If already selected and no mode provided, toggle mode
+        const currentMode = selected[existingIndex].mode
+        onChange(
+          selected.map((i, idx) =>
+            idx === existingIndex
+              ? { ...i, mode: currentMode === 'include' ? 'exclude' : 'include' }
+              : i
+          )
+        )
+      }
     } else {
-      // Add as include by default
-      onChange([...selected, { value, mode: 'include' }])
+      // Add with specified mode or default to include
+      onChange([...selected, { value, mode: mode || 'include' }])
     }
   }, [options, selected, onChange])
 
@@ -220,6 +231,8 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
           isSelected={isSelected}
           filterValue={filterValue}
           onSelect={() => handleSelect(value)}
+          onSelectInclude={() => handleSelect(value, 'include')}
+          onSelectExclude={() => handleSelect(value, 'exclude')}
         />
       )
     })

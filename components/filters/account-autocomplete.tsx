@@ -180,33 +180,46 @@ export function AccountAutocomplete({
       {/* Selected Accounts as Badges */}
       {selectedAccounts.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-2">
-          {selectedAccounts.map((account, index) => (
-            <Badge
-              key={`${account.value}-${index}`}
-              variant={account.mode === 'include' ? 'default' : 'destructive'}
-              className="group flex items-center gap-1 pr-1"
-            >
-              <button
-                onClick={() => handleToggleMode(index)}
-                className="flex items-center gap-1 hover:opacity-80"
-                title={account.mode === 'include' ? 'Click to exclude' : 'Click to include'}
-              >
-                {account.mode === 'include' ? (
-                  <Plus className="h-3 w-3" />
-                ) : (
-                  <Minus className="h-3 w-3" />
+          {selectedAccounts.map((account, index) => {
+            const isInclude = account.mode === 'include'
+            return (
+              <Badge
+                key={`${account.value}-${index}`}
+                variant="secondary"
+                className={cn(
+                  "group flex items-center gap-1 pr-1",
+                  isInclude
+                    ? "bg-green-500/20 text-green-700 dark:bg-green-500/30 dark:text-green-300 border-green-500/50 hover:bg-green-500/30"
+                    : "bg-red-500/20 text-red-700 dark:bg-red-500/30 dark:text-red-300 border-red-500/50 hover:bg-red-500/30"
                 )}
-                <span className="text-xs">{account.value}</span>
-              </button>
-              <button
-                onClick={() => handleRemoveAccount(index)}
-                className="ml-1 rounded-sm opacity-70 hover:opacity-100 hover:bg-accent p-0.5"
-                title="Remove"
               >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
+                <button
+                  onClick={() => handleToggleMode(index)}
+                  className={cn(
+                    "flex items-center justify-center w-4 h-4 rounded-sm",
+                    isInclude
+                      ? "bg-green-600/30 hover:bg-green-600/50"
+                      : "bg-red-600/30 hover:bg-red-600/50"
+                  )}
+                  title={isInclude ? 'Click to exclude' : 'Click to include'}
+                >
+                  {isInclude ? (
+                    <Plus className="h-3 w-3" />
+                  ) : (
+                    <Minus className="h-3 w-3" />
+                  )}
+                </button>
+                <span className="text-xs">{account.value}</span>
+                <button
+                  onClick={() => handleRemoveAccount(index)}
+                  className="ml-1 rounded-sm opacity-70 hover:opacity-100 hover:bg-accent p-0.5"
+                  title="Remove"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            )
+          })}
         </div>
       )}
 

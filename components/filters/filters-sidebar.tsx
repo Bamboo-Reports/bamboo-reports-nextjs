@@ -19,6 +19,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Plus,
+  Minus,
 } from "lucide-react"
 import { EnhancedMultiSelect } from "@/components/enhanced-multi-select"
 import { SavedFiltersManager } from "@/components/saved-filters-manager"
@@ -541,7 +543,7 @@ function TitleKeywordInput({
                 key={keyword.value}
                 variant="secondary"
                 className={cn(
-                  "flex items-center gap-1 px-2 py-1 text-xs",
+                  "flex items-center gap-1 pr-1",
                   isInclude
                     ? "bg-green-500/20 text-green-700 dark:bg-green-500/30 dark:text-green-300 border-green-500/50 hover:bg-green-500/30"
                     : "bg-red-500/20 text-red-700 dark:bg-red-500/30 dark:text-red-300 border-red-500/50 hover:bg-red-500/30"
@@ -550,7 +552,7 @@ function TitleKeywordInput({
                 <button
                   onClick={() => toggleKeywordMode(keyword)}
                   className={cn(
-                    "flex items-center justify-center w-3 h-3 rounded-sm",
+                    "flex items-center justify-center w-4 h-4 rounded-sm",
                     isInclude
                       ? "bg-green-600/30 hover:bg-green-600/50"
                       : "bg-red-600/30 hover:bg-red-600/50"
@@ -558,13 +560,18 @@ function TitleKeywordInput({
                   title={isInclude ? "Click to exclude" : "Click to include"}
                   type="button"
                 >
-                  {isInclude ? "+" : "-"}
+                  {isInclude ? (
+                    <Plus className="h-3 w-3" />
+                  ) : (
+                    <Minus className="h-3 w-3" />
+                  )}
                 </button>
-                {keyword.value}
+                <span className="text-xs">{keyword.value}</span>
                 <button
                   onClick={() => removeKeyword(keyword)}
-                  className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
+                  className="ml-1 rounded-sm opacity-70 hover:opacity-100 hover:bg-accent p-0.5"
                   type="button"
+                  title="Remove"
                 >
                   <X className="h-3 w-3" />
                 </button>

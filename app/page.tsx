@@ -622,6 +622,10 @@ function DashboardContent() {
 
       if (!matchesSearch) return
 
+      const matchesAccountName = enhancedKeywordMatch(filters.accountNameKeywords, account["ACCOUNT NAME"])
+
+      if (!matchesAccountName) return
+
       const revenue = parseRevenue(account["ACCOUNT REVNUE"])
       const matchesRevenue = filters.includeNullRevenue
         ? true
