@@ -11,13 +11,17 @@ interface CentersMapProps {
 
 interface CityCluster {
   city: string
+  country: string
   lat: number
   lng: number
   count: number
+  accounts: Set<string>
+  headcount: number
 }
 
 export function CentersMap({ centers }: CentersMapProps) {
   const [hoveredCity, setHoveredCity] = useState<string | null>(null)
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
   const mapRef = React.useRef<any>(null)
@@ -37,6 +41,9 @@ export function CentersMap({ centers }: CentersMapProps) {
 
       centers.forEach((center) => {
         const city = center["CENTER CITY"]
+        const country = center["CENTER COUNTRY"]
+        const account = center["ACCOUNT NAME"]
+        const employees = center["CENTER EMPLOYEES"] ? parseInt(center["CENTER EMPLOYEES"]) : 0
         const lat = center.LAT ? parseFloat(center.LAT) : null
         const lng = center.LANG ? parseFloat(center.LANG) : null
 
@@ -47,16 +54,23 @@ export function CentersMap({ centers }: CentersMapProps) {
 
         if (cityMap.has(city)) {
           const existing = cityMap.get(city)!
+          existing.accounts.add(account)
           cityMap.set(city, {
             ...existing,
             count: existing.count + 1,
+            headcount: existing.headcount + employees,
           })
         } else {
+          const accounts = new Set<string>()
+          accounts.add(account)
           cityMap.set(city, {
             city,
+            country,
             lat,
             lng,
             count: 1,
+            accounts,
+            headcount: employees,
           })
         }
       })
@@ -101,7 +115,10 @@ export function CentersMap({ centers }: CentersMapProps) {
         type: "Feature" as const,
         properties: {
           city: city.city,
+          country: city.country,
           count: city.count,
+          accountsCount: city.accounts.size,
+          headcount: city.headcount,
         },
         geometry: {
           type: "Point" as const,
@@ -132,7 +149,7 @@ export function CentersMap({ centers }: CentersMapProps) {
   // Show error if any
   if (error) {
     return (
-      <div className="flex items-center justify-center h-[600px] bg-muted rounded-lg">
+      <div className="flex items-center justify-center h-[750px] bg-muted rounded-lg">
         <div className="text-center">
           <p className="text-lg font-semibold text-red-500 mb-2">Error Loading Map</p>
           <p className="text-sm text-muted-foreground">{error}</p>
@@ -145,7 +162,7 @@ export function CentersMap({ centers }: CentersMapProps) {
   // Wait for client-side rendering
   if (!isClient) {
     return (
-      <div className="flex items-center justify-center h-[600px] bg-muted rounded-lg">
+      <div className="flex items-center justify-center h-[750px] bg-muted rounded-lg">
         <div className="text-center">
           <p className="text-sm text-muted-foreground">Loading map...</p>
         </div>
@@ -156,7 +173,7 @@ export function CentersMap({ centers }: CentersMapProps) {
   if (!mapboxToken) {
     console.error("[CentersMap] Mapbox token is missing")
     return (
-      <div className="flex items-center justify-center h-[600px] bg-muted rounded-lg">
+      <div className="flex items-center justify-center h-[750px] bg-muted rounded-lg">
         <div className="text-center">
           <p className="text-lg font-semibold text-muted-foreground mb-2">
             Mapbox Access Token Missing
@@ -172,7 +189,7 @@ export function CentersMap({ centers }: CentersMapProps) {
   if (cityData.length === 0) {
     console.warn("[CentersMap] No city data with coordinates")
     return (
-      <div className="flex items-center justify-center h-[600px] bg-muted rounded-lg">
+      <div className="flex items-center justify-center h-[750px] bg-muted rounded-lg">
         <div className="text-center">
           <p className="text-lg font-semibold text-muted-foreground mb-2">No Location Data</p>
           <p className="text-sm text-muted-foreground">
@@ -187,7 +204,7 @@ export function CentersMap({ centers }: CentersMapProps) {
 
   try {
     return (
-      <div className="relative w-full h-[600px] rounded-lg overflow-hidden border">
+      <div className="relative w-full h-[750px] rounded-lg overflow-hidden border">
         <MapGL
         ref={mapRef}
         initialViewState={initialViewState}
@@ -200,11 +217,16 @@ export function CentersMap({ centers }: CentersMapProps) {
           if (features && features.length > 0) {
             const city = features[0].properties?.city
             setHoveredCity(city)
+            setMousePosition({ x: e.point.x, y: e.point.y })
           } else {
             setHoveredCity(null)
+            setMousePosition(null)
           }
         }}
-        onMouseLeave={() => setHoveredCity(null)}
+        onMouseLeave={() => {
+          setHoveredCity(null)
+          setMousePosition(null)
+        }}
         onError={(e) => {
           console.error("[CentersMap] Map error:", e)
           setError(`Map error: ${e.error?.message || "Unknown error"}`)
@@ -305,28 +327,76 @@ export function CentersMap({ centers }: CentersMapProps) {
           />
         </Source>
 
-        {/* Tooltip */}
-        {hoveredCity && (
-          <div
-            className="absolute top-4 left-4 bg-background border rounded-lg shadow-lg px-4 py-3 z-10"
-            style={{ pointerEvents: "none" }}
-          >
-            <div className="space-y-1">
-              <p className="font-semibold text-sm">{hoveredCity}</p>
-              <p className="text-sm text-muted-foreground">
-                {cityData.find((c) => c.city === hoveredCity)?.count || 0} center
-                {(cityData.find((c) => c.city === hoveredCity)?.count || 0) !== 1 ? "s" : ""}
-              </p>
+        {/* Enhanced Tooltip */}
+        {hoveredCity && mousePosition && (() => {
+          const cityInfo = cityData.find((c) => c.city === hoveredCity)
+          if (!cityInfo) return null
+
+          return (
+            <div
+              className="absolute z-50 pointer-events-none"
+              style={{
+                left: `${mousePosition.x + 15}px`,
+                top: `${mousePosition.y + 15}px`,
+              }}
+            >
+              <div className="bg-background border-2 border-orange-500/20 rounded-xl shadow-2xl min-w-[280px] overflow-hidden">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-3">
+                  <h3 className="font-bold text-white text-base leading-tight">
+                    {cityInfo.city}
+                  </h3>
+                  <p className="text-orange-100 text-xs mt-0.5">
+                    {cityInfo.country}
+                  </p>
+                </div>
+
+                {/* Content */}
+                <div className="px-4 py-3 space-y-2.5">
+                  {/* Accounts Count */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      <span className="text-sm text-muted-foreground font-medium">Accounts</span>
+                    </div>
+                    <span className="text-sm font-bold text-foreground">
+                      {cityInfo.accounts.size.toLocaleString()}
+                    </span>
+                  </div>
+
+                  {/* Centers Count */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                      <span className="text-sm text-muted-foreground font-medium">Centers</span>
+                    </div>
+                    <span className="text-sm font-bold text-foreground">
+                      {cityInfo.count.toLocaleString()}
+                    </span>
+                  </div>
+
+                  {/* Headcount */}
+                  <div className="flex items-center justify-between pt-1.5 border-t">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <span className="text-sm text-muted-foreground font-medium">Headcount</span>
+                    </div>
+                    <span className="text-sm font-bold text-green-600">
+                      {cityInfo.headcount.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
       </MapGL>
     </div>
     )
   } catch (err) {
     console.error("[CentersMap] Render error:", err)
     return (
-      <div className="flex items-center justify-center h-[600px] bg-muted rounded-lg">
+      <div className="flex items-center justify-center h-[750px] bg-muted rounded-lg">
         <div className="text-center">
           <p className="text-lg font-semibold text-red-500 mb-2">Map Rendering Error</p>
           <p className="text-sm text-muted-foreground">
