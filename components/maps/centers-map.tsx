@@ -118,12 +118,12 @@ export function CentersMap({ centers }: CentersMapProps) {
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
-  // Handler to recenter the map
+  // Handler to recenter the map to India
   const handleRecenter = () => {
     if (mapRef.current) {
       mapRef.current.flyTo({
-        center: [initialViewState.longitude, initialViewState.latitude],
-        zoom: initialViewState.zoom,
+        center: [78.9629, 20.5937], // Center of India
+        zoom: 4.5,
         duration: 1000,
       })
     }
