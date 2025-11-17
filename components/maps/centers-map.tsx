@@ -20,6 +20,7 @@ export function CentersMap({ centers }: CentersMapProps) {
   const [hoveredCity, setHoveredCity] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
+  const mapRef = React.useRef<any>(null)
 
   useEffect(() => {
     setIsClient(true)
@@ -117,6 +118,17 @@ export function CentersMap({ centers }: CentersMapProps) {
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
+  // Handler to recenter the map
+  const handleRecenter = () => {
+    if (mapRef.current) {
+      mapRef.current.flyTo({
+        center: [initialViewState.longitude, initialViewState.latitude],
+        zoom: initialViewState.zoom,
+        duration: 1000,
+      })
+    }
+  }
+
   // Show error if any
   if (error) {
     return (
@@ -177,6 +189,7 @@ export function CentersMap({ centers }: CentersMapProps) {
     return (
       <div className="relative w-full h-[600px] rounded-lg overflow-hidden border">
         <MapGL
+        ref={mapRef}
         initialViewState={initialViewState}
         mapStyle="mapbox://styles/abhishekfx/cltyaz9ek00nx01p783ygdi9z"
         mapboxAccessToken={mapboxToken}
@@ -202,6 +215,31 @@ export function CentersMap({ centers }: CentersMapProps) {
 
         {/* Fullscreen Control */}
         <FullscreenControl position="top-left" />
+
+        {/* Recenter Button */}
+        <div className="absolute top-4 right-4 z-10">
+          <button
+            onClick={handleRecenter}
+            className="bg-background hover:bg-muted border rounded-lg shadow-lg px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2"
+            title="Recenter map"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            Recenter
+          </button>
+        </div>
 
         <Source id="centers" type="geojson" data={geojsonData}>
           {/* Outer halo layer - larger and more transparent (20% bigger) */}
