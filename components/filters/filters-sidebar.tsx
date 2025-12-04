@@ -68,17 +68,22 @@ export function FiltersSidebar({
   const [isCollapsed, setIsCollapsed] = useState(false)
 
   return (
-    <div className={cn(
-      "border-r bg-sidebar overflow-y-auto transition-all duration-300 relative",
-      isCollapsed ? "w-12" : "w-[30%]"
-    )}>
+    <div
+      className={cn(
+        "relative h-full overflow-y-auto rounded-3xl border border-border/70 bg-sidebar/80 backdrop-blur-lg shadow-[0_14px_50px_-25px_rgba(0,0,0,0.5)] transition-all duration-300",
+        isCollapsed ? "w-12" : "w-full lg:w-[360px]"
+      )}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.08),transparent_35%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(244,197,66,0.08),transparent_30%)]" />
+      <div className="relative z-10">
       {/* Collapse/Expand Button */}
       <Button
         variant="ghost"
         size="sm"
         onClick={() => setIsCollapsed(!isCollapsed)}
         className={cn(
-          "absolute top-4 z-10 h-8 w-8 p-0 hover:bg-accent",
+          "absolute top-4 z-20 h-8 w-8 p-0 border border-border/60 bg-secondary/70 hover:bg-secondary",
           isCollapsed ? "left-2" : "right-2"
         )}
         title={isCollapsed ? "Expand filters" : "Collapse filters"}
@@ -103,42 +108,40 @@ export function FiltersSidebar({
       {/* Expanded State */}
       {!isCollapsed && (
         <div className="p-4 space-y-4 pt-16">
-        {/* Filter Actions */}
-        <div className="flex flex-col gap-2 mb-4 pb-4 border-b border-sidebar-border">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-semibold text-foreground">Filters</span>
-            {getTotalActiveFilters() > 0 && (
-              <Badge variant="secondary" className="ml-auto">{getTotalActiveFilters()} active</Badge>
-            )}
-            {isApplying && (
-              <Badge variant="outline" className="text-blue-600 border-blue-600 flex items-center gap-1">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                Auto-applying
-              </Badge>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
+          {/* Filter Actions */}
+          <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-border/60 bg-gradient-to-br from-[hsl(var(--chart-1))/0.08] to-[hsl(var(--chart-2))/0.06] p-3 shadow-sm">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-semibold text-foreground">Filters</span>
+              {getTotalActiveFilters() > 0 && (
+                <Badge variant="secondary" className="ml-auto shadow-sm">{getTotalActiveFilters()} active</Badge>
+              )}
+              {isApplying && (
+                <Badge variant="outline" className="flex items-center gap-1 border-primary/50 text-primary">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Auto
+                </Badge>
+              )}
+            </div>
             <SavedFiltersManager
               currentFilters={filters}
               onLoadFilters={handleLoadSavedFilters}
               totalActiveFilters={getTotalActiveFilters()}
             />
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={resetFilters} className="flex-1">
+              <Button variant="outline" size="sm" onClick={resetFilters} className="flex-1 border-border/70">
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Reset
               </Button>
-              <Button variant="default" size="sm" onClick={handleExportAll} className="flex-1 flex items-center justify-center gap-2">
+              <Button variant="default" size="sm" onClick={handleExportAll} className="flex flex-1 items-center justify-center gap-2">
                 <Download className="h-4 w-4" />
                 Export
               </Button>
             </div>
-            <div className="text-xs text-muted-foreground px-1">
-              Filters auto-apply as you select. Use +/- to include/exclude.
+            <div className="px-1 text-xs text-muted-foreground">
+              Filters auto-apply as you select. Use +/- to include or exclude.
             </div>
           </div>
-        </div>
 
         {/* Accordion Filters */}
         <Accordion type="multiple" defaultValue={["accounts", "centers"]} className="w-full">

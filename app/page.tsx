@@ -1,34 +1,21 @@
 "use client"
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Slider } from "@/components/ui/slider"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-  Filter,
   RotateCcw,
-  Info,
-  Download,
   Database,
   RefreshCw,
   AlertCircle,
   CheckCircle,
-  ExternalLink,
   Copy,
   Loader2,
   Building,
-  Briefcase,
-  PieChartIcon,
-  Table as TableIcon,
+  Users,
 } from "lucide-react"
-import { MultiSelect } from "@/components/multi-select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { getAllData, testConnection, getDatabaseStatus, clearCache } from "./actions"
 import { LoadingState } from "@/components/states/loading-state"
 import { ErrorState } from "@/components/states/error-state"
@@ -1061,31 +1048,166 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen overflow-hidden bg-background">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_60%_at_20%_10%,rgba(56,189,248,0.08),transparent),radial-gradient(60%_60%_at_80%_0%,rgba(244,197,66,0.08),transparent)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(0,0,0,0.04),rgba(0,0,0,0.02))]" />
+
       <Header onRefresh={loadData} />
 
       {dataLoaded && (
-        <div className="flex h-[calc(100vh-88px)]">
-          <FiltersSidebar
-            filters={filters}
-            pendingFilters={pendingFilters}
-            availableOptions={availableOptions}
-            isApplying={isApplying}
-            revenueRange={revenueRange}
-            accountNames={accountNames}
-            setPendingFilters={setPendingFilters}
-            resetFilters={resetFilters}
-            handleExportAll={handleExportAll}
-            handleMinRevenueChange={handleMinRevenueChange}
-            handleMaxRevenueChange={handleMaxRevenueChange}
-            getTotalActiveFilters={getTotalActiveFilters}
-            handleLoadSavedFilters={handleLoadSavedFilters}
-            formatRevenueInMillions={formatRevenueInMillions}
-          />
+        <main className="relative mx-auto max-w-[1600px] space-y-6 px-6 pb-12 pt-4">
+          <section className="overflow-hidden rounded-3xl border border-border/80 bg-card/80 backdrop-blur-xl shadow-[0_22px_70px_-28px_rgba(0,0,0,0.45)]">
+            <div className="grid gap-4 p-6 md:grid-cols-[2fr,1.1fr] md:items-center">
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-primary">
+                  Insight console
+                </div>
+                <h1 className="text-3xl font-semibold leading-tight text-foreground md:text-4xl">
+                  Relationship intelligence cockpit
+                </h1>
+                <p className="text-sm text-muted-foreground md:text-base">
+                  Search, filter, and export live account, center, and prospect signals pulled directly from Neon.
+                </p>
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  <Badge variant="secondary" className="border-border/70 bg-secondary/80">
+                    {getTotalActiveFilters()} active filters
+                  </Badge>
+                  {hasUnappliedChanges() && (
+                    <Badge variant="outline" className="border-primary/50 text-primary">
+                      Pending changes auto-apply
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-border/70 bg-secondary/70 p-4 shadow-inner">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                    <Database className="h-5 w-5 text-primary" />
+                    Database health
+                  </div>
+                  <Badge variant={dbStatus?.hasConnection ? "secondary" : "destructive"}>
+                    {dbStatus?.hasConnection ? "Connected" : "Check config"}
+                  </Badge>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {connectionStatus || "Ready to sync data"}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button size="sm" variant="default" onClick={loadData} className="gap-2">
+                    <RefreshCw className="h-4 w-4" />
+                    Sync data
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={handleClearCache} className="gap-2 border-border/70">
+                    <RotateCcw className="h-4 w-4" />
+                    Clear cache
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="border border-border/60 bg-background/60"
+                    onClick={() => copyToClipboard(connectionStatus || "Status not available")}
+                    title="Copy latest status"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div className="grid gap-3 border-t border-border/70 bg-secondary/50 px-6 py-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="flex items-center gap-3 rounded-2xl bg-background/70 px-4 py-3 shadow-sm">
+                <CheckCircle className="h-5 w-5 text-[hsl(var(--chart-1))]" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Accounts loaded</p>
+                  <p className="text-lg font-semibold text-foreground">{accounts.length}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 rounded-2xl bg-background/70 px-4 py-3 shadow-sm">
+                <Building className="h-5 w-5 text-[hsl(var(--chart-2))]" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Centers loaded</p>
+                  <p className="text-lg font-semibold text-foreground">{centers.length}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 rounded-2xl bg-background/70 px-4 py-3 shadow-sm">
+                <Users className="h-5 w-5 text-[hsl(var(--chart-3))]" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Prospects loaded</p>
+                  <p className="text-lg font-semibold text-foreground">{prospects.length}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 rounded-2xl bg-background/70 px-4 py-3 shadow-sm">
+                <AlertCircle className="h-5 w-5 text-[hsl(var(--chart-5))]" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Pending changes</p>
+                  <p className="text-lg font-semibold text-foreground">
+                    {hasUnappliedChanges() ? "Review & auto-apply" : "In sync"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
 
-          {/* Right Side - Data View (70%) */}
-          <div className="flex-1 w-[70%] overflow-y-auto bg-background">
-            <div className="p-6">
+          <section className="grid gap-5 lg:grid-cols-[360px,1fr]">
+            <div className="lg:sticky lg:top-28">
+              <FiltersSidebar
+                filters={filters}
+                pendingFilters={pendingFilters}
+                availableOptions={availableOptions}
+                isApplying={isApplying}
+                revenueRange={revenueRange}
+                accountNames={accountNames}
+                setPendingFilters={setPendingFilters}
+                resetFilters={resetFilters}
+                handleExportAll={handleExportAll}
+                handleMinRevenueChange={handleMinRevenueChange}
+                handleMaxRevenueChange={handleMaxRevenueChange}
+                getTotalActiveFilters={getTotalActiveFilters}
+                handleLoadSavedFilters={handleLoadSavedFilters}
+                formatRevenueInMillions={formatRevenueInMillions}
+              />
+            </div>
+
+            <div className="flex flex-col gap-5">
+              <div className="rounded-2xl border border-border/70 bg-card/70 p-5 shadow-[0_16px_50px_-30px_rgba(0,0,0,0.4)]">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+                      Search & navigate
+                    </p>
+                    <p className="text-lg font-semibold text-foreground">Find accounts, centers, and prospects instantly</p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    <Badge variant="secondary" className="border-border/70 bg-secondary/70">
+                      {itemsPerPage} per page
+                    </Badge>
+                    <Badge variant="outline" className="border-border/70 text-foreground">
+                      {filteredData.filteredAccounts.length + filteredData.filteredCenters.length + filteredData.filteredProspects.length} rows in view
+                    </Badge>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center">
+                  <div className="relative flex-1">
+                    <Input
+                      value={searchInput}
+                      onChange={handleSearchChange}
+                      placeholder="Search across account names and titles..."
+                      className="h-11 rounded-xl border-border/70 bg-background/80 pl-3 pr-3 text-sm shadow-inner"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="border-primary/40 text-primary">
+                      {getTotalActiveFilters()} active filters
+                    </Badge>
+                    {isApplying && (
+                      <Badge variant="secondary" className="flex items-center gap-1 border-border/70">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Applying
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <SummaryCards
                 filteredAccountsCount={filteredData.filteredAccounts.length}
                 totalAccountsCount={accounts.length}
@@ -1095,54 +1217,59 @@ function DashboardContent() {
                 totalProspectsCount={prospects.length}
               />
 
-              {/* Data Tables */}
-              <Tabs defaultValue="accounts" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="accounts">Accounts ({filteredData.filteredAccounts.length})</TabsTrigger>
-                  <TabsTrigger value="centers">Centers ({filteredData.filteredCenters.length})</TabsTrigger>
-                  <TabsTrigger value="prospects">Prospects ({filteredData.filteredProspects.length})</TabsTrigger>
+              <Tabs defaultValue="accounts" className="space-y-4 rounded-2xl border border-border/70 bg-card/70 p-4 shadow-[0_16px_50px_-30px_rgba(0,0,0,0.4)]">
+                <TabsList className="grid w-full grid-cols-3 rounded-xl bg-secondary/70 p-1">
+                  <TabsTrigger value="accounts" className="rounded-lg text-sm font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    Accounts ({filteredData.filteredAccounts.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="centers" className="rounded-lg text-sm font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    Centers ({filteredData.filteredCenters.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="prospects" className="rounded-lg text-sm font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    Prospects ({filteredData.filteredProspects.length})
+                  </TabsTrigger>
                 </TabsList>
 
-              <AccountsTab
-                accounts={filteredData.filteredAccounts}
-                centers={filteredData.filteredCenters}
-                prospects={filteredData.filteredProspects}
-                services={filteredData.filteredServices}
-                functions={functions}
-                accountChartData={accountChartData}
-                accountsView={accountsView}
-                setAccountsView={setAccountsView}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-              />
+                <AccountsTab
+                  accounts={filteredData.filteredAccounts}
+                  centers={filteredData.filteredCenters}
+                  prospects={filteredData.filteredProspects}
+                  services={filteredData.filteredServices}
+                  functions={functions}
+                  accountChartData={accountChartData}
+                  accountsView={accountsView}
+                  setAccountsView={setAccountsView}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                />
 
-              <CentersTab
-                centers={filteredData.filteredCenters}
-                functions={functions}
-                services={filteredData.filteredServices}
-                centerChartData={centerChartData}
-                centersView={centersView}
-                setCentersView={setCentersView}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-              />
+                <CentersTab
+                  centers={filteredData.filteredCenters}
+                  functions={functions}
+                  services={filteredData.filteredServices}
+                  centerChartData={centerChartData}
+                  centersView={centersView}
+                  setCentersView={setCentersView}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                />
 
-              <ProspectsTab
-                prospects={filteredData.filteredProspects}
-                prospectChartData={prospectChartData}
-                prospectsView={prospectsView}
-                setProspectsView={setProspectsView}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-              />
-            </Tabs>
+                <ProspectsTab
+                  prospects={filteredData.filteredProspects}
+                  prospectChartData={prospectChartData}
+                  prospectsView={prospectsView}
+                  setProspectsView={setProspectsView}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                />
+              </Tabs>
             </div>
-          </div>
-        </div>
-        )}
+          </section>
+        </main>
+      )}
     </div>
   )
 }
