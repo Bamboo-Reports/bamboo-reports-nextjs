@@ -1,0 +1,758 @@
+{
+  "database": "neondb",
+  "table_count": 6,
+  "tables": {
+    "accounts": {
+      "columns": [
+        {
+          "name": "ACCOUNT LAST UPDATE DATE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT NASSCOM STATUS",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT NASSCOM MEMBER STATUS",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT GLOBAL LEGAL NAME",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT ABOUT",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ ADDRESS",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ CITY",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ STATE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ ZIP CODE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ COUNTRY",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ REGION",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ BOARDLINE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ WEBSITE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ KEY OFFERINGS",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT KEY OFFERINGS SOURCE LINK",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ SUB INDUSTRY",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ INDUSTRY",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT PRIMARY CATEGORY",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT PRIMARY NATURE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ FORBES 2000 RANK",
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ FORTUNE 500 RANK",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ COMPANY TYPE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ REVNUE",
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ REVENUE RANGE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ FY END",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ REVENUE YEAR",
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ REVENUE SOURCE TYPE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ REVENUE SOURCE LINK",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ EMPLOYEE COUNT",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ EMPLOYEE RANGE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ EMPLOYEE RANGE.1",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT HQ EMPLOYEE SOURCE TYPE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT CENTER EMPLOYEES",
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT CENTER EMPLOYEES RANGE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "YEARS IN INDIA",
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT FIRST CENTER",
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNTS COMMENTS",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT COVERAGE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "primary_key": [],
+      "foreign_keys": [],
+      "indexes": [],
+      "statistics": {
+        "row_count": 2446,
+        "size_bytes": 2809856,
+        "size_mb": 2.68
+      }
+    },
+    "centers": {
+      "columns": [
+        {
+          "name": "LAST UPDATE DATE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CN UNIQUE KEY",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT GLOBAL LEGAL NAME",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER STATUS",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER INC YEAR",
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER INC YEAR NOTES",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER INC YEAR UPDATED LINK",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER TIMELINE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER END YEAR",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER ACCOUNT WEBSITE",
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER NAME",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER BUSINESS SEGMENT",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER BUSINESS SUB-SEGMENT",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER MANAGEMENT PARTNER",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER JV STTAUS",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER JV NAME",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER TYPE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER FOCUS",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER SOURCE LINK",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER WEBSITE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER LINKEDIN",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER ADDRESS",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER CITY",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER STATE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER ZIP CODE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER COUNTRY",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "LAT",
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "LANG",
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER REGION",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER BOARDLINE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER EMPLOYEES",
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER EMPLOYEES RANGE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER EMPLOYEES RANGE SOURCE LINK",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER SERVICES",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER FIRST CENTER",
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "COMMENTS",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "primary_key": [],
+      "foreign_keys": [],
+      "indexes": [],
+      "statistics": {
+        "row_count": 6153,
+        "size_bytes": 8773632,
+        "size_mb": 8.367
+      }
+    },
+    "saved_filters": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "nullable": false,
+          "default": "nextval('saved_filters_id_seq'::regclass)"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "filters",
+          "type": "JSONB",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "foreign_keys": [],
+      "indexes": [],
+      "statistics": {
+        "row_count": 0,
+        "size_bytes": 65536,
+        "size_mb": 0.062
+      }
+    },
+    "services": {
+      "columns": [
+        {
+          "name": "LAST UPDATE DATE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT GLOBAL LEGAL NAME",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CN UNIQUE KEY",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER NAME",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER TYPE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER FOCUS",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER CITY",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "PRIMARY SERVICE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "FOCUS REGION",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "IT",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ER&D",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "FnA",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "HR",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "PROCUREMENT",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "SALES & MARKETING",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CUSTOMER SUPPORT",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "OTHERS",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "SOFTWARE VENDOR",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "SOFTWARE IN USE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "primary_key": [],
+      "foreign_keys": [],
+      "indexes": [],
+      "statistics": {
+        "row_count": 6123,
+        "size_bytes": 5644288,
+        "size_mb": 5.383
+      }
+    },
+    "functions": {
+      "columns": [
+        {
+          "name": "CN UNIQUE KEY",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "FUNCTION",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "primary_key": [],
+      "foreign_keys": [],
+      "indexes": [],
+      "statistics": {
+        "row_count": 13866,
+        "size_bytes": 1286144,
+        "size_mb": 1.227
+      }
+    },
+    "prospects": {
+      "columns": [
+        {
+          "name": "LAST UPDATE DATE",
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ACCOUNT GLOBAL LEGAL NAME",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "CENTER NAME",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "PROSPECT FIRST NAME",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "PROSPECT LAST NAME",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "PROSPECT TITLE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "PROSPECT DEPARTMENT",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "PROSPECT LEVEL",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "PROSPECT LINKEDIN LINK",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "PROSPECT EMAIL",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "PROSPECT CITY",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "PROSPECT STATE",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "PROSPECT COUNTRY",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null
+        }
+      ],
+      "primary_key": [],
+      "foreign_keys": [],
+      "indexes": [],
+      "statistics": {
+        "row_count": 2426,
+        "size_bytes": 671744,
+        "size_mb": 0.641
+      }
+    }
+  }
+}

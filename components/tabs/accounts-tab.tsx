@@ -139,7 +139,7 @@ export function AccountsTab({
                   {getPaginatedData(accounts, currentPage, itemsPerPage).map(
                     (account, index) => (
                       <AccountRow
-                        key={`${account["ACCOUNT NAME"]}-${index}`}
+                        key={`${account["ACCOUNT GLOBAL LEGAL NAME"]}-${index}`}
                         account={account}
                         onClick={() => handleAccountClick(account)}
                       />

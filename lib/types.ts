@@ -1,47 +1,80 @@
 export interface Account {
-  "ACCOUNT NASSCOM STATUS": string
-  "ACCOUNT NAME": string
-  "ACCOUNT TYPE"?: string
+  "ACCOUNT LAST UPDATE DATE"?: string
+  "ACCOUNT NASSCOM STATUS"?: string
+  "ACCOUNT NASSCOM MEMBER STATUS"?: string
+  "ACCOUNT GLOBAL LEGAL NAME": string
   "ACCOUNT ABOUT"?: string
-  "ACCOUNT KEY OFFERINGS"?: string
-  "ACCOUNT CITY"?: string
-  "ACCOUNT COUNTRY": string
-  "ACCOUNT REGION": string
-  "ACCOUNT SUB INDUSTRY": string
-  "ACCOUNT INDUSTRY": string
-  "ACCOUNT PRIMARY CATEGORY": string
-  "ACCOUNT PRIMARY NATURE": string
-  "ACCOUNT REVNUE": string
-  "ACCOUNT REVENUE RANGE": string
-  "ACCOUNT EMPLOYEES": string
-  "ACCOUNT EMPLOYEES RANGE": string
-  "ACCOUNT CENTER EMPLOYEES": string
-  "ACCOUNT FORBES"?: string
-  "ACCOUNT FORTUNE"?: string
-  "ACCOUNT FIRST CENTER"?: string
-  "YEARS IN INDIA"?: string
-  "ACCOUNT WEBSITE"?: string
+  "ACCOUNT HQ ADDRESS"?: string
+  "ACCOUNT HQ CITY"?: string
+  "ACCOUNT HQ STATE"?: string
+  "ACCOUNT HQ ZIP CODE"?: string
+  "ACCOUNT HQ COUNTRY"?: string
+  "ACCOUNT HQ REGION"?: string
+  "ACCOUNT HQ BOARDLINE"?: string
+  "ACCOUNT HQ WEBSITE"?: string
+  "ACCOUNT HQ KEY OFFERINGS"?: string
+  "ACCOUNT KEY OFFERINGS SOURCE LINK"?: string
+  "ACCOUNT HQ SUB INDUSTRY"?: string
+  "ACCOUNT HQ INDUSTRY"?: string
+  "ACCOUNT PRIMARY CATEGORY"?: string
+  "ACCOUNT PRIMARY NATURE"?: string
+  "ACCOUNT HQ FORBES 2000 RANK"?: number
+  "ACCOUNT HQ FORTUNE 500 RANK"?: string
+  "ACCOUNT HQ COMPANY TYPE"?: string
+  "ACCOUNT HQ REVNUE"?: number
+  "ACCOUNT HQ REVENUE RANGE"?: string
+  "ACCOUNT HQ FY END"?: string
+  "ACCOUNT HQ REVENUE YEAR"?: number
+  "ACCOUNT HQ REVENUE SOURCE TYPE"?: string
+  "ACCOUNT HQ REVENUE SOURCE LINK"?: string
+  "ACCOUNT HQ EMPLOYEE COUNT"?: string
+  "ACCOUNT HQ EMPLOYEE RANGE"?: string
+  "ACCOUNT HQ EMPLOYEE RANGE.1"?: string
+  "ACCOUNT HQ EMPLOYEE SOURCE TYPE"?: string
+  "ACCOUNT CENTER EMPLOYEES"?: number
+  "ACCOUNT CENTER EMPLOYEES RANGE"?: string
+  "YEARS IN INDIA"?: number
+  "ACCOUNT FIRST CENTER"?: number
+  "ACCOUNTS COMMENTS"?: string
+  "ACCOUNT COVERAGE"?: string
 }
 
 export interface Center {
-  "ACCOUNT NAME": string
+  "LAST UPDATE DATE"?: string
   "CN UNIQUE KEY": string
-  "CENTER STATUS": string
-  "CENTER INC YEAR": string
-  "CENTER NAME": string
-  "CENTER TYPE": string
-  "CENTER FOCUS": string
-  "CENTER CITY": string
-  "CENTER STATE": string
-  "CENTER COUNTRY": string
-  "CENTER EMPLOYEES": string
-  "CENTER EMPLOYEES RANGE": string
-  "BUSINESS SGEMENT"?: string
-  "BUSINESS SUB-SEGMENT"?: string
-  "BOARDLINE NUMBER"?: string
-  "CENTER ACCOUNT WEBSITE"?: string
-  LAT?: string
-  LANG?: string
+  "ACCOUNT GLOBAL LEGAL NAME": string
+  "CENTER STATUS"?: string
+  "CENTER INC YEAR"?: number
+  "CENTER INC YEAR NOTES"?: string
+  "CENTER INC YEAR UPDATED LINK"?: string
+  "CENTER TIMELINE"?: string
+  "CENTER END YEAR"?: string
+  "CENTER NAME"?: string
+  "CENTER BUSINESS SEGMENT"?: string
+  "CENTER BUSINESS SUB-SEGMENT"?: string
+  "CENTER MANAGEMENT PARTNER"?: string
+  "CENTER JV STTAUS"?: string
+  "CENTER JV NAME"?: string
+  "CENTER TYPE"?: string
+  "CENTER FOCUS"?: string
+  "CENTER SOURCE LINK"?: string
+  "CENTER WEBSITE"?: string
+  "CENTER LINKEDIN"?: string
+  "CENTER ADDRESS"?: string
+  "CENTER CITY"?: string
+  "CENTER STATE"?: string
+  "CENTER ZIP CODE"?: string
+  "CENTER COUNTRY"?: string
+  LAT?: number
+  LANG?: number
+  "CENTER REGION"?: string
+  "CENTER BOARDLINE"?: string
+  "CENTER EMPLOYEES"?: number
+  "CENTER EMPLOYEES RANGE"?: string
+  "CENTER EMPLOYEES RANGE SOURCE LINK"?: string
+  "CENTER SERVICES"?: string
+  "CENTER FIRST CENTER"?: number
+  COMMENTS?: string
 }
 
 export interface Function {
@@ -50,38 +83,41 @@ export interface Function {
 }
 
 export interface Service {
+  "LAST UPDATE DATE"?: string
+  "ACCOUNT GLOBAL LEGAL NAME"?: string
   "CN UNIQUE KEY": string
-  "CENTER NAME": string
-  "CENTER TYPE": string
-  "CENTER FOCUS": string
-  "CENTER CITY": string
-  "PRIMARY SERVICE": string
-  "FOCUS REGION": string
-  IT: string
-  "ER&D": string
-  FnA: string
-  HR: string
-  PROCUREMENT: string
-  "SALES & MARKETING": string
-  "CUSTOMER SUPPORT": string
-  OTHERS: string
-  "SOFTWARE VENDOR": string
-  "SOFTWARE IN USE": string
+  "CENTER NAME"?: string
+  "CENTER TYPE"?: string
+  "CENTER FOCUS"?: string
+  "CENTER CITY"?: string
+  "PRIMARY SERVICE"?: string
+  "FOCUS REGION"?: string
+  IT?: string
+  "ER&D"?: string
+  FnA?: string
+  HR?: string
+  PROCUREMENT?: string
+  "SALES & MARKETING"?: string
+  "CUSTOMER SUPPORT"?: string
+  OTHERS?: string
+  "SOFTWARE VENDOR"?: string
+  "SOFTWARE IN USE"?: string
 }
 
 export interface Prospect {
-  "ACCOUNT NAME": string
-  "CENTER NAME": string
-  "FIRST NAME": string
-  "LAST NAME": string
-  TITLE: string
-  DEPARTMENT: string
-  LEVEL: string
-  "LINKEDIN LINK": string
-  EMAIL: string
-  CITY: string
-  STATE: string
-  COUNTRY: string
+  "LAST UPDATE DATE"?: number
+  "ACCOUNT GLOBAL LEGAL NAME"?: string
+  "CENTER NAME"?: string
+  "PROSPECT FIRST NAME"?: string
+  "PROSPECT LAST NAME"?: string
+  "PROSPECT TITLE"?: string
+  "PROSPECT DEPARTMENT"?: string
+  "PROSPECT LEVEL"?: string
+  "PROSPECT LINKEDIN LINK"?: string
+  "PROSPECT EMAIL"?: string
+  "PROSPECT CITY"?: string
+  "PROSPECT STATE"?: string
+  "PROSPECT COUNTRY"?: string
 }
 
 export interface FilterValue {

@@ -91,7 +91,7 @@ export async function getAccounts() {
     if (cached) return cached
 
     console.log("Fetching accounts from database...")
-    const accounts = await fetchWithRetry(() => sql`SELECT * FROM accounts ORDER BY "ACCOUNT NAME"`)
+    const accounts = await fetchWithRetry(() => sql`SELECT * FROM accounts ORDER BY "ACCOUNT GLOBAL LEGAL NAME"`)
     console.log(`Successfully fetched ${accounts.length} accounts`)
 
     // Cache the result
@@ -191,7 +191,7 @@ export async function getProspects() {
     if (cached) return cached
 
     console.log("Fetching prospects from database...")
-    const prospects = await fetchWithRetry(() => sql`SELECT * FROM prospects ORDER BY "LAST NAME", "FIRST NAME"`)
+    const prospects = await fetchWithRetry(() => sql`SELECT * FROM prospects ORDER BY "PROSPECT LAST NAME", "PROSPECT FIRST NAME"`)
     console.log(`Successfully fetched ${prospects.length} prospects`)
 
     // Cache the result
@@ -427,22 +427,22 @@ export async function getFilteredAccounts(filters: {
     let query = sql`SELECT * FROM accounts WHERE 1=1`
 
     if (filters.countries && filters.countries.length > 0) {
-      query = sql`${query} AND "ACCOUNT COUNTRY" = ANY(${filters.countries})`
+      query = sql`${query} AND "ACCOUNT HQ COUNTRY" = ANY(${filters.countries})`
     }
 
     if (filters.regions && filters.regions.length > 0) {
-      query = sql`${query} AND "ACCOUNT REGION" = ANY(${filters.regions})`
+      query = sql`${query} AND "ACCOUNT HQ REGION" = ANY(${filters.regions})`
     }
 
     if (filters.industries && filters.industries.length > 0) {
-      query = sql`${query} AND "ACCOUNT INDUSTRY" = ANY(${filters.industries})`
+      query = sql`${query} AND "ACCOUNT HQ INDUSTRY" = ANY(${filters.industries})`
     }
 
     if (filters.searchTerm && filters.searchTerm.trim()) {
-      query = sql`${query} AND "ACCOUNT NAME" ILIKE ${`%${filters.searchTerm}%`}`
+      query = sql`${query} AND "ACCOUNT GLOBAL LEGAL NAME" ILIKE ${`%${filters.searchTerm}%`}`
     }
 
-    query = sql`${query} ORDER BY "ACCOUNT NAME"`
+    query = sql`${query} ORDER BY "ACCOUNT GLOBAL LEGAL NAME"`
 
     const results = await fetchWithRetry(() => query)
     console.log(`Filtered accounts: ${results.length} results`)

@@ -15,14 +15,14 @@ export const ProspectRow = memo(({ prospect, onClick }: ProspectRowProps) => (
     <TableCell>
       <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
         <span className="text-sm font-bold text-primary">
-          {prospect["FIRST NAME"]?.[0]}{prospect["LAST NAME"]?.[0]}
+          {prospect["PROSPECT FIRST NAME"]?.[0]}{prospect["PROSPECT LAST NAME"]?.[0]}
         </span>
       </div>
     </TableCell>
-    <TableCell className="font-medium">{prospect["FIRST NAME"]}</TableCell>
-    <TableCell>{prospect["LAST NAME"]}</TableCell>
-    <TableCell>{prospect.TITLE}</TableCell>
-    <TableCell>{prospect["ACCOUNT NAME"]}</TableCell>
+    <TableCell className="font-medium">{prospect["PROSPECT FIRST NAME"]}</TableCell>
+    <TableCell>{prospect["PROSPECT LAST NAME"]}</TableCell>
+    <TableCell>{prospect["PROSPECT TITLE"]}</TableCell>
+    <TableCell>{prospect["ACCOUNT GLOBAL LEGAL NAME"]}</TableCell>
   </TableRow>
 ))
 ProspectRow.displayName = "ProspectRow"

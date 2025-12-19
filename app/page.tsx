@@ -256,7 +256,7 @@ function DashboardContent() {
       setProspects(prospectsData as Prospect[])
 
       const revenues = accountsData
-        .map((account: Account) => parseRevenue(account["ACCOUNT REVNUE"]))
+        .map((account: Account) => parseRevenue(account["ACCOUNT HQ REVNUE"]))
         .filter((rev: number) => rev > 0)
 
       if (revenues.length > 0) {
@@ -303,7 +303,7 @@ function DashboardContent() {
 
   // Extract unique account names for autocomplete - memoized for performance
   const accountNames = useMemo(() => {
-    return accounts.map(account => account["ACCOUNT NAME"]).filter(Boolean)
+    return accounts.map(account => account["ACCOUNT GLOBAL LEGAL NAME"]).filter(Boolean)
   }, [accounts])
 
   // Main filtering logic - memoized with stable dependencies
@@ -325,21 +325,21 @@ function DashboardContent() {
     // Step 1: Filter accounts based on account filters
     let filteredAccounts = accounts.filter((account) => {
       return (
-        enhancedFilterMatch(filters.accountCountries, account["ACCOUNT COUNTRY"]) &&
-        enhancedFilterMatch(filters.accountRegions, account["ACCOUNT REGION"]) &&
-        enhancedFilterMatch(filters.accountIndustries, account["ACCOUNT INDUSTRY"]) &&
-        enhancedFilterMatch(filters.accountSubIndustries, account["ACCOUNT SUB INDUSTRY"]) &&
-        enhancedFilterMatch(filters.accountPrimaryCategories, account["ACCOUNT PRIMARY CATEGORY"]) &&
-        enhancedFilterMatch(filters.accountPrimaryNatures, account["ACCOUNT PRIMARY NATURE"]) &&
-        enhancedFilterMatch(filters.accountNasscomStatuses, account["ACCOUNT NASSCOM STATUS"]) &&
-        enhancedFilterMatch(filters.accountEmployeesRanges, account["ACCOUNT EMPLOYEES RANGE"]) &&
-        enhancedFilterMatch(filters.accountCenterEmployees, account["ACCOUNT CENTER EMPLOYEES"]) &&
-        rangeFilterMatch(filters.accountRevenueRange, account["ACCOUNT REVNUE"], filters.includeNullRevenue) &&
-        enhancedKeywordMatch(filters.accountNameKeywords, account["ACCOUNT NAME"])
+        enhancedFilterMatch(filters.accountCountries, account["ACCOUNT HQ COUNTRY"] || "") &&
+        enhancedFilterMatch(filters.accountRegions, account["ACCOUNT HQ REGION"] || "") &&
+        enhancedFilterMatch(filters.accountIndustries, account["ACCOUNT HQ INDUSTRY"] || "") &&
+        enhancedFilterMatch(filters.accountSubIndustries, account["ACCOUNT HQ SUB INDUSTRY"] || "") &&
+        enhancedFilterMatch(filters.accountPrimaryCategories, account["ACCOUNT PRIMARY CATEGORY"] || "") &&
+        enhancedFilterMatch(filters.accountPrimaryNatures, account["ACCOUNT PRIMARY NATURE"] || "") &&
+        enhancedFilterMatch(filters.accountNasscomStatuses, account["ACCOUNT NASSCOM STATUS"] || "") &&
+        enhancedFilterMatch(filters.accountEmployeesRanges, account["ACCOUNT HQ EMPLOYEE RANGE"] || "") &&
+        enhancedFilterMatch(filters.accountCenterEmployees, account["ACCOUNT CENTER EMPLOYEES RANGE"] || "") &&
+        rangeFilterMatch(filters.accountRevenueRange, account["ACCOUNT HQ REVNUE"] || 0, filters.includeNullRevenue) &&
+        enhancedKeywordMatch(filters.accountNameKeywords, account["ACCOUNT GLOBAL LEGAL NAME"])
       )
     })
 
-    let filteredAccountNames = filteredAccounts.map((a) => a["ACCOUNT NAME"])
+    let filteredAccountNames = filteredAccounts.map((a) => a["ACCOUNT GLOBAL LEGAL NAME"])
 
     // Step 2: Filter centers based on center filters and filtered accounts
     let filteredCenters = centers.filter((center) => {
@@ -353,7 +353,7 @@ function DashboardContent() {
         enhancedFilterMatch(filters.centerStatuses, center["CENTER STATUS"])
 
       const accountFilterMatch =
-        filteredAccountNames.length === accounts.length || filteredAccountNames.includes(center["ACCOUNT NAME"])
+        filteredAccountNames.length === accounts.length || filteredAccountNames.includes(center["ACCOUNT GLOBAL LEGAL NAME"])
 
       return centerFilterMatch && accountFilterMatch
     })
@@ -378,13 +378,13 @@ function DashboardContent() {
     // Step 5: Filter prospects based on prospect filters and filtered accounts
     let filteredProspects = prospects.filter((prospect) => {
       const prospectFilterMatch =
-        enhancedFilterMatch(filters.prospectDepartments, prospect.DEPARTMENT) &&
-        enhancedFilterMatch(filters.prospectLevels, prospect.LEVEL) &&
-        enhancedFilterMatch(filters.prospectCities, prospect.CITY) &&
-        enhancedKeywordMatch(filters.prospectTitleKeywords, prospect.TITLE)
+        enhancedFilterMatch(filters.prospectDepartments, prospect["PROSPECT DEPARTMENT"] || "") &&
+        enhancedFilterMatch(filters.prospectLevels, prospect["PROSPECT LEVEL"] || "") &&
+        enhancedFilterMatch(filters.prospectCities, prospect["PROSPECT CITY"] || "") &&
+        enhancedKeywordMatch(filters.prospectTitleKeywords, prospect["PROSPECT TITLE"] || "")
 
       const accountFilterMatch =
-        filteredAccountNames.length === accounts.length || filteredAccountNames.includes(prospect["ACCOUNT NAME"])
+        filteredAccountNames.length === accounts.length || filteredAccountNames.includes(prospect["ACCOUNT GLOBAL LEGAL NAME"] || "")
 
       return prospectFilterMatch && accountFilterMatch
     })
@@ -397,17 +397,17 @@ function DashboardContent() {
       filters.prospectTitleKeywords.length > 0
 
     if (hasProspectFilters) {
-      const accountNamesWithMatchingProspects = [...new Set(filteredProspects.map((p) => p["ACCOUNT NAME"]))]
+      const accountNamesWithMatchingProspects = [...new Set(filteredProspects.map((p) => p["ACCOUNT GLOBAL LEGAL NAME"]))]
       filteredAccounts = filteredAccounts.filter((account) =>
-        accountNamesWithMatchingProspects.includes(account["ACCOUNT NAME"])
+        accountNamesWithMatchingProspects.includes(account["ACCOUNT GLOBAL LEGAL NAME"])
       )
 
       // Update filtered account names after prospect filtering
-      filteredAccountNames = filteredAccounts.map((a) => a["ACCOUNT NAME"])
+      filteredAccountNames = filteredAccounts.map((a) => a["ACCOUNT GLOBAL LEGAL NAME"])
 
       // Re-filter centers based on the updated accounts
       filteredCenters = filteredCenters.filter((center) =>
-        filteredAccountNames.includes(center["ACCOUNT NAME"])
+        filteredAccountNames.includes(center["ACCOUNT GLOBAL LEGAL NAME"])
       )
     }
 
@@ -418,14 +418,14 @@ function DashboardContent() {
     const filteredServices = services.filter((service) => finalCenterKeys.includes(service["CN UNIQUE KEY"]))
 
     // Step 8: Final account filtering based on centers that made it through
-    const finalAccountNames = [...new Set(filteredCenters.map((c) => c["ACCOUNT NAME"]))]
+    const finalAccountNames = [...new Set(filteredCenters.map((c) => c["ACCOUNT GLOBAL LEGAL NAME"]))]
     const finalFilteredAccounts = filteredAccounts.filter((account) =>
-      finalAccountNames.includes(account["ACCOUNT NAME"])
+      finalAccountNames.includes(account["ACCOUNT GLOBAL LEGAL NAME"])
     )
 
     // Step 9: Final prospect filtering based on final accounts
     const finalFilteredProspects = filteredProspects.filter((prospect) =>
-      finalAccountNames.includes(prospect["ACCOUNT NAME"])
+      finalAccountNames.includes(prospect["ACCOUNT GLOBAL LEGAL NAME"] || "")
     )
 
     return {
@@ -472,10 +472,10 @@ function DashboardContent() {
     const accounts = filteredData.filteredAccounts
 
     return {
-      regionData: calculateChartData(accounts, "ACCOUNT REGION"),
+      regionData: calculateChartData(accounts, "ACCOUNT HQ REGION"),
       primaryNatureData: calculateChartData(accounts, "ACCOUNT PRIMARY NATURE"),
-      revenueRangeData: calculateChartData(accounts, "ACCOUNT REVENUE RANGE"),
-      employeesRangeData: calculateChartData(accounts, "ACCOUNT EMPLOYEES RANGE"),
+      revenueRangeData: calculateChartData(accounts, "ACCOUNT HQ REVENUE RANGE"),
+      employeesRangeData: calculateChartData(accounts, "ACCOUNT HQ EMPLOYEE RANGE"),
     }
   }, [filteredData.filteredAccounts])
 
@@ -497,8 +497,8 @@ function DashboardContent() {
     const prospects = filteredData.filteredProspects
 
     return {
-      departmentData: calculateChartData(prospects, "DEPARTMENT"),
-      levelData: calculateChartData(prospects, "LEVEL"),
+      departmentData: calculateChartData(prospects, "PROSPECT DEPARTMENT"),
+      levelData: calculateChartData(prospects, "PROSPECT LEVEL"),
     }
   }, [filteredData.filteredProspects])
 
@@ -516,22 +516,22 @@ function DashboardContent() {
 
     const tempFilteredAccounts = accounts.filter((account) => {
       return (
-        arrayFilterMatch(tempFilters.accountCountries, account["ACCOUNT COUNTRY"]) &&
-        arrayFilterMatch(tempFilters.accountRegions, account["ACCOUNT REGION"]) &&
-        arrayFilterMatch(tempFilters.accountIndustries, account["ACCOUNT INDUSTRY"]) &&
-        arrayFilterMatch(tempFilters.accountSubIndustries, account["ACCOUNT SUB INDUSTRY"]) &&
-        arrayFilterMatch(tempFilters.accountPrimaryCategories, account["ACCOUNT PRIMARY CATEGORY"]) &&
-        arrayFilterMatch(tempFilters.accountPrimaryNatures, account["ACCOUNT PRIMARY NATURE"]) &&
-        arrayFilterMatch(tempFilters.accountNasscomStatuses, account["ACCOUNT NASSCOM STATUS"]) &&
-        arrayFilterMatch(tempFilters.accountEmployeesRanges, account["ACCOUNT EMPLOYEES RANGE"]) &&
-        arrayFilterMatch(tempFilters.accountCenterEmployees, account["ACCOUNT CENTER EMPLOYEES"]) &&
+        arrayFilterMatch(tempFilters.accountCountries, account["ACCOUNT HQ COUNTRY"] || "") &&
+        arrayFilterMatch(tempFilters.accountRegions, account["ACCOUNT HQ REGION"] || "") &&
+        arrayFilterMatch(tempFilters.accountIndustries, account["ACCOUNT HQ INDUSTRY"] || "") &&
+        arrayFilterMatch(tempFilters.accountSubIndustries, account["ACCOUNT HQ SUB INDUSTRY"] || "") &&
+        arrayFilterMatch(tempFilters.accountPrimaryCategories, account["ACCOUNT PRIMARY CATEGORY"] || "") &&
+        arrayFilterMatch(tempFilters.accountPrimaryNatures, account["ACCOUNT PRIMARY NATURE"] || "") &&
+        arrayFilterMatch(tempFilters.accountNasscomStatuses, account["ACCOUNT NASSCOM STATUS"] || "") &&
+        arrayFilterMatch(tempFilters.accountEmployeesRanges, account["ACCOUNT HQ EMPLOYEE RANGE"] || "") &&
+        arrayFilterMatch(tempFilters.accountCenterEmployees, account["ACCOUNT CENTER EMPLOYEES RANGE"] || "") &&
         (tempFilters.searchTerm === "" ||
-          account["ACCOUNT NAME"].toLowerCase().includes(tempFilters.searchTerm.toLowerCase()))
+          account["ACCOUNT GLOBAL LEGAL NAME"].toLowerCase().includes(tempFilters.searchTerm.toLowerCase()))
       )
     })
 
     const validRevenues = tempFilteredAccounts
-      .map((account) => parseRevenue(account["ACCOUNT REVNUE"]))
+      .map((account) => parseRevenue(account["ACCOUNT HQ REVNUE"] || 0))
       .filter((rev) => rev > 0)
 
     if (validRevenues.length === 0) {
@@ -618,30 +618,30 @@ function DashboardContent() {
 
     accounts.forEach((account) => {
       const matchesSearch =
-        !filters.searchTerm || account["ACCOUNT NAME"].toLowerCase().includes(filters.searchTerm.toLowerCase())
+        !filters.searchTerm || account["ACCOUNT GLOBAL LEGAL NAME"].toLowerCase().includes(filters.searchTerm.toLowerCase())
 
       if (!matchesSearch) return
 
-      const matchesAccountName = enhancedKeywordMatch(filters.accountNameKeywords, account["ACCOUNT NAME"])
+      const matchesAccountName = enhancedKeywordMatch(filters.accountNameKeywords, account["ACCOUNT GLOBAL LEGAL NAME"])
 
       if (!matchesAccountName) return
 
-      const revenue = parseRevenue(account["ACCOUNT REVNUE"])
+      const revenue = parseRevenue(account["ACCOUNT HQ REVNUE"] || 0)
       const matchesRevenue = filters.includeNullRevenue
         ? true
         : revenue >= filters.accountRevenueRange[0] && revenue <= filters.accountRevenueRange[1]
 
       if (!matchesRevenue) return
 
-      const country = account["ACCOUNT COUNTRY"]
-      const region = account["ACCOUNT REGION"]
-      const industry = account["ACCOUNT INDUSTRY"]
-      const subIndustry = account["ACCOUNT SUB INDUSTRY"]
-      const category = account["ACCOUNT PRIMARY CATEGORY"]
-      const nature = account["ACCOUNT PRIMARY NATURE"]
-      const nasscom = account["ACCOUNT NASSCOM STATUS"]
-      const empRange = account["ACCOUNT EMPLOYEES RANGE"]
-      const centerEmp = account["ACCOUNT CENTER EMPLOYEES"]
+      const country = account["ACCOUNT HQ COUNTRY"] || ""
+      const region = account["ACCOUNT HQ REGION"] || ""
+      const industry = account["ACCOUNT HQ INDUSTRY"] || ""
+      const subIndustry = account["ACCOUNT HQ SUB INDUSTRY"] || ""
+      const category = account["ACCOUNT PRIMARY CATEGORY"] || ""
+      const nature = account["ACCOUNT PRIMARY NATURE"] || ""
+      const nasscom = account["ACCOUNT NASSCOM STATUS"] || ""
+      const empRange = account["ACCOUNT HQ EMPLOYEE RANGE"] || ""
+      const centerEmp = account["ACCOUNT CENTER EMPLOYEES RANGE"] || ""
 
       const matchesCountry = enhancedFilterMatch(filters.accountCountries, country)
       const matchesRegion = enhancedFilterMatch(filters.accountRegions, region)
@@ -773,7 +773,7 @@ function DashboardContent() {
         matchesEmpRange &&
         matchesCenterEmp
       ) {
-        validAccountNames.add(account["ACCOUNT NAME"])
+        validAccountNames.add(account["ACCOUNT GLOBAL LEGAL NAME"])
       }
     })
 
@@ -790,15 +790,15 @@ function DashboardContent() {
     const validCenterKeys = new Set<string>()
 
     centers.forEach((center) => {
-      if (!validAccountNames.has(center["ACCOUNT NAME"])) return
+      if (!validAccountNames.has(center["ACCOUNT GLOBAL LEGAL NAME"])) return
 
-      const type = center["CENTER TYPE"]
-      const focus = center["CENTER FOCUS"]
-      const city = center["CENTER CITY"]
-      const state = center["CENTER STATE"]
-      const country = center["CENTER COUNTRY"]
-      const employees = center["CENTER EMPLOYEES RANGE"]
-      const status = center["CENTER STATUS"]
+      const type = center["CENTER TYPE"] || ""
+      const focus = center["CENTER FOCUS"] || ""
+      const city = center["CENTER CITY"] || ""
+      const state = center["CENTER STATE"] || ""
+      const country = center["CENTER COUNTRY"] || ""
+      const employees = center["CENTER EMPLOYEES RANGE"] || ""
+      const status = center["CENTER STATUS"] || ""
 
       const matchesType = enhancedFilterMatch(filters.centerTypes, type)
       const matchesFocus = enhancedFilterMatch(filters.centerFocus, focus)
@@ -859,11 +859,11 @@ function DashboardContent() {
     }
 
     prospects.forEach((prospect) => {
-      if (!validAccountNames.has(prospect["ACCOUNT NAME"])) return
+      if (!validAccountNames.has(prospect["ACCOUNT GLOBAL LEGAL NAME"] || "")) return
 
-      const department = prospect.DEPARTMENT
-      const level = prospect.LEVEL
-      const city = prospect.CITY
+      const department = prospect["PROSPECT DEPARTMENT"] || ""
+      const level = prospect["PROSPECT LEVEL"] || ""
+      const city = prospect["PROSPECT CITY"] || ""
 
       const matchesDepartment = enhancedFilterMatch(filters.prospectDepartments, department)
       const matchesLevel = enhancedFilterMatch(filters.prospectLevels, level)
@@ -962,7 +962,7 @@ function DashboardContent() {
       pendingFilters.accountEmployeesRanges.length +
       pendingFilters.accountCenterEmployees.length +
       (pendingFilters.accountRevenueRange[0] !== revenueRange.min ||
-      pendingFilters.accountRevenueRange[1] !== revenueRange.max
+        pendingFilters.accountRevenueRange[1] !== revenueRange.max
         ? 1
         : 0) +
       (pendingFilters.includeNullRevenue ? 1 : 0) +
@@ -1103,46 +1103,46 @@ function DashboardContent() {
                   <TabsTrigger value="prospects">Prospects ({filteredData.filteredProspects.length})</TabsTrigger>
                 </TabsList>
 
-              <AccountsTab
-                accounts={filteredData.filteredAccounts}
-                centers={filteredData.filteredCenters}
-                prospects={filteredData.filteredProspects}
-                services={filteredData.filteredServices}
-                functions={functions}
-                accountChartData={accountChartData}
-                accountsView={accountsView}
-                setAccountsView={setAccountsView}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-              />
+                <AccountsTab
+                  accounts={filteredData.filteredAccounts}
+                  centers={filteredData.filteredCenters}
+                  prospects={filteredData.filteredProspects}
+                  services={filteredData.filteredServices}
+                  functions={functions}
+                  accountChartData={accountChartData}
+                  accountsView={accountsView}
+                  setAccountsView={setAccountsView}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                />
 
-              <CentersTab
-                centers={filteredData.filteredCenters}
-                functions={functions}
-                services={filteredData.filteredServices}
-                centerChartData={centerChartData}
-                centersView={centersView}
-                setCentersView={setCentersView}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-              />
+                <CentersTab
+                  centers={filteredData.filteredCenters}
+                  functions={functions}
+                  services={filteredData.filteredServices}
+                  centerChartData={centerChartData}
+                  centersView={centersView}
+                  setCentersView={setCentersView}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                />
 
-              <ProspectsTab
-                prospects={filteredData.filteredProspects}
-                prospectChartData={prospectChartData}
-                prospectsView={prospectsView}
-                setProspectsView={setProspectsView}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-              />
-            </Tabs>
+                <ProspectsTab
+                  prospects={filteredData.filteredProspects}
+                  prospectChartData={prospectChartData}
+                  prospectsView={prospectsView}
+                  setProspectsView={setProspectsView}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                />
+              </Tabs>
             </div>
           </div>
         </div>
-        )}
+      )}
     </div>
   )
 }

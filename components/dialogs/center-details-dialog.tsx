@@ -130,8 +130,8 @@ export function CenterDetailsDialog({
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-3">
             <CompanyLogo
-              domain={center["CENTER ACCOUNT WEBSITE"]}
-              companyName={center["ACCOUNT NAME"]}
+              domain={center["CENTER WEBSITE"]}
+              companyName={center["ACCOUNT GLOBAL LEGAL NAME"]}
               size="md"
               theme="auto"
             />
@@ -140,7 +140,7 @@ export function CenterDetailsDialog({
                 <span>{center["CENTER NAME"]}</span>
                 <div className="flex items-center gap-2">
                   <div
-                    className={`h-3 w-3 rounded-full ${getStatusColor(center["CENTER STATUS"])} ${getStatusGlow(center["CENTER STATUS"])}`}
+                    className={`h-3 w-3 rounded-full ${getStatusColor(center["CENTER STATUS"] || "")} ${getStatusGlow(center["CENTER STATUS"] || "")}`}
                   />
                   <span className="text-sm font-normal text-muted-foreground">
                     {center["CENTER STATUS"]}
@@ -148,7 +148,7 @@ export function CenterDetailsDialog({
                 </div>
               </div>
               <p className="text-sm font-normal text-muted-foreground mt-1">
-                {center["ACCOUNT NAME"]}
+                {center["ACCOUNT GLOBAL LEGAL NAME"]}
               </p>
             </div>
           </DialogTitle>
@@ -190,7 +190,7 @@ export function CenterDetailsDialog({
               <InfoRow
                 icon={Phone}
                 label="Boardline Number"
-                value={center["BOARDLINE NUMBER"]}
+                value={center["CENTER BOARDLINE"]}
               />
             </div>
           </div>
@@ -230,12 +230,12 @@ export function CenterDetailsDialog({
               <InfoRow
                 icon={Briefcase}
                 label="Business Segment"
-                value={center["BUSINESS SGEMENT"]}
+                value={center["CENTER BUSINESS SEGMENT"]}
               />
               <InfoRow
                 icon={Briefcase}
                 label="Business Sub-Segment"
-                value={center["BUSINESS SUB-SEGMENT"]}
+                value={center["CENTER BUSINESS SUB-SEGMENT"]}
               />
             </div>
           </div>

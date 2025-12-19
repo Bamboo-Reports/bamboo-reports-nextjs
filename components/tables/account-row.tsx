@@ -9,7 +9,7 @@ interface AccountRowProps {
 }
 
 export const AccountRow = memo(({ account, onClick }: AccountRowProps) => {
-  const location = [account["ACCOUNT CITY"], account["ACCOUNT COUNTRY"]]
+  const location = [account["ACCOUNT HQ CITY"], account["ACCOUNT HQ COUNTRY"]]
     .filter(Boolean)
     .join(", ")
 
@@ -21,17 +21,17 @@ export const AccountRow = memo(({ account, onClick }: AccountRowProps) => {
       <TableCell className="font-medium">
         <div className="flex items-center gap-3">
           <CompanyLogo
-            domain={account["ACCOUNT WEBSITE"]}
-            companyName={account["ACCOUNT NAME"]}
+            domain={account["ACCOUNT HQ WEBSITE"]}
+            companyName={account["ACCOUNT GLOBAL LEGAL NAME"]}
             size="sm"
             theme="auto"
           />
-          <span>{account["ACCOUNT NAME"]}</span>
+          <span>{account["ACCOUNT GLOBAL LEGAL NAME"]}</span>
         </div>
       </TableCell>
-      <TableCell>{location || account["ACCOUNT COUNTRY"]}</TableCell>
-      <TableCell>{account["ACCOUNT INDUSTRY"]}</TableCell>
-      <TableCell>{account["ACCOUNT REVENUE RANGE"]}</TableCell>
+      <TableCell>{location || account["ACCOUNT HQ COUNTRY"]}</TableCell>
+      <TableCell>{account["ACCOUNT HQ INDUSTRY"]}</TableCell>
+      <TableCell>{account["ACCOUNT HQ REVENUE RANGE"]}</TableCell>
     </TableRow>
   )
 })

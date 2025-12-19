@@ -57,11 +57,11 @@ export function ProspectDetailsDialog({
           <DialogTitle className="text-2xl font-bold flex items-center gap-2">
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
               <span className="text-lg font-bold text-primary">
-                {prospect["FIRST NAME"]?.[0]}{prospect["LAST NAME"]?.[0]}
+                {prospect["PROSPECT FIRST NAME"]?.[0]}{prospect["PROSPECT LAST NAME"]?.[0]}
               </span>
             </div>
             <div>
-              {prospect["FIRST NAME"]} {prospect["LAST NAME"]}
+              {prospect["PROSPECT FIRST NAME"]} {prospect["PROSPECT LAST NAME"]}
             </div>
           </DialogTitle>
         </DialogHeader>
@@ -76,14 +76,14 @@ export function ProspectDetailsDialog({
               <InfoRow
                 icon={Mail}
                 label="Email"
-                value={prospect.EMAIL}
-                link={prospect.EMAIL ? `mailto:${prospect.EMAIL}` : undefined}
+                value={prospect["PROSPECT EMAIL"] || ""}
+                link={prospect["PROSPECT EMAIL"] ? `mailto:${prospect["PROSPECT EMAIL"]}` : undefined}
               />
               <InfoRow
                 icon={Linkedin}
                 label="LinkedIn Profile"
                 value="View Profile"
-                link={prospect["LINKEDIN LINK"]}
+                link={prospect["PROSPECT LINKEDIN LINK"]}
               />
             </div>
           </div>
@@ -97,17 +97,17 @@ export function ProspectDetailsDialog({
               <InfoRow
                 icon={Briefcase}
                 label="Job Title"
-                value={prospect.TITLE}
+                value={prospect["PROSPECT TITLE"] || ""}
               />
               <InfoRow
                 icon={Users}
                 label="Department"
-                value={prospect.DEPARTMENT}
+                value={prospect["PROSPECT DEPARTMENT"] || ""}
               />
               <InfoRow
                 icon={Award}
                 label="Level"
-                value={prospect.LEVEL}
+                value={prospect["PROSPECT LEVEL"] || ""}
               />
             </div>
           </div>
@@ -121,12 +121,12 @@ export function ProspectDetailsDialog({
               <InfoRow
                 icon={Building2}
                 label="Account Name"
-                value={prospect["ACCOUNT NAME"]}
+                value={prospect["ACCOUNT GLOBAL LEGAL NAME"] || ""}
               />
               <InfoRow
                 icon={Building2}
                 label="Center Name"
-                value={prospect["CENTER NAME"]}
+                value={prospect["CENTER NAME"] || ""}
               />
             </div>
           </div>
@@ -140,7 +140,7 @@ export function ProspectDetailsDialog({
               <InfoRow
                 icon={MapPin}
                 label="Location"
-                value={[prospect.CITY, prospect.STATE, prospect.COUNTRY]
+                value={[prospect["PROSPECT CITY"], prospect["PROSPECT STATE"], prospect["PROSPECT COUNTRY"]]
                   .filter(Boolean)
                   .join(", ")}
               />

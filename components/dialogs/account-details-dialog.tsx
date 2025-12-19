@@ -38,7 +38,7 @@ export function AccountDetailsDialog({
   if (!account) return null
 
   // Merge city and country for location
-  const location = [account["ACCOUNT CITY"], account["ACCOUNT COUNTRY"]]
+  const location = [account["ACCOUNT HQ CITY"], account["ACCOUNT HQ COUNTRY"]]
     .filter(Boolean)
     .join(", ")
 
@@ -72,15 +72,15 @@ export function AccountDetailsDialog({
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-3">
             <CompanyLogo
-              domain={account["ACCOUNT WEBSITE"]}
-              companyName={account["ACCOUNT NAME"]}
+              domain={account["ACCOUNT HQ WEBSITE"]}
+              companyName={account["ACCOUNT GLOBAL LEGAL NAME"]}
               size="md"
               theme="auto"
             />
             <div className="flex-1">
-              <div>{account["ACCOUNT NAME"]}</div>
+              <div>{account["ACCOUNT GLOBAL LEGAL NAME"]}</div>
               <p className="text-sm font-normal text-muted-foreground mt-1">
-                {location || account["ACCOUNT REGION"]}
+                {location || account["ACCOUNT HQ REGION"]}
               </p>
             </div>
           </DialogTitle>
@@ -88,7 +88,7 @@ export function AccountDetailsDialog({
 
         <div className="mt-6 space-y-6">
           {/* Company Overview Section */}
-          {(account["ACCOUNT TYPE"] || account["ACCOUNT ABOUT"] || account["ACCOUNT KEY OFFERINGS"]) && (
+          {(account["ACCOUNT HQ COMPANY TYPE"] || account["ACCOUNT ABOUT"] || account["ACCOUNT HQ KEY OFFERINGS"]) && (
             <div>
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                 <Info className="h-4 w-4" />
@@ -98,7 +98,7 @@ export function AccountDetailsDialog({
                 <InfoRow
                   icon={Building2}
                   label="Account Type"
-                  value={account["ACCOUNT TYPE"]}
+                  value={account["ACCOUNT HQ COMPANY TYPE"]}
                 />
               </div>
               <div className="grid grid-cols-1 gap-3 mt-3">
@@ -110,7 +110,7 @@ export function AccountDetailsDialog({
                 <InfoRow
                   icon={Package}
                   label="Key Offerings"
-                  value={account["ACCOUNT KEY OFFERINGS"]}
+                  value={account["ACCOUNT HQ KEY OFFERINGS"]}
                 />
               </div>
             </div>
@@ -131,7 +131,7 @@ export function AccountDetailsDialog({
               <InfoRow
                 icon={Globe}
                 label="Region"
-                value={account["ACCOUNT REGION"]}
+                value={account["ACCOUNT HQ REGION"]}
               />
             </div>
           </div>
@@ -146,12 +146,12 @@ export function AccountDetailsDialog({
               <InfoRow
                 icon={Briefcase}
                 label="Industry"
-                value={account["ACCOUNT INDUSTRY"]}
+                value={account["ACCOUNT HQ INDUSTRY"]}
               />
               <InfoRow
                 icon={Briefcase}
                 label="Sub Industry"
-                value={account["ACCOUNT SUB INDUSTRY"]}
+                value={account["ACCOUNT HQ SUB INDUSTRY"]}
               />
               <InfoRow
                 icon={TrendingUp}
@@ -176,33 +176,33 @@ export function AccountDetailsDialog({
               <InfoRow
                 icon={DollarSign}
                 label="Revenue (in Millions)"
-                value={formatRevenueInMillions(parseRevenue(account["ACCOUNT REVNUE"]))}
+                value={formatRevenueInMillions(parseRevenue(account["ACCOUNT HQ REVNUE"] || 0))}
               />
               <InfoRow
                 icon={DollarSign}
                 label="Revenue Range"
-                value={account["ACCOUNT REVENUE RANGE"]}
+                value={account["ACCOUNT HQ REVENUE RANGE"]}
               />
               <InfoRow
                 icon={Users}
                 label="Total Employees"
-                value={account["ACCOUNT EMPLOYEES"]}
+                value={account["ACCOUNT HQ EMPLOYEE COUNT"]}
               />
               <InfoRow
                 icon={Users}
                 label="Employees Range"
-                value={account["ACCOUNT EMPLOYEES RANGE"]}
+                value={account["ACCOUNT HQ EMPLOYEE RANGE"]}
               />
               <InfoRow
                 icon={Users}
                 label="Center Employees"
-                value={account["ACCOUNT CENTER EMPLOYEES"]}
+                value={account["ACCOUNT CENTER EMPLOYEES RANGE"]}
               />
             </div>
           </div>
 
           {/* Rankings & Recognition Section */}
-          {(account["ACCOUNT FORBES"] || account["ACCOUNT FORTUNE"] || account["ACCOUNT NASSCOM STATUS"]) && (
+          {(account["ACCOUNT HQ FORBES 2000 RANK"] || account["ACCOUNT HQ FORTUNE 500 RANK"] || account["ACCOUNT NASSCOM STATUS"]) && (
             <div>
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                 <Award className="h-4 w-4" />
@@ -211,13 +211,13 @@ export function AccountDetailsDialog({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <InfoRow
                   icon={Award}
-                  label="Forbes Ranking"
-                  value={account["ACCOUNT FORBES"]}
+                  label="Forbes 2000 Ranking"
+                  value={account["ACCOUNT HQ FORBES 2000 RANK"]?.toString()}
                 />
                 <InfoRow
                   icon={Award}
-                  label="Fortune Ranking"
-                  value={account["ACCOUNT FORTUNE"]}
+                  label="Fortune 500 Ranking"
+                  value={account["ACCOUNT HQ FORTUNE 500 RANK"]}
                 />
                 <InfoRow
                   icon={Award}
