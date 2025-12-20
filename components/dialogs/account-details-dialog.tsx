@@ -38,7 +38,7 @@ export function AccountDetailsDialog({
   if (!account) return null
 
   // Merge city and country for location
-  const location = [account["ACCOUNT CITY"], account["ACCOUNT COUNTRY"]]
+  const location = [account.account_hq_city, account.account_hq_country]
     .filter(Boolean)
     .join(", ")
 
@@ -72,15 +72,15 @@ export function AccountDetailsDialog({
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-3">
             <CompanyLogo
-              domain={account["ACCOUNT WEBSITE"]}
-              companyName={account["ACCOUNT NAME"]}
+              domain={account.account_hq_website}
+              companyName={account.account_global_legal_name}
               size="md"
               theme="auto"
             />
             <div className="flex-1">
-              <div>{account["ACCOUNT NAME"]}</div>
+              <div>{account.account_global_legal_name}</div>
               <p className="text-sm font-normal text-muted-foreground mt-1">
-                {location || account["ACCOUNT REGION"]}
+                {location || account.account_hq_region}
               </p>
             </div>
           </DialogTitle>
@@ -88,7 +88,7 @@ export function AccountDetailsDialog({
 
         <div className="mt-6 space-y-6">
           {/* Company Overview Section */}
-          {(account["ACCOUNT TYPE"] || account["ACCOUNT ABOUT"] || account["ACCOUNT KEY OFFERINGS"]) && (
+          {(account.account_hq_company_type || account.account_about || account.account_hq_key_offerings) && (
             <div>
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                 <Info className="h-4 w-4" />
@@ -98,19 +98,19 @@ export function AccountDetailsDialog({
                 <InfoRow
                   icon={Building2}
                   label="Account Type"
-                  value={account["ACCOUNT TYPE"]}
+                  value={account.account_hq_company_type}
                 />
               </div>
               <div className="grid grid-cols-1 gap-3 mt-3">
                 <InfoRow
                   icon={Building2}
                   label="About"
-                  value={account["ACCOUNT ABOUT"]}
+                  value={account.account_about}
                 />
                 <InfoRow
                   icon={Package}
                   label="Key Offerings"
-                  value={account["ACCOUNT KEY OFFERINGS"]}
+                  value={account.account_hq_key_offerings}
                 />
               </div>
             </div>
@@ -131,7 +131,7 @@ export function AccountDetailsDialog({
               <InfoRow
                 icon={Globe}
                 label="Region"
-                value={account["ACCOUNT REGION"]}
+                value={account.account_hq_region}
               />
             </div>
           </div>
@@ -146,22 +146,22 @@ export function AccountDetailsDialog({
               <InfoRow
                 icon={Briefcase}
                 label="Industry"
-                value={account["ACCOUNT INDUSTRY"]}
+                value={account.account_hq_industry}
               />
               <InfoRow
                 icon={Briefcase}
                 label="Sub Industry"
-                value={account["ACCOUNT SUB INDUSTRY"]}
+                value={account.account_hq_sub_industry}
               />
               <InfoRow
                 icon={TrendingUp}
                 label="Primary Category"
-                value={account["ACCOUNT PRIMARY CATEGORY"]}
+                value={account.account_primary_category}
               />
               <InfoRow
                 icon={TrendingUp}
                 label="Primary Nature"
-                value={account["ACCOUNT PRIMARY NATURE"]}
+                value={account.account_primary_nature}
               />
             </div>
           </div>
@@ -176,33 +176,33 @@ export function AccountDetailsDialog({
               <InfoRow
                 icon={DollarSign}
                 label="Revenue (in Millions)"
-                value={formatRevenueInMillions(parseRevenue(account["ACCOUNT REVNUE"]))}
+                value={formatRevenueInMillions(parseRevenue(account.account_hq_revenue))}
               />
               <InfoRow
                 icon={DollarSign}
                 label="Revenue Range"
-                value={account["ACCOUNT REVENUE RANGE"]}
+                value={account.account_hq_revenue_range}
               />
               <InfoRow
                 icon={Users}
                 label="Total Employees"
-                value={account["ACCOUNT EMPLOYEES"]}
+                value={account.account_hq_employee_count?.toString()}
               />
               <InfoRow
                 icon={Users}
                 label="Employees Range"
-                value={account["ACCOUNT EMPLOYEES RANGE"]}
+                value={account.account_hq_employee_range}
               />
               <InfoRow
                 icon={Users}
                 label="Center Employees"
-                value={account["ACCOUNT CENTER EMPLOYEES"]}
+                value={account.account_center_employees?.toString()}
               />
             </div>
           </div>
 
           {/* Rankings & Recognition Section */}
-          {(account["ACCOUNT FORBES"] || account["ACCOUNT FORTUNE"] || account["ACCOUNT NASSCOM STATUS"]) && (
+          {(account.account_hq_forbes_2000_rank || account.account_hq_fortune_500_rank || account.account_nasscom_status) && (
             <div>
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                 <Award className="h-4 w-4" />
@@ -212,24 +212,24 @@ export function AccountDetailsDialog({
                 <InfoRow
                   icon={Award}
                   label="Forbes Ranking"
-                  value={account["ACCOUNT FORBES"]}
+                  value={account.account_hq_forbes_2000_rank?.toString()}
                 />
                 <InfoRow
                   icon={Award}
                   label="Fortune Ranking"
-                  value={account["ACCOUNT FORTUNE"]}
+                  value={account.account_hq_fortune_500_rank?.toString()}
                 />
                 <InfoRow
                   icon={Award}
                   label="NASSCOM Status"
-                  value={account["ACCOUNT NASSCOM STATUS"]}
+                  value={account.account_nasscom_status}
                 />
               </div>
             </div>
           )}
 
           {/* India Operations Section */}
-          {(account["ACCOUNT FIRST CENTER"] || account["YEARS IN INDIA"]) && (
+          {(account.account_first_center_year || account.years_in_india) && (
             <div>
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -239,12 +239,12 @@ export function AccountDetailsDialog({
                 <InfoRow
                   icon={Calendar}
                   label="First Center Established"
-                  value={account["ACCOUNT FIRST CENTER"]}
+                  value={account.account_first_center_year?.toString()}
                 />
                 <InfoRow
                   icon={Calendar}
                   label="Years in India"
-                  value={account["YEARS IN INDIA"]}
+                  value={account.years_in_india?.toString()}
                 />
               </div>
             </div>

@@ -20,6 +20,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# data scripts containing database URLs and secrets
+data_scripts/
+
 # vercel
 .vercel
 

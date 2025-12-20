@@ -40,12 +40,12 @@ export function CentersMap({ centers }: CentersMapProps) {
       const cityMap = new Map<string, CityCluster>()
 
       centers.forEach((center) => {
-        const city = center["CENTER CITY"]
-        const country = center["CENTER COUNTRY"]
-        const account = center["ACCOUNT NAME"]
-        const employees = center["CENTER EMPLOYEES"] ? parseInt(center["CENTER EMPLOYEES"]) : 0
-        const lat = center.LAT ? parseFloat(center.LAT) : null
-        const lng = center.LANG ? parseFloat(center.LANG) : null
+        const city = center.center_city
+        const country = center.center_country
+        const account = center.account_global_legal_name
+        const employees = center.center_employees ? parseInt(center.center_employees.toString()) : 0
+        const lat = center.lat ? parseFloat(center.lat.toString()) : null
+        const lng = center.lng ? parseFloat(center.lng.toString()) : null
 
         // Skip if no coordinates
         if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
@@ -206,192 +206,192 @@ export function CentersMap({ centers }: CentersMapProps) {
     return (
       <div className="relative w-full h-[750px] rounded-lg overflow-hidden border">
         <MapGL
-        ref={mapRef}
-        initialViewState={initialViewState}
-        mapStyle="mapbox://styles/abhishekfx/cltyaz9ek00nx01p783ygdi9z"
-        mapboxAccessToken={mapboxToken}
-        projection="mercator"
-        interactiveLayerIds={["centers-circles"]}
-        onMouseMove={(e) => {
-          const features = e.features
-          if (features && features.length > 0) {
-            const city = features[0].properties?.city
-            setHoveredCity(city)
-            setMousePosition({ x: e.point.x, y: e.point.y })
-          } else {
+          ref={mapRef}
+          initialViewState={initialViewState}
+          mapStyle="mapbox://styles/abhishekfx/cltyaz9ek00nx01p783ygdi9z"
+          mapboxAccessToken={mapboxToken}
+          projection="mercator"
+          interactiveLayerIds={["centers-circles"]}
+          onMouseMove={(e) => {
+            const features = e.features
+            if (features && features.length > 0) {
+              const city = features[0].properties?.city
+              setHoveredCity(city)
+              setMousePosition({ x: e.point.x, y: e.point.y })
+            } else {
+              setHoveredCity(null)
+              setMousePosition(null)
+            }
+          }}
+          onMouseLeave={() => {
             setHoveredCity(null)
             setMousePosition(null)
-          }
-        }}
-        onMouseLeave={() => {
-          setHoveredCity(null)
-          setMousePosition(null)
-        }}
-        onError={(e) => {
-          console.error("[CentersMap] Map error:", e)
-          setError(`Map error: ${e.error?.message || "Unknown error"}`)
-        }}
-      >
-        {/* Navigation Controls - Zoom and Rotation */}
-        <NavigationControl position="top-left" showCompass={true} showZoom={true} />
+          }}
+          onError={(e) => {
+            console.error("[CentersMap] Map error:", e)
+            setError(`Map error: ${e.error?.message || "Unknown error"}`)
+          }}
+        >
+          {/* Navigation Controls - Zoom and Rotation */}
+          <NavigationControl position="top-left" showCompass={true} showZoom={true} />
 
-        {/* Fullscreen Control */}
-        <FullscreenControl position="top-left" />
+          {/* Fullscreen Control */}
+          <FullscreenControl position="top-left" />
 
-        {/* Recenter Button */}
-        <div className="absolute top-4 right-4 z-10">
-          <button
-            onClick={handleRecenter}
-            className="bg-background hover:bg-muted border rounded-lg shadow-lg px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2"
-            title="Recenter map"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {/* Recenter Button */}
+          <div className="absolute top-4 right-4 z-10">
+            <button
+              onClick={handleRecenter}
+              className="bg-background hover:bg-muted border rounded-lg shadow-lg px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2"
+              title="Recenter map"
             >
-              <circle cx="12" cy="12" r="10" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-            Recenter
-          </button>
-        </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              Recenter
+            </button>
+          </div>
 
-        <Source id="centers" type="geojson" data={geojsonData}>
-          {/* Outer halo layer - larger and more transparent (20% bigger) */}
-          <Layer
-            id="centers-halo"
-            type="circle"
-            paint={{
-              "circle-radius": [
-                "interpolate",
-                ["linear"],
-                ["get", "count"],
-                1,
-                7.2, // 20% bigger than inner (6 * 1.2)
-                maxCount,
-                30, // 20% bigger than inner (25 * 1.2)
-              ],
-              "circle-color": [
-                "interpolate",
-                ["linear"],
-                ["get", "count"],
-                1,
-                "#f97316", // Orange color matching your Tableau screenshot
-                maxCount / 2,
-                "#ea580c",
-                maxCount,
-                "#c2410c",
-              ],
-              "circle-opacity": 0.15, // Very transparent halo
-              "circle-blur": 0.5, // Soft edges
-            }}
-          />
-          
-          {/* Inner circle layer - smaller and more visible */}
-          <Layer
-            id="centers-circles"
-            type="circle"
-            paint={{
-              "circle-radius": [
-                "interpolate",
-                ["linear"],
-                ["get", "count"],
-                1,
-                6, // Smaller base size
-                maxCount,
-                25, // Smaller max size
-              ],
-              "circle-color": [
-                "interpolate",
-                ["linear"],
-                ["get", "count"],
-                1,
-                "#fb923c", // Lighter orange for small clusters
-                maxCount / 2,
-                "#f97316", // Medium orange
-                maxCount,
-                "#ea580c", // Darker orange for large clusters
-              ],
-              "circle-opacity": 0.6, // Semi-transparent
-              "circle-stroke-width": 1,
-              "circle-stroke-color": "#ffffff",
-              "circle-stroke-opacity": 0.5,
-            }}
-          />
-        </Source>
-
-        {/* Enhanced Tooltip */}
-        {hoveredCity && mousePosition && (() => {
-          const cityInfo = cityData.find((c) => c.city === hoveredCity)
-          if (!cityInfo) return null
-
-          return (
-            <div
-              className="absolute z-50 pointer-events-none"
-              style={{
-                left: `${mousePosition.x + 15}px`,
-                top: `${mousePosition.y + 15}px`,
+          <Source id="centers" type="geojson" data={geojsonData}>
+            {/* Outer halo layer - larger and more transparent (20% bigger) */}
+            <Layer
+              id="centers-halo"
+              type="circle"
+              paint={{
+                "circle-radius": [
+                  "interpolate",
+                  ["linear"],
+                  ["get", "count"],
+                  1,
+                  7.2, // 20% bigger than inner (6 * 1.2)
+                  maxCount,
+                  30, // 20% bigger than inner (25 * 1.2)
+                ],
+                "circle-color": [
+                  "interpolate",
+                  ["linear"],
+                  ["get", "count"],
+                  1,
+                  "#f97316", // Orange color matching your Tableau screenshot
+                  maxCount / 2,
+                  "#ea580c",
+                  maxCount,
+                  "#c2410c",
+                ],
+                "circle-opacity": 0.15, // Very transparent halo
+                "circle-blur": 0.5, // Soft edges
               }}
-            >
-              <div className="bg-background border-2 border-orange-500/20 rounded-xl shadow-2xl min-w-[280px] overflow-hidden">
-                {/* Header */}
-                <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-3">
-                  <h3 className="font-bold text-white text-base leading-tight">
-                    {cityInfo.city}
-                  </h3>
-                  <p className="text-orange-100 text-xs mt-0.5">
-                    {cityInfo.country}
-                  </p>
-                </div>
+            />
 
-                {/* Content */}
-                <div className="px-4 py-3 space-y-2.5">
-                  {/* Accounts Count */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                      <span className="text-sm text-muted-foreground font-medium">Accounts</span>
-                    </div>
-                    <span className="text-sm font-bold text-foreground">
-                      {cityInfo.accounts.size.toLocaleString()}
-                    </span>
+            {/* Inner circle layer - smaller and more visible */}
+            <Layer
+              id="centers-circles"
+              type="circle"
+              paint={{
+                "circle-radius": [
+                  "interpolate",
+                  ["linear"],
+                  ["get", "count"],
+                  1,
+                  6, // Smaller base size
+                  maxCount,
+                  25, // Smaller max size
+                ],
+                "circle-color": [
+                  "interpolate",
+                  ["linear"],
+                  ["get", "count"],
+                  1,
+                  "#fb923c", // Lighter orange for small clusters
+                  maxCount / 2,
+                  "#f97316", // Medium orange
+                  maxCount,
+                  "#ea580c", // Darker orange for large clusters
+                ],
+                "circle-opacity": 0.6, // Semi-transparent
+                "circle-stroke-width": 1,
+                "circle-stroke-color": "#ffffff",
+                "circle-stroke-opacity": 0.5,
+              }}
+            />
+          </Source>
+
+          {/* Enhanced Tooltip */}
+          {hoveredCity && mousePosition && (() => {
+            const cityInfo = cityData.find((c) => c.city === hoveredCity)
+            if (!cityInfo) return null
+
+            return (
+              <div
+                className="absolute z-50 pointer-events-none"
+                style={{
+                  left: `${mousePosition.x + 15}px`,
+                  top: `${mousePosition.y + 15}px`,
+                }}
+              >
+                <div className="bg-background border-2 border-orange-500/20 rounded-xl shadow-2xl min-w-[280px] overflow-hidden">
+                  {/* Header */}
+                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-3">
+                    <h3 className="font-bold text-white text-base leading-tight">
+                      {cityInfo.city}
+                    </h3>
+                    <p className="text-orange-100 text-xs mt-0.5">
+                      {cityInfo.country}
+                    </p>
                   </div>
 
-                  {/* Centers Count */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                      <span className="text-sm text-muted-foreground font-medium">Centers</span>
+                  {/* Content */}
+                  <div className="px-4 py-3 space-y-2.5">
+                    {/* Accounts Count */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                        <span className="text-sm text-muted-foreground font-medium">Accounts</span>
+                      </div>
+                      <span className="text-sm font-bold text-foreground">
+                        {cityInfo.accounts.size.toLocaleString()}
+                      </span>
                     </div>
-                    <span className="text-sm font-bold text-foreground">
-                      {cityInfo.count.toLocaleString()}
-                    </span>
-                  </div>
 
-                  {/* Headcount */}
-                  <div className="flex items-center justify-between pt-1.5 border-t">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span className="text-sm text-muted-foreground font-medium">Headcount</span>
+                    {/* Centers Count */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                        <span className="text-sm text-muted-foreground font-medium">Centers</span>
+                      </div>
+                      <span className="text-sm font-bold text-foreground">
+                        {cityInfo.count.toLocaleString()}
+                      </span>
                     </div>
-                    <span className="text-sm font-bold text-green-600">
-                      {cityInfo.headcount.toLocaleString()}
-                    </span>
+
+                    {/* Headcount */}
+                    <div className="flex items-center justify-between pt-1.5 border-t">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span className="text-sm text-muted-foreground font-medium">Headcount</span>
+                      </div>
+                      <span className="text-sm font-bold text-green-600">
+                        {cityInfo.headcount.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )
-        })()}
-      </MapGL>
-    </div>
+            )
+          })()}
+        </MapGL>
+      </div>
     )
   } catch (err) {
     console.error("[CentersMap] Render error:", err)

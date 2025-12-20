@@ -45,7 +45,7 @@ export function CenterDetailsDialog({
 
   // Find services for this center
   const centerServices = services.find(
-    (service) => service["CN UNIQUE KEY"] === center["CN UNIQUE KEY"]
+    (service) => service.cn_unique_key === center.cn_unique_key
   )
 
   // Status indicator color and glow
@@ -130,25 +130,25 @@ export function CenterDetailsDialog({
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-3">
             <CompanyLogo
-              domain={center["CENTER ACCOUNT WEBSITE"]}
-              companyName={center["ACCOUNT NAME"]}
+              domain={center.center_account_website}
+              companyName={center.account_global_legal_name}
               size="md"
               theme="auto"
             />
             <div className="flex-1">
               <div className="flex items-center gap-3">
-                <span>{center["CENTER NAME"]}</span>
+                <span>{center.center_name}</span>
                 <div className="flex items-center gap-2">
                   <div
-                    className={`h-3 w-3 rounded-full ${getStatusColor(center["CENTER STATUS"])} ${getStatusGlow(center["CENTER STATUS"])}`}
+                    className={`h-3 w-3 rounded-full ${getStatusColor(center.center_status)} ${getStatusGlow(center.center_status)}`}
                   />
                   <span className="text-sm font-normal text-muted-foreground">
-                    {center["CENTER STATUS"]}
+                    {center.center_status}
                   </span>
                 </div>
               </div>
               <p className="text-sm font-normal text-muted-foreground mt-1">
-                {center["ACCOUNT NAME"]}
+                {center.account_global_legal_name}
               </p>
             </div>
           </DialogTitle>
@@ -165,32 +165,32 @@ export function CenterDetailsDialog({
               <InfoRow
                 icon={Building2}
                 label="Center Type"
-                value={center["CENTER TYPE"]}
+                value={center.center_type}
               />
               <InfoRow
                 icon={Target}
                 label="Center Focus"
-                value={center["CENTER FOCUS"]}
+                value={center.center_focus}
               />
               <InfoRow
                 icon={Calendar}
                 label="Incorporation Year"
-                value={center["CENTER INC YEAR"]}
+                value={center.center_inc_year?.toString()}
               />
               <InfoRow
                 icon={Users}
                 label="Employees"
-                value={center["CENTER EMPLOYEES"]}
+                value={center.center_employees?.toString()}
               />
               <InfoRow
                 icon={Users}
                 label="Employee Range"
-                value={center["CENTER EMPLOYEES RANGE"]}
+                value={center.center_employees_range}
               />
               <InfoRow
                 icon={Phone}
                 label="Boardline Number"
-                value={center["BOARDLINE NUMBER"]}
+                value={center.center_boardline}
               />
             </div>
           </div>
@@ -205,17 +205,17 @@ export function CenterDetailsDialog({
               <InfoRow
                 icon={MapPin}
                 label="City"
-                value={center["CENTER CITY"]}
+                value={center.center_city}
               />
               <InfoRow
                 icon={MapPin}
                 label="State"
-                value={center["CENTER STATE"]}
+                value={center.center_state}
               />
               <InfoRow
                 icon={Globe}
                 label="Country"
-                value={center["CENTER COUNTRY"]}
+                value={center.center_country}
               />
             </div>
           </div>
@@ -230,12 +230,12 @@ export function CenterDetailsDialog({
               <InfoRow
                 icon={Briefcase}
                 label="Business Segment"
-                value={center["BUSINESS SGEMENT"]}
+                value={center.center_business_segment}
               />
               <InfoRow
                 icon={Briefcase}
                 label="Business Sub-Segment"
-                value={center["BUSINESS SUB-SEGMENT"]}
+                value={center.center_business_sub_segment}
               />
             </div>
           </div>
@@ -253,12 +253,12 @@ export function CenterDetailsDialog({
                 <InfoRow
                   icon={Target}
                   label="Primary Service"
-                  value={centerServices["PRIMARY SERVICE"]}
+                  value={centerServices.primary_service}
                 />
                 <InfoRow
                   icon={Globe}
                   label="Focus Region"
-                  value={centerServices["FOCUS REGION"]}
+                  value={centerServices.focus_region}
                 />
               </div>
 
@@ -267,42 +267,42 @@ export function CenterDetailsDialog({
                 <ServiceSection
                   icon={Code}
                   title="IT Services"
-                  content={centerServices.IT}
+                  content={centerServices.service_it}
                 />
                 <ServiceSection
                   icon={Lightbulb}
                   title="ER&D Services"
-                  content={centerServices["ER&D"]}
+                  content={centerServices.service_erd}
                 />
                 <ServiceSection
                   icon={DollarSign}
                   title="Finance & Accounting"
-                  content={centerServices.FnA}
+                  content={centerServices.service_fna}
                 />
                 <ServiceSection
                   icon={UserCog}
                   title="HR Services"
-                  content={centerServices.HR}
+                  content={centerServices.service_hr}
                 />
                 <ServiceSection
                   icon={ShoppingCart}
                   title="Procurement"
-                  content={centerServices.PROCUREMENT}
+                  content={centerServices.service_procurement}
                 />
                 <ServiceSection
                   icon={TrendingUp}
                   title="Sales & Marketing"
-                  content={centerServices["SALES & MARKETING"]}
+                  content={centerServices.service_sales_marketing}
                 />
                 <ServiceSection
                   icon={Headphones}
                   title="Customer Support"
-                  content={centerServices["CUSTOMER SUPPORT"]}
+                  content={centerServices.service_customer_support}
                 />
                 <ServiceSection
                   icon={MoreHorizontal}
                   title="Other Services"
-                  content={centerServices.OTHERS}
+                  content={centerServices.service_others}
                 />
               </div>
             </div>

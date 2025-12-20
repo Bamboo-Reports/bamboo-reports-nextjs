@@ -1,87 +1,124 @@
 export interface Account {
-  "ACCOUNT NASSCOM STATUS": string
-  "ACCOUNT NAME": string
-  "ACCOUNT TYPE"?: string
-  "ACCOUNT ABOUT"?: string
-  "ACCOUNT KEY OFFERINGS"?: string
-  "ACCOUNT CITY"?: string
-  "ACCOUNT COUNTRY": string
-  "ACCOUNT REGION": string
-  "ACCOUNT SUB INDUSTRY": string
-  "ACCOUNT INDUSTRY": string
-  "ACCOUNT PRIMARY CATEGORY": string
-  "ACCOUNT PRIMARY NATURE": string
-  "ACCOUNT REVNUE": string
-  "ACCOUNT REVENUE RANGE": string
-  "ACCOUNT EMPLOYEES": string
-  "ACCOUNT EMPLOYEES RANGE": string
-  "ACCOUNT CENTER EMPLOYEES": string
-  "ACCOUNT FORBES"?: string
-  "ACCOUNT FORTUNE"?: string
-  "ACCOUNT FIRST CENTER"?: string
-  "YEARS IN INDIA"?: string
-  "ACCOUNT WEBSITE"?: string
+  account_nasscom_status: string
+  account_nasscom_member_status?: string
+  account_global_legal_name: string
+  account_hq_company_type?: string
+  account_about?: string
+  account_hq_key_offerings?: string
+  account_key_offerings_source_link?: string
+  account_hq_address?: string
+  account_hq_city?: string
+  account_hq_state?: string
+  account_hq_zip_code?: string
+  account_hq_country: string
+  account_hq_region: string
+  account_hq_boardline?: string
+  account_hq_website?: string
+  account_hq_sub_industry: string
+  account_hq_industry: string
+  account_primary_category: string
+  account_primary_nature: string
+  account_hq_revenue?: number
+  account_hq_revenue_range: string
+  account_hq_fy_end?: string
+  account_hq_revenue_year?: number
+  account_hq_revenue_source_type?: string
+  account_hq_revenue_source_link?: string
+  account_hq_employee_count?: number
+  account_hq_employee_range: string
+  account_hq_employee_source_type?: string
+  account_hq_employee_source_link?: string
+  account_center_employees?: number
+  account_center_employees_range?: string
+  account_hq_forbes_2000_rank?: number
+  account_hq_fortune_500_rank?: number
+  account_first_center_year?: number
+  years_in_india?: number
+  account_comments?: string
+  account_coverage?: string
+  account_last_update_date?: string
 }
 
 export interface Center {
-  "ACCOUNT NAME": string
-  "CN UNIQUE KEY": string
-  "CENTER STATUS": string
-  "CENTER INC YEAR": string
-  "CENTER NAME": string
-  "CENTER TYPE": string
-  "CENTER FOCUS": string
-  "CENTER CITY": string
-  "CENTER STATE": string
-  "CENTER COUNTRY": string
-  "CENTER EMPLOYEES": string
-  "CENTER EMPLOYEES RANGE": string
-  "BUSINESS SGEMENT"?: string
-  "BUSINESS SUB-SEGMENT"?: string
-  "BOARDLINE NUMBER"?: string
-  "CENTER ACCOUNT WEBSITE"?: string
-  LAT?: string
-  LANG?: string
+  account_global_legal_name: string
+  cn_unique_key: string
+  center_status: string
+  center_inc_year?: number
+  center_inc_year_notes?: string
+  center_inc_year_updated_link?: string
+  center_timeline?: string
+  center_end_year?: number
+  center_name: string
+  center_business_segment?: string
+  center_business_sub_segment?: string
+  center_management_partner?: string
+  center_jv_status?: string
+  center_jv_name?: string
+  center_type: string
+  center_focus: string
+  center_source_link?: string
+  center_website?: string
+  center_linkedin?: string
+  center_account_website?: string
+  center_address?: string
+  center_city: string
+  center_state: string
+  center_zip_code?: string
+  center_country: string
+  center_region?: string
+  center_boardline?: string
+  center_employees?: number
+  center_employees_range: string
+  center_employees_range_source_link?: string
+  center_services?: string
+  center_first_year?: number
+  center_comments?: string
+  lat?: number
+  lng?: number
+  last_update_date?: string
 }
 
 export interface Function {
-  "CN UNIQUE KEY": string
-  FUNCTION: string
+  cn_unique_key: string
+  function_name: string
 }
 
 export interface Service {
-  "CN UNIQUE KEY": string
-  "CENTER NAME": string
-  "CENTER TYPE": string
-  "CENTER FOCUS": string
-  "CENTER CITY": string
-  "PRIMARY SERVICE": string
-  "FOCUS REGION": string
-  IT: string
-  "ER&D": string
-  FnA: string
-  HR: string
-  PROCUREMENT: string
-  "SALES & MARKETING": string
-  "CUSTOMER SUPPORT": string
-  OTHERS: string
-  "SOFTWARE VENDOR": string
-  "SOFTWARE IN USE": string
+  cn_unique_key: string
+  account_global_legal_name?: string
+  center_name: string
+  center_type: string
+  center_focus: string
+  center_city: string
+  primary_service: string
+  focus_region: string
+  service_it: string
+  service_erd: string
+  service_fna: string
+  service_hr: string
+  service_procurement: string
+  service_sales_marketing: string
+  service_customer_support: string
+  service_others: string
+  software_vendor: string
+  software_in_use: string
+  last_update_date?: string
 }
 
 export interface Prospect {
-  "ACCOUNT NAME": string
-  "CENTER NAME": string
-  "FIRST NAME": string
-  "LAST NAME": string
-  TITLE: string
-  DEPARTMENT: string
-  LEVEL: string
-  "LINKEDIN LINK": string
-  EMAIL: string
-  CITY: string
-  STATE: string
-  COUNTRY: string
+  account_global_legal_name: string
+  center_name: string
+  prospect_first_name: string
+  prospect_last_name: string
+  prospect_title: string
+  prospect_department: string
+  prospect_level: string
+  prospect_linkedin_url: string
+  prospect_email: string
+  prospect_city: string
+  prospect_state: string
+  prospect_country: string
+  last_update_date?: string
 }
 
 export interface FilterValue {
