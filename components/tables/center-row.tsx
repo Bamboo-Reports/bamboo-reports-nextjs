@@ -16,17 +16,17 @@ export const CenterRow = memo(({ center, onClick }: CenterRowProps) => (
     <TableCell className="font-medium">
       <div className="flex items-center gap-3">
         <CompanyLogo
-          domain={center["CENTER ACCOUNT WEBSITE"]}
-          companyName={center["ACCOUNT NAME"]}
+          domain={center.center_account_website}
+          companyName={center.account_global_legal_name}
           size="sm"
           theme="auto"
         />
-        <span>{center["ACCOUNT NAME"]}</span>
+        <span>{center.account_global_legal_name}</span>
       </div>
     </TableCell>
-    <TableCell>{center["CENTER NAME"]}</TableCell>
-    <TableCell>{center["CENTER TYPE"]}</TableCell>
-    <TableCell>{center["CENTER EMPLOYEES RANGE"]}</TableCell>
+    <TableCell>{center.center_name}</TableCell>
+    <TableCell>{center.center_type}</TableCell>
+    <TableCell>{center.center_employees_range}</TableCell>
   </TableRow>
 ))
 CenterRow.displayName = "CenterRow"

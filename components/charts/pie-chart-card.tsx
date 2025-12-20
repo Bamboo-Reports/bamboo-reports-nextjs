@@ -14,7 +14,7 @@ interface PieChartCardProps {
 
 export const PieChartCard = memo(({ title, data, dataKey = "value" }: PieChartCardProps) => {
   // Safety check: ensure data is an array
-  const safeData = data || []
+  const safeData = React.useMemo(() => data || [], [data])
 
   // Create chart config from data
   const chartConfig = React.useMemo(() => {

@@ -116,7 +116,7 @@ export function useDataLoader(
       setServices(servicesData as Service[])
 
       const revenues = accountsData
-        .map((account: Account) => parseRevenue(account["ACCOUNT REVNUE"]))
+        .map((account: Account) => parseRevenue(account.account_hq_revenue))
         .filter((rev: number) => rev > 0)
 
       if (revenues.length > 0) {

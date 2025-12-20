@@ -155,7 +155,7 @@ export function CentersTab({
                   {getPaginatedData(centers, currentPage, itemsPerPage).map(
                     (center, index) => (
                       <CenterRow
-                        key={`${center["CN UNIQUE KEY"]}-${index}`}
+                        key={`${center.cn_unique_key}-${index}`}
                         center={center}
                         onClick={() => handleCenterClick(center)}
                       />

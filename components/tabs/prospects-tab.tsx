@@ -123,7 +123,7 @@ export function ProspectsTab({
                   {getPaginatedData(prospects, currentPage, itemsPerPage).map(
                     (prospect, index) => (
                       <ProspectRow
-                        key={`${prospect.EMAIL}-${index}`}
+                      key={`${prospect.prospect_email}-${index}`}
                         prospect={prospect}
                         onClick={() => handleProspectClick(prospect)}
                       />

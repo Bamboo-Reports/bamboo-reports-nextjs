@@ -137,31 +137,13 @@ function DashboardContent() {
   const [centersView, setCentersView] = useState<"chart" | "data" | "map">("chart")
   const [prospectsView, setProspectsView] = useState<"chart" | "data">("chart")
 
-  // Load data from database on component mount
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  // Auto-apply filters with debouncing for smooth performance
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setFilters(pendingFilters)
-      setIsApplying(false)
-    }, 300) // 300ms debounce for optimal responsiveness
-
-    setIsApplying(true)
-
-    return () => {
-      clearTimeout(timeoutId)
-    }
-  }, [pendingFilters])
-
   // Debounced search handler - optimized for fast response
-  const debouncedSearch = useCallback(
-    debounce((value: string) => {
-      setPendingFilters((prev) => ({ ...prev, searchTerm: value }))
-    }, 150),
-    []
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        setPendingFilters((prev) => ({ ...prev, searchTerm: value }))
+      }, 150),
+    [setPendingFilters]
   )
 
   // Handle search input change
@@ -171,7 +153,7 @@ function DashboardContent() {
     debouncedSearch(value)
   }
 
-  const checkDatabaseStatus = async () => {
+  const checkDatabaseStatus = useCallback(async () => {
     try {
       const status = await getDatabaseStatus()
       setDbStatus(status)
@@ -181,9 +163,9 @@ function DashboardContent() {
       console.error("Failed to check database status:", err)
       return null
     }
-  }
+  }, [])
 
-  const testDatabaseConnection = async () => {
+  const testDatabaseConnection = useCallback(async () => {
     try {
       const result = await testConnection()
       setConnectionStatus(result.message)
@@ -193,9 +175,9 @@ function DashboardContent() {
       setConnectionStatus(errorMessage)
       return false
     }
-  }
+  }, [])
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -256,7 +238,7 @@ function DashboardContent() {
       setProspects(prospectsData as Prospect[])
 
       const revenues = accountsData
-        .map((account: Account) => parseRevenue(account["ACCOUNT REVNUE"]))
+        .map((account: Account) => parseRevenue(account.account_hq_revenue))
         .filter((rev: number) => rev > 0)
 
       if (revenues.length > 0) {
@@ -280,7 +262,26 @@ function DashboardContent() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [checkDatabaseStatus, testDatabaseConnection])
+
+  // Load data from database on component mount
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  // Auto-apply filters with debouncing for smooth performance
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setFilters(pendingFilters)
+      setIsApplying(false)
+    }, 300) // 300ms debounce for optimal responsiveness
+
+    setIsApplying(true)
+
+    return () => {
+      clearTimeout(timeoutId)
+    }
+  }, [pendingFilters])
 
   // Clear cache and reload data
   const handleClearCache = async () => {
@@ -303,7 +304,7 @@ function DashboardContent() {
 
   // Extract unique account names for autocomplete - memoized for performance
   const accountNames = useMemo(() => {
-    return accounts.map(account => account["ACCOUNT NAME"]).filter(Boolean)
+    return accounts.map(account => account.account_global_legal_name).filter(Boolean)
   }, [accounts])
 
   // Main filtering logic - memoized with stable dependencies
@@ -325,66 +326,66 @@ function DashboardContent() {
     // Step 1: Filter accounts based on account filters
     let filteredAccounts = accounts.filter((account) => {
       return (
-        enhancedFilterMatch(filters.accountCountries, account["ACCOUNT COUNTRY"]) &&
-        enhancedFilterMatch(filters.accountRegions, account["ACCOUNT REGION"]) &&
-        enhancedFilterMatch(filters.accountIndustries, account["ACCOUNT INDUSTRY"]) &&
-        enhancedFilterMatch(filters.accountSubIndustries, account["ACCOUNT SUB INDUSTRY"]) &&
-        enhancedFilterMatch(filters.accountPrimaryCategories, account["ACCOUNT PRIMARY CATEGORY"]) &&
-        enhancedFilterMatch(filters.accountPrimaryNatures, account["ACCOUNT PRIMARY NATURE"]) &&
-        enhancedFilterMatch(filters.accountNasscomStatuses, account["ACCOUNT NASSCOM STATUS"]) &&
-        enhancedFilterMatch(filters.accountEmployeesRanges, account["ACCOUNT EMPLOYEES RANGE"]) &&
-        enhancedFilterMatch(filters.accountCenterEmployees, account["ACCOUNT CENTER EMPLOYEES"]) &&
-        rangeFilterMatch(filters.accountRevenueRange, account["ACCOUNT REVNUE"], filters.includeNullRevenue) &&
-        enhancedKeywordMatch(filters.accountNameKeywords, account["ACCOUNT NAME"])
+        enhancedFilterMatch(filters.accountCountries, account.account_hq_country) &&
+        enhancedFilterMatch(filters.accountRegions, account.account_hq_region) &&
+        enhancedFilterMatch(filters.accountIndustries, account.account_hq_industry) &&
+        enhancedFilterMatch(filters.accountSubIndustries, account.account_hq_sub_industry) &&
+        enhancedFilterMatch(filters.accountPrimaryCategories, account.account_primary_category) &&
+        enhancedFilterMatch(filters.accountPrimaryNatures, account.account_primary_nature) &&
+        enhancedFilterMatch(filters.accountNasscomStatuses, account.account_nasscom_status) &&
+        enhancedFilterMatch(filters.accountEmployeesRanges, account.account_hq_employee_range) &&
+        enhancedFilterMatch(filters.accountCenterEmployees, account.account_center_employees_range || "") &&
+        rangeFilterMatch(filters.accountRevenueRange, account.account_hq_revenue, filters.includeNullRevenue) &&
+        enhancedKeywordMatch(filters.accountNameKeywords, account.account_global_legal_name)
       )
     })
 
-    let filteredAccountNames = filteredAccounts.map((a) => a["ACCOUNT NAME"])
+    let filteredAccountNames = filteredAccounts.map((a) => a.account_global_legal_name)
 
     // Step 2: Filter centers based on center filters and filtered accounts
     let filteredCenters = centers.filter((center) => {
       const centerFilterMatch =
-        enhancedFilterMatch(filters.centerTypes, center["CENTER TYPE"]) &&
-        enhancedFilterMatch(filters.centerFocus, center["CENTER FOCUS"]) &&
-        enhancedFilterMatch(filters.centerCities, center["CENTER CITY"]) &&
-        enhancedFilterMatch(filters.centerStates, center["CENTER STATE"]) &&
-        enhancedFilterMatch(filters.centerCountries, center["CENTER COUNTRY"]) &&
-        enhancedFilterMatch(filters.centerEmployees, center["CENTER EMPLOYEES RANGE"]) &&
-        enhancedFilterMatch(filters.centerStatuses, center["CENTER STATUS"])
+        enhancedFilterMatch(filters.centerTypes, center.center_type) &&
+        enhancedFilterMatch(filters.centerFocus, center.center_focus) &&
+        enhancedFilterMatch(filters.centerCities, center.center_city) &&
+        enhancedFilterMatch(filters.centerStates, center.center_state) &&
+        enhancedFilterMatch(filters.centerCountries, center.center_country) &&
+        enhancedFilterMatch(filters.centerEmployees, center.center_employees_range) &&
+        enhancedFilterMatch(filters.centerStatuses, center.center_status)
 
       const accountFilterMatch =
-        filteredAccountNames.length === accounts.length || filteredAccountNames.includes(center["ACCOUNT NAME"])
+        filteredAccountNames.length === accounts.length || filteredAccountNames.includes(center.account_global_legal_name)
 
       return centerFilterMatch && accountFilterMatch
     })
 
     // Step 3: Filter functions based on function filters and filtered centers
     let filteredFunctions = functions.filter((func) => {
-      const functionFilterMatch = enhancedFilterMatch(filters.functionTypes, func["FUNCTION"])
-      const filteredCenterKeys = filteredCenters.map((c) => c["CN UNIQUE KEY"])
-      const centerRelationMatch = filteredCenterKeys.includes(func["CN UNIQUE KEY"])
+      const functionFilterMatch = enhancedFilterMatch(filters.functionTypes, func.function_name)
+      const filteredCenterKeys = filteredCenters.map((c) => c.cn_unique_key)
+      const centerRelationMatch = filteredCenterKeys.includes(func.cn_unique_key)
 
       return functionFilterMatch && centerRelationMatch
     })
 
     // Step 4: If function filters are applied, filter centers back to only those with matching functions
     if (filters.functionTypes.length > 0) {
-      const centerKeysWithMatchingFunctions = filteredFunctions.map((f) => f["CN UNIQUE KEY"])
+      const centerKeysWithMatchingFunctions = filteredFunctions.map((f) => f.cn_unique_key)
       filteredCenters = filteredCenters.filter((center) =>
-        centerKeysWithMatchingFunctions.includes(center["CN UNIQUE KEY"])
+        centerKeysWithMatchingFunctions.includes(center.cn_unique_key)
       )
     }
 
     // Step 5: Filter prospects based on prospect filters and filtered accounts
     let filteredProspects = prospects.filter((prospect) => {
       const prospectFilterMatch =
-        enhancedFilterMatch(filters.prospectDepartments, prospect.DEPARTMENT) &&
-        enhancedFilterMatch(filters.prospectLevels, prospect.LEVEL) &&
-        enhancedFilterMatch(filters.prospectCities, prospect.CITY) &&
-        enhancedKeywordMatch(filters.prospectTitleKeywords, prospect.TITLE)
+        enhancedFilterMatch(filters.prospectDepartments, prospect.prospect_department) &&
+        enhancedFilterMatch(filters.prospectLevels, prospect.prospect_level) &&
+        enhancedFilterMatch(filters.prospectCities, prospect.prospect_city) &&
+        enhancedKeywordMatch(filters.prospectTitleKeywords, prospect.prospect_title)
 
       const accountFilterMatch =
-        filteredAccountNames.length === accounts.length || filteredAccountNames.includes(prospect["ACCOUNT NAME"])
+        filteredAccountNames.length === accounts.length || filteredAccountNames.includes(prospect.account_global_legal_name)
 
       return prospectFilterMatch && accountFilterMatch
     })
@@ -397,35 +398,35 @@ function DashboardContent() {
       filters.prospectTitleKeywords.length > 0
 
     if (hasProspectFilters) {
-      const accountNamesWithMatchingProspects = [...new Set(filteredProspects.map((p) => p["ACCOUNT NAME"]))]
+      const accountNamesWithMatchingProspects = [...new Set(filteredProspects.map((p) => p.account_global_legal_name))]
       filteredAccounts = filteredAccounts.filter((account) =>
-        accountNamesWithMatchingProspects.includes(account["ACCOUNT NAME"])
+        accountNamesWithMatchingProspects.includes(account.account_global_legal_name)
       )
 
       // Update filtered account names after prospect filtering
-      filteredAccountNames = filteredAccounts.map((a) => a["ACCOUNT NAME"])
+      filteredAccountNames = filteredAccounts.map((a) => a.account_global_legal_name)
 
       // Re-filter centers based on the updated accounts
       filteredCenters = filteredCenters.filter((center) =>
-        filteredAccountNames.includes(center["ACCOUNT NAME"])
+        filteredAccountNames.includes(center.account_global_legal_name)
       )
     }
 
     // Step 7: Finalize center keys and re-filter functions and services
-    const finalCenterKeys = filteredCenters.map((c) => c["CN UNIQUE KEY"])
-    filteredFunctions = filteredFunctions.filter((func) => finalCenterKeys.includes(func["CN UNIQUE KEY"]))
+    const finalCenterKeys = filteredCenters.map((c) => c.cn_unique_key)
+    filteredFunctions = filteredFunctions.filter((func) => finalCenterKeys.includes(func.cn_unique_key))
 
-    const filteredServices = services.filter((service) => finalCenterKeys.includes(service["CN UNIQUE KEY"]))
+    const filteredServices = services.filter((service) => finalCenterKeys.includes(service.cn_unique_key))
 
     // Step 8: Final account filtering based on centers that made it through
-    const finalAccountNames = [...new Set(filteredCenters.map((c) => c["ACCOUNT NAME"]))]
+    const finalAccountNames = [...new Set(filteredCenters.map((c) => c.account_global_legal_name))]
     const finalFilteredAccounts = filteredAccounts.filter((account) =>
-      finalAccountNames.includes(account["ACCOUNT NAME"])
+      finalAccountNames.includes(account.account_global_legal_name)
     )
 
     // Step 9: Final prospect filtering based on final accounts
     const finalFilteredProspects = filteredProspects.filter((prospect) =>
-      finalAccountNames.includes(prospect["ACCOUNT NAME"])
+      finalAccountNames.includes(prospect.account_global_legal_name)
     )
 
     return {
@@ -472,21 +473,21 @@ function DashboardContent() {
     const accounts = filteredData.filteredAccounts
 
     return {
-      regionData: calculateChartData(accounts, "ACCOUNT REGION"),
-      primaryNatureData: calculateChartData(accounts, "ACCOUNT PRIMARY NATURE"),
-      revenueRangeData: calculateChartData(accounts, "ACCOUNT REVENUE RANGE"),
-      employeesRangeData: calculateChartData(accounts, "ACCOUNT EMPLOYEES RANGE"),
+      regionData: calculateChartData(accounts, "account_hq_region"),
+      primaryNatureData: calculateChartData(accounts, "account_primary_nature"),
+      revenueRangeData: calculateChartData(accounts, "account_hq_revenue_range"),
+      employeesRangeData: calculateChartData(accounts, "account_hq_employee_range"),
     }
   }, [filteredData.filteredAccounts])
 
   // Calculate chart data for centers
   const centerChartData = useMemo(() => {
     const centers = filteredData.filteredCenters
-    const centerKeys = centers.map((c) => c["CN UNIQUE KEY"])
+    const centerKeys = centers.map((c) => c.cn_unique_key)
 
     return {
-      centerTypeData: calculateCenterChartData(centers, "CENTER TYPE"),
-      employeesRangeData: calculateCenterChartData(centers, "CENTER EMPLOYEES RANGE"),
+      centerTypeData: calculateCenterChartData(centers, "center_type"),
+      employeesRangeData: calculateCenterChartData(centers, "center_employees_range"),
       cityData: calculateCityChartData(centers),
       functionData: calculateFunctionChartData(filteredData.filteredFunctions, centerKeys),
     }
@@ -497,8 +498,8 @@ function DashboardContent() {
     const prospects = filteredData.filteredProspects
 
     return {
-      departmentData: calculateChartData(prospects, "DEPARTMENT"),
-      levelData: calculateChartData(prospects, "LEVEL"),
+      departmentData: calculateChartData(prospects, "prospect_department"),
+      levelData: calculateChartData(prospects, "prospect_level"),
     }
   }, [filteredData.filteredProspects])
 
@@ -516,22 +517,22 @@ function DashboardContent() {
 
     const tempFilteredAccounts = accounts.filter((account) => {
       return (
-        arrayFilterMatch(tempFilters.accountCountries, account["ACCOUNT COUNTRY"]) &&
-        arrayFilterMatch(tempFilters.accountRegions, account["ACCOUNT REGION"]) &&
-        arrayFilterMatch(tempFilters.accountIndustries, account["ACCOUNT INDUSTRY"]) &&
-        arrayFilterMatch(tempFilters.accountSubIndustries, account["ACCOUNT SUB INDUSTRY"]) &&
-        arrayFilterMatch(tempFilters.accountPrimaryCategories, account["ACCOUNT PRIMARY CATEGORY"]) &&
-        arrayFilterMatch(tempFilters.accountPrimaryNatures, account["ACCOUNT PRIMARY NATURE"]) &&
-        arrayFilterMatch(tempFilters.accountNasscomStatuses, account["ACCOUNT NASSCOM STATUS"]) &&
-        arrayFilterMatch(tempFilters.accountEmployeesRanges, account["ACCOUNT EMPLOYEES RANGE"]) &&
-        arrayFilterMatch(tempFilters.accountCenterEmployees, account["ACCOUNT CENTER EMPLOYEES"]) &&
+        arrayFilterMatch(tempFilters.accountCountries, account.account_hq_country) &&
+        arrayFilterMatch(tempFilters.accountRegions, account.account_hq_region) &&
+        arrayFilterMatch(tempFilters.accountIndustries, account.account_hq_industry) &&
+        arrayFilterMatch(tempFilters.accountSubIndustries, account.account_hq_sub_industry) &&
+        arrayFilterMatch(tempFilters.accountPrimaryCategories, account.account_primary_category) &&
+        arrayFilterMatch(tempFilters.accountPrimaryNatures, account.account_primary_nature) &&
+        arrayFilterMatch(tempFilters.accountNasscomStatuses, account.account_nasscom_status) &&
+        arrayFilterMatch(tempFilters.accountEmployeesRanges, account.account_hq_employee_range) &&
+        arrayFilterMatch(tempFilters.accountCenterEmployees, account.account_center_employees_range || "") &&
         (tempFilters.searchTerm === "" ||
-          account["ACCOUNT NAME"].toLowerCase().includes(tempFilters.searchTerm.toLowerCase()))
+          account.account_global_legal_name.toLowerCase().includes(tempFilters.searchTerm.toLowerCase()))
       )
     })
 
     const validRevenues = tempFilteredAccounts
-      .map((account) => parseRevenue(account["ACCOUNT REVNUE"]))
+      .map((account) => parseRevenue(account.account_hq_revenue))
       .filter((rev) => rev > 0)
 
     if (validRevenues.length === 0) {
@@ -542,19 +543,7 @@ function DashboardContent() {
     const maxRevenue = Math.max(...validRevenues)
 
     return { min: minRevenue, max: maxRevenue }
-  }, [
-    accounts,
-    filters.accountCountries,
-    filters.accountRegions,
-    filters.accountIndustries,
-    filters.accountSubIndustries,
-    filters.accountPrimaryCategories,
-    filters.accountPrimaryNatures,
-    filters.accountNasscomStatuses,
-    filters.accountEmployeesRanges,
-    filters.accountCenterEmployees,
-    filters.searchTerm,
-  ])
+  }, [accounts, filters])
 
   // Update revenueRange when dynamicRevenueRange changes
   useEffect(() => {
@@ -618,30 +607,30 @@ function DashboardContent() {
 
     accounts.forEach((account) => {
       const matchesSearch =
-        !filters.searchTerm || account["ACCOUNT NAME"].toLowerCase().includes(filters.searchTerm.toLowerCase())
+        !filters.searchTerm || account.account_global_legal_name.toLowerCase().includes(filters.searchTerm.toLowerCase())
 
       if (!matchesSearch) return
 
-      const matchesAccountName = enhancedKeywordMatch(filters.accountNameKeywords, account["ACCOUNT NAME"])
+      const matchesAccountName = enhancedKeywordMatch(filters.accountNameKeywords, account.account_global_legal_name)
 
       if (!matchesAccountName) return
 
-      const revenue = parseRevenue(account["ACCOUNT REVNUE"])
+      const revenue = parseRevenue(account.account_hq_revenue)
       const matchesRevenue = filters.includeNullRevenue
         ? true
         : revenue >= filters.accountRevenueRange[0] && revenue <= filters.accountRevenueRange[1]
 
       if (!matchesRevenue) return
 
-      const country = account["ACCOUNT COUNTRY"]
-      const region = account["ACCOUNT REGION"]
-      const industry = account["ACCOUNT INDUSTRY"]
-      const subIndustry = account["ACCOUNT SUB INDUSTRY"]
-      const category = account["ACCOUNT PRIMARY CATEGORY"]
-      const nature = account["ACCOUNT PRIMARY NATURE"]
-      const nasscom = account["ACCOUNT NASSCOM STATUS"]
-      const empRange = account["ACCOUNT EMPLOYEES RANGE"]
-      const centerEmp = account["ACCOUNT CENTER EMPLOYEES"]
+      const country = account.account_hq_country
+      const region = account.account_hq_region
+      const industry = account.account_hq_industry
+      const subIndustry = account.account_hq_sub_industry
+      const category = account.account_primary_category
+      const nature = account.account_primary_nature
+      const nasscom = account.account_nasscom_status
+      const empRange = account.account_hq_employee_range
+      const centerEmp = account.account_center_employees_range || ""
 
       const matchesCountry = enhancedFilterMatch(filters.accountCountries, country)
       const matchesRegion = enhancedFilterMatch(filters.accountRegions, region)
@@ -773,7 +762,7 @@ function DashboardContent() {
         matchesEmpRange &&
         matchesCenterEmp
       ) {
-        validAccountNames.add(account["ACCOUNT NAME"])
+        validAccountNames.add(account.account_global_legal_name)
       }
     })
 
@@ -790,15 +779,15 @@ function DashboardContent() {
     const validCenterKeys = new Set<string>()
 
     centers.forEach((center) => {
-      if (!validAccountNames.has(center["ACCOUNT NAME"])) return
+      if (!validAccountNames.has(center.account_global_legal_name)) return
 
-      const type = center["CENTER TYPE"]
-      const focus = center["CENTER FOCUS"]
-      const city = center["CENTER CITY"]
-      const state = center["CENTER STATE"]
-      const country = center["CENTER COUNTRY"]
-      const employees = center["CENTER EMPLOYEES RANGE"]
-      const status = center["CENTER STATUS"]
+      const type = center.center_type
+      const focus = center.center_focus
+      const city = center.center_city
+      const state = center.center_state
+      const country = center.center_country
+      const employees = center.center_employees_range
+      const status = center.center_status
 
       const matchesType = enhancedFilterMatch(filters.centerTypes, type)
       const matchesFocus = enhancedFilterMatch(filters.centerFocus, focus)
@@ -839,15 +828,15 @@ function DashboardContent() {
         matchesEmployees &&
         matchesStatus
       ) {
-        validCenterKeys.add(center["CN UNIQUE KEY"])
+        validCenterKeys.add(center.cn_unique_key)
       }
     })
 
     const functionCounts = new Map<string, number>()
 
     functions.forEach((func) => {
-      if (!validCenterKeys.has(func["CN UNIQUE KEY"])) return
-      const funcType = func["FUNCTION"]
+      if (!validCenterKeys.has(func.cn_unique_key)) return
+      const funcType = func.function_name
       functionCounts.set(funcType, (functionCounts.get(funcType) || 0) + 1)
     })
 
@@ -859,11 +848,11 @@ function DashboardContent() {
     }
 
     prospects.forEach((prospect) => {
-      if (!validAccountNames.has(prospect["ACCOUNT NAME"])) return
+      if (!validAccountNames.has(prospect.account_global_legal_name)) return
 
-      const department = prospect.DEPARTMENT
-      const level = prospect.LEVEL
-      const city = prospect.CITY
+      const department = prospect.prospect_department
+      const level = prospect.prospect_level
+      const city = prospect.prospect_city
 
       const matchesDepartment = enhancedFilterMatch(filters.prospectDepartments, department)
       const matchesLevel = enhancedFilterMatch(filters.prospectLevels, level)

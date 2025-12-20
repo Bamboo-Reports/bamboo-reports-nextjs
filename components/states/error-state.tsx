@@ -30,7 +30,7 @@ export function ErrorState({ error, dbStatus, onRetry, onClearCache }: ErrorStat
                 <Alert>
                   <Info className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>Quick Fix:</strong> You need to add your Neon database URL to Vercel's environment
+                    <strong>Quick Fix:</strong> You need to add your Neon database URL to Vercel environment
                     variables.
                   </AlertDescription>
                 </Alert>

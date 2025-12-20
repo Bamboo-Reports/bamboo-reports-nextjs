@@ -1,87 +1,90 @@
 export interface Account {
-  "ACCOUNT NASSCOM STATUS": string
-  "ACCOUNT NAME": string
-  "ACCOUNT TYPE"?: string
-  "ACCOUNT ABOUT"?: string
-  "ACCOUNT KEY OFFERINGS"?: string
-  "ACCOUNT CITY"?: string
-  "ACCOUNT COUNTRY": string
-  "ACCOUNT REGION": string
-  "ACCOUNT SUB INDUSTRY": string
-  "ACCOUNT INDUSTRY": string
-  "ACCOUNT PRIMARY CATEGORY": string
-  "ACCOUNT PRIMARY NATURE": string
-  "ACCOUNT REVNUE": string
-  "ACCOUNT REVENUE RANGE": string
-  "ACCOUNT EMPLOYEES": string
-  "ACCOUNT EMPLOYEES RANGE": string
-  "ACCOUNT CENTER EMPLOYEES": string
-  "ACCOUNT FORBES"?: string
-  "ACCOUNT FORTUNE"?: string
-  "ACCOUNT FIRST CENTER"?: string
-  "YEARS IN INDIA"?: string
-  "ACCOUNT WEBSITE"?: string
+  account_nasscom_status: string | null
+  account_global_legal_name: string
+  account_hq_company_type?: string | null
+  account_about?: string | null
+  account_hq_key_offerings?: string | null
+  account_hq_city?: string | null
+  account_hq_country: string | null
+  account_hq_region: string | null
+  account_hq_sub_industry?: string | null
+  account_hq_industry?: string | null
+  account_primary_category?: string | null
+  account_primary_nature?: string | null
+  account_hq_revenue?: number | null
+  account_hq_revenue_range?: string | null
+  account_hq_employee_count?: number | null
+  account_hq_employee_range?: string | null
+  account_hq_forbes_2000_rank?: number | null
+  account_hq_fortune_500_rank?: number | null
+  account_first_center_year?: number | null
+  years_in_india?: number | null
+  account_hq_website?: string | null
+  account_center_employees_range?: string | null
+  account_comments?: string | null
+  account_coverage?: string | null
 }
 
 export interface Center {
-  "ACCOUNT NAME": string
-  "CN UNIQUE KEY": string
-  "CENTER STATUS": string
-  "CENTER INC YEAR": string
-  "CENTER NAME": string
-  "CENTER TYPE": string
-  "CENTER FOCUS": string
-  "CENTER CITY": string
-  "CENTER STATE": string
-  "CENTER COUNTRY": string
-  "CENTER EMPLOYEES": string
-  "CENTER EMPLOYEES RANGE": string
-  "BUSINESS SGEMENT"?: string
-  "BUSINESS SUB-SEGMENT"?: string
-  "BOARDLINE NUMBER"?: string
-  "CENTER ACCOUNT WEBSITE"?: string
-  LAT?: string
-  LANG?: string
+  account_global_legal_name: string
+  cn_unique_key: string
+  center_status: string | null
+  center_inc_year?: number | null
+  center_name: string | null
+  center_type: string | null
+  center_focus: string | null
+  center_city: string | null
+  center_state: string | null
+  center_country: string | null
+  center_employees?: number | null
+  center_employees_range?: string | null
+  center_business_segment?: string | null
+  center_business_sub_segment?: string | null
+  center_boardline?: string | null
+  center_account_website?: string | null
+  lat?: number | null
+  lng?: number | null
 }
 
 export interface Function {
-  "CN UNIQUE KEY": string
-  FUNCTION: string
+  cn_unique_key: string
+  function_name: string
 }
 
 export interface Service {
-  "CN UNIQUE KEY": string
-  "CENTER NAME": string
-  "CENTER TYPE": string
-  "CENTER FOCUS": string
-  "CENTER CITY": string
-  "PRIMARY SERVICE": string
-  "FOCUS REGION": string
-  IT: string
-  "ER&D": string
-  FnA: string
-  HR: string
-  PROCUREMENT: string
-  "SALES & MARKETING": string
-  "CUSTOMER SUPPORT": string
-  OTHERS: string
-  "SOFTWARE VENDOR": string
-  "SOFTWARE IN USE": string
+  cn_unique_key: string
+  center_name: string | null
+  center_type: string | null
+  center_focus: string | null
+  center_city: string | null
+  primary_service: string | null
+  focus_region: string | null
+  service_it: string | null
+  service_erd: string | null
+  service_fna: string | null
+  service_hr: string | null
+  service_procurement: string | null
+  service_sales_marketing: string | null
+  service_customer_support: string | null
+  service_others: string | null
+  software_vendor: string | null
+  software_in_use: string | null
+  account_global_legal_name?: string | null
 }
 
 export interface Prospect {
-  "ACCOUNT NAME": string
-  "CENTER NAME": string
-  "FIRST NAME": string
-  "LAST NAME": string
-  TITLE: string
-  DEPARTMENT: string
-  LEVEL: string
-  "LINKEDIN LINK": string
-  EMAIL: string
-  CITY: string
-  STATE: string
-  COUNTRY: string
+  account_global_legal_name: string
+  center_name: string | null
+  prospect_first_name: string | null
+  prospect_last_name: string | null
+  prospect_title: string | null
+  prospect_department: string | null
+  prospect_level: string | null
+  prospect_linkedin_url: string | null
+  prospect_email: string | null
+  prospect_city: string | null
+  prospect_state: string | null
+  prospect_country: string | null
 }
 
 export interface FilterValue {
