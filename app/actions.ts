@@ -91,7 +91,9 @@ export async function getAccounts() {
     if (cached) return cached
 
     console.log("Fetching accounts from database...")
-    const accounts = await fetchWithRetry(() => sql`SELECT * FROM accounts ORDER BY "ACCOUNT NAME"`)
+    const accounts = await fetchWithRetry(
+      () => sql`SELECT * FROM accounts ORDER BY account_global_legal_name`
+    )
     console.log(`Successfully fetched ${accounts.length} accounts`)
 
     // Cache the result
@@ -116,7 +118,7 @@ export async function getCenters() {
     if (cached) return cached
 
     console.log("Fetching centers from database...")
-    const centers = await fetchWithRetry(() => sql`SELECT * FROM centers ORDER BY "CENTER NAME"`)
+    const centers = await fetchWithRetry(() => sql`SELECT * FROM centers ORDER BY center_name`)
     console.log(`Successfully fetched ${centers.length} centers`)
 
     // Cache the result
@@ -141,7 +143,7 @@ export async function getFunctions() {
     if (cached) return cached
 
     console.log("Fetching functions from database...")
-    const functions = await fetchWithRetry(() => sql`SELECT * FROM functions ORDER BY "CN UNIQUE KEY"`)
+    const functions = await fetchWithRetry(() => sql`SELECT * FROM functions ORDER BY cn_unique_key`)
     console.log(`Successfully fetched ${functions.length} functions`)
 
     // Cache the result
@@ -166,7 +168,7 @@ export async function getServices() {
     if (cached) return cached
 
     console.log("Fetching services from database...")
-    const services = await fetchWithRetry(() => sql`SELECT * FROM services ORDER BY "CENTER NAME"`)
+    const services = await fetchWithRetry(() => sql`SELECT * FROM services ORDER BY center_name`)
     console.log(`Successfully fetched ${services.length} services`)
 
     // Cache the result
@@ -191,7 +193,9 @@ export async function getProspects() {
     if (cached) return cached
 
     console.log("Fetching prospects from database...")
-    const prospects = await fetchWithRetry(() => sql`SELECT * FROM prospects ORDER BY "LAST NAME", "FIRST NAME"`)
+    const prospects = await fetchWithRetry(
+      () => sql`SELECT * FROM prospects ORDER BY prospect_last_name, prospect_first_name`
+    )
     console.log(`Successfully fetched ${prospects.length} prospects`)
 
     // Cache the result
@@ -424,25 +428,25 @@ export async function getFilteredAccounts(filters: {
     console.log("Fetching filtered accounts:", filters)
 
     // Build dynamic query
-    let query = sql`SELECT * FROM accounts WHERE 1=1`
+  let query = sql`SELECT * FROM accounts WHERE 1=1`
 
     if (filters.countries && filters.countries.length > 0) {
-      query = sql`${query} AND "ACCOUNT COUNTRY" = ANY(${filters.countries})`
+      query = sql`${query} AND account_hq_country = ANY(${filters.countries})`
     }
 
     if (filters.regions && filters.regions.length > 0) {
-      query = sql`${query} AND "ACCOUNT REGION" = ANY(${filters.regions})`
+      query = sql`${query} AND account_hq_region = ANY(${filters.regions})`
     }
 
     if (filters.industries && filters.industries.length > 0) {
-      query = sql`${query} AND "ACCOUNT INDUSTRY" = ANY(${filters.industries})`
+      query = sql`${query} AND account_hq_industry = ANY(${filters.industries})`
     }
 
     if (filters.searchTerm && filters.searchTerm.trim()) {
-      query = sql`${query} AND "ACCOUNT NAME" ILIKE ${`%${filters.searchTerm}%`}`
+      query = sql`${query} AND account_global_legal_name ILIKE ${`%${filters.searchTerm}%`}`
     }
 
-    query = sql`${query} ORDER BY "ACCOUNT NAME"`
+    query = sql`${query} ORDER BY account_global_legal_name`
 
     const results = await fetchWithRetry(() => query)
     console.log(`Filtered accounts: ${results.length} results`)

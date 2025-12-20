@@ -231,11 +231,6 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [filterToDelete, setFilterToDelete] = useState<SavedFilter | null>(null)
 
-  // Load saved filters on component mount
-  useEffect(() => {
-    loadSavedFilters()
-  }, [])
-
   // Memoize loadSavedFilters to prevent recreation
   const loadSavedFilters = useCallback(async () => {
     setLoading(true)
@@ -248,6 +243,11 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
       setLoading(false)
     }
   }, [])
+
+  // Load saved filters on component mount
+  useEffect(() => {
+    loadSavedFilters()
+  }, [loadSavedFilters])
 
   // Memoize handleSaveFilter
   const handleSaveFilter = useCallback(async () => {
@@ -488,7 +488,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Filter Set</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{filterToDelete?.name}"? This action cannot be undone.
+              {`Are you sure you want to delete “${filterToDelete?.name ?? ""}”? This action cannot be undone.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

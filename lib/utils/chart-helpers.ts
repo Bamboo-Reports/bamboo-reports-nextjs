@@ -60,7 +60,7 @@ export const calculateCityChartData = (centers: Center[]): ChartData[] => {
   const counts = new Map<string, number>()
 
   centers.forEach((center) => {
-    const city = center["CENTER CITY"] || "Unknown"
+    const city = center.center_city || "Unknown"
     counts.set(city, (counts.get(city) || 0) + 1)
   })
 
@@ -90,8 +90,8 @@ export const calculateFunctionChartData = (functions: Function[], centerKeys: st
   const counts = new Map<string, number>()
 
   functions.forEach((func) => {
-    if (centerKeys.includes(func["CN UNIQUE KEY"])) {
-      const funcName = func["FUNCTION"] || "Unknown"
+    if (centerKeys.includes(func.cn_unique_key)) {
+      const funcName = func.function_name || "Unknown"
       counts.set(funcName, (counts.get(funcName) || 0) + 1)
     }
   })

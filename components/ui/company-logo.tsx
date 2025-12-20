@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import Image from "next/image"
 import { Building2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -108,23 +109,21 @@ export function CompanyLogo({
         </div>
       )}
 
-      {/* Logo image */}
-      <img
+      <Image
         src={logoUrl.toString()}
         alt={`${companyName} logo`}
+        fill
         className={cn(
           "object-contain transition-opacity duration-300",
           imageLoaded ? "opacity-100" : "opacity-0"
         )}
-        loading="lazy"
-        onLoad={() => setImageLoaded(true)}
+        sizes={`${sizeConfig.img}px`}
+        onLoadingComplete={() => setImageLoaded(true)}
         onError={() => {
           setImageError(true)
           setImageLoaded(false)
         }}
         style={{
-          width: "100%",
-          height: "100%",
           padding: "8%",
           transform: "scale(1.5)",
         }}

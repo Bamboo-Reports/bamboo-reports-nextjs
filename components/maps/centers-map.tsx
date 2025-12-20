@@ -40,15 +40,15 @@ export function CentersMap({ centers }: CentersMapProps) {
       const cityMap = new Map<string, CityCluster>()
 
       centers.forEach((center) => {
-        const city = center["CENTER CITY"]
-        const country = center["CENTER COUNTRY"]
-        const account = center["ACCOUNT NAME"]
-        const employees = center["CENTER EMPLOYEES"] ? parseInt(center["CENTER EMPLOYEES"]) : 0
-        const lat = center.LAT ? parseFloat(center.LAT) : null
-        const lng = center.LANG ? parseFloat(center.LANG) : null
+        const city = center.center_city
+        const country = center.center_country
+        const account = center.account_global_legal_name
+        const employees = center.center_employees ?? 0
+        const lat = center.lat
+        const lng = center.lng
 
         // Skip if no coordinates
-        if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+        if (lat === null || lat === undefined || lng === null || lng === undefined || isNaN(lat) || isNaN(lng)) {
           return
         }
 
@@ -193,7 +193,7 @@ export function CentersMap({ centers }: CentersMapProps) {
         <div className="text-center">
           <p className="text-lg font-semibold text-muted-foreground mb-2">No Location Data</p>
           <p className="text-sm text-muted-foreground">
-            Centers don't have latitude and longitude information
+            Centers do not have latitude and longitude information
           </p>
         </div>
       </div>
