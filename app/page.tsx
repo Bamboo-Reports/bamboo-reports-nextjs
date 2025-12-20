@@ -334,10 +334,7 @@ function DashboardContent() {
         enhancedFilterMatch(filters.accountPrimaryNatures, account.account_primary_nature) &&
         enhancedFilterMatch(filters.accountNasscomStatuses, account.account_nasscom_status) &&
         enhancedFilterMatch(filters.accountEmployeesRanges, account.account_hq_employee_range) &&
-        enhancedFilterMatch(
-          filters.accountCenterEmployees,
-          String(account.account_center_employees ?? "")
-        ) &&
+        enhancedFilterMatch(filters.accountCenterEmployees, account.account_center_employees_range || "") &&
         rangeFilterMatch(filters.accountRevenueRange, account.account_hq_revenue, filters.includeNullRevenue) &&
         enhancedKeywordMatch(filters.accountNameKeywords, account.account_global_legal_name)
       )
@@ -528,10 +525,7 @@ function DashboardContent() {
         arrayFilterMatch(tempFilters.accountPrimaryNatures, account.account_primary_nature) &&
         arrayFilterMatch(tempFilters.accountNasscomStatuses, account.account_nasscom_status) &&
         arrayFilterMatch(tempFilters.accountEmployeesRanges, account.account_hq_employee_range) &&
-        arrayFilterMatch(
-          tempFilters.accountCenterEmployees,
-          String(account.account_center_employees ?? "")
-        ) &&
+        arrayFilterMatch(tempFilters.accountCenterEmployees, account.account_center_employees_range || "") &&
         (tempFilters.searchTerm === "" ||
           account.account_global_legal_name.toLowerCase().includes(tempFilters.searchTerm.toLowerCase()))
       )
@@ -636,7 +630,7 @@ function DashboardContent() {
       const nature = account.account_primary_nature
       const nasscom = account.account_nasscom_status
       const empRange = account.account_hq_employee_range
-      const centerEmp = String(account.account_center_employees ?? "")
+      const centerEmp = account.account_center_employees_range || ""
 
       const matchesCountry = enhancedFilterMatch(filters.accountCountries, country)
       const matchesRegion = enhancedFilterMatch(filters.accountRegions, region)

@@ -270,8 +270,8 @@ export function AccountDetailsDialog({
                   />
                   <InfoRow
                     icon={Users}
-                    label="Center Employees"
-                    value={account.account_center_employees}
+                    label="Center Employees Range"
+                    value={account.account_center_employees_range}
                   />
                 </div>
               </div>

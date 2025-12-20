@@ -15,7 +15,6 @@ export interface Account {
   account_hq_revenue_range?: string | null
   account_hq_employee_count?: number | null
   account_hq_employee_range?: string | null
-  account_center_employees?: number | null
   account_hq_forbes_2000_rank?: number | null
   account_hq_fortune_500_rank?: number | null
   account_first_center_year?: number | null
