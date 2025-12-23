@@ -1050,7 +1050,7 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen bg-background text-foreground">
       <Header onRefresh={loadData} />
 
       {dataLoaded && (
@@ -1073,8 +1073,8 @@ function DashboardContent() {
           />
 
           {/* Right Side - Data View (70%) */}
-          <div className="flex-1 overflow-y-auto bg-background">
-            <div className="p-6">
+          <div className="flex-1 overflow-y-auto bg-background/60 backdrop-blur-[2px]">
+            <div className="p-6 space-y-6">
               <SummaryCards
                 filteredAccountsCount={filteredData.filteredAccounts.length}
                 totalAccountsCount={accounts.length}
@@ -1086,7 +1086,7 @@ function DashboardContent() {
 
               {/* Data Tables */}
               <Tabs defaultValue="accounts" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-3 rounded-xl border border-border/60 bg-secondary/60 backdrop-blur supports-[backdrop-filter]:bg-secondary/50">
                   <TabsTrigger value="accounts">Accounts ({filteredData.filteredAccounts.length})</TabsTrigger>
                   <TabsTrigger value="centers">Centers ({filteredData.filteredCenters.length})</TabsTrigger>
                   <TabsTrigger value="prospects">Prospects ({filteredData.filteredProspects.length})</TabsTrigger>

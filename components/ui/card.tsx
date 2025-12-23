@@ -5,15 +5,31 @@ import { cn } from "@/lib/utils"
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
+      "relative overflow-hidden rounded-xl border border-border/70 bg-gradient-to-br from-background/95 via-background/90 to-background text-card-foreground shadow-[0_20px_70px_-50px_rgba(0,0,0,0.9)] backdrop-blur-sm transition-transform duration-200 hover:-translate-y-[1px]",
       className
     )}
     {...props}
-  />
+  >
+    <div
+      className="pointer-events-none absolute inset-0 opacity-90"
+      aria-hidden="true"
+      style={{
+        background:
+          "radial-gradient(circle at 15% 20%, hsl(var(--chart-1) / 0.12), transparent 40%)," +
+          "radial-gradient(circle at 85% 0%, hsl(var(--chart-3) / 0.12), transparent 36%)," +
+          "linear-gradient(135deg, hsl(var(--card) / 0.7), hsl(var(--card) / 0.55))",
+      }}
+    />
+    <div
+      className="pointer-events-none absolute inset-px rounded-[calc(var(--radius)-2px)] border border-white/15 dark:border-white/5 opacity-60"
+      aria-hidden="true"
+    />
+    <div className="relative">{children}</div>
+  </div>
 ))
 Card.displayName = "Card"
 

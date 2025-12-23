@@ -1,5 +1,6 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 
 interface SummaryCardsProps {
   filteredAccountsCount: number
@@ -18,6 +19,24 @@ export const SummaryCards = React.memo(function SummaryCards({
   filteredProspectsCount,
   totalProspectsCount,
 }: SummaryCardsProps) {
+  const [animationKey, setAnimationKey] = useState(0)
+
+  useEffect(() => {
+    setAnimationKey((prev) => prev + 1)
+  }, [filteredAccountsCount, filteredCentersCount, filteredProspectsCount])
+
+  const AnimatedNumber = ({ value, className }: { value: number; className?: string }) => (
+    <span
+      key={`${animationKey}-${value}`}
+      className={cn(
+        "inline-flex items-baseline gap-1 text-3xl font-semibold leading-tight animate-scale-in",
+        className
+      )}
+    >
+      {value.toLocaleString()}
+    </span>
+  )
+
   const cards = [
     {
       title: "Total Accounts",
@@ -68,9 +87,10 @@ export const SummaryCards = React.memo(function SummaryCards({
           </CardHeader>
           <CardContent className="relative flex items-end justify-between gap-3 p-4 pt-1">
             <div>
-              <div className="text-3xl font-semibold leading-tight text-sidebar-foreground">
-                {card.value.toLocaleString()}
-              </div>
+              <AnimatedNumber
+                value={card.value}
+                className="text-sidebar-foreground drop-shadow-[0_6px_12px_rgba(0,0,0,0.18)]"
+              />
               <p className="mt-1 text-xs text-muted-foreground">Currently visible</p>
             </div>
             <span className="inline-flex items-center rounded-full border border-border/60 bg-secondary/70 px-3 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur-sm">
