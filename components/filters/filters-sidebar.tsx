@@ -69,7 +69,7 @@ export function FiltersSidebar({
 
   return (
     <div className={cn(
-      "border-r bg-sidebar overflow-y-auto transition-all duration-300 relative",
+      "border-r bg-sidebar overflow-y-auto overflow-x-hidden transition-all duration-300 relative",
       isCollapsed ? "w-16" : "w-[384px] shrink-0"
     )}>
       {/* Collapse/Expand Button */}
@@ -78,12 +78,12 @@ export function FiltersSidebar({
         size="icon"
         onClick={() => setIsCollapsed(!isCollapsed)}
         className={cn(
-          "absolute -right-3 top-2 h-6 w-14 rounded-full border bg-background shadow-md z-10 hover:bg-accent",
-          isCollapsed ? "left-2" : "right-2"
+          "absolute top-3 z-10 h-6 w-6 rounded-full border bg-background shadow-md hover:bg-accent flex items-center justify-center",
+          isCollapsed ? "left-1/2 -translate-x-1/2" : "-right-3"
         )}
         title={isCollapsed ? "Expand filters" : "Collapse filters"}
       >
-        {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        {isCollapsed ? <PanelLeftOpen className="h-3 w-3" /> : <PanelLeftClose className="h-3 w-3" />}
       </Button>
 
       {/* Collapsed State */}
