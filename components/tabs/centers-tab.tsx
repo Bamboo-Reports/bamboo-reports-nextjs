@@ -46,11 +46,63 @@ export function CentersTab({
 }: CentersTabProps) {
   const [selectedCenter, setSelectedCenter] = useState<Center | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [sort, setSort] = useState<{ key: "account" | "name" | "type" | "employees"; direction: "asc" | "desc" }>({
+    key: "account",
+    direction: "asc",
+  })
 
   const handleCenterClick = (center: Center) => {
     setSelectedCenter(center)
     setIsDialogOpen(true)
   }
+
+  const handleSort = (key: typeof sort.key) => {
+    setSort((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }))
+    setCurrentPage(1)
+  }
+
+  const sortedCenters = React.useMemo(() => {
+    const compare = (a: string | undefined | null, b: string | undefined | null) =>
+      (a || "").localeCompare(b || "", undefined, { sensitivity: "base" })
+
+    const getValue = (center: Center) => {
+      switch (sort.key) {
+        case "name":
+          return center.center_name
+        case "type":
+          return center.center_type
+        case "employees":
+          return center.center_employees_range
+        default:
+          return center.account_global_legal_name
+      }
+    }
+
+    const sorted = [...centers].sort((a, b) => compare(getValue(a), getValue(b)))
+    return sort.direction === "asc" ? sorted : sorted.reverse()
+  }, [centers, sort])
+
+  const SortButton = ({
+    label,
+    sortKey,
+  }: {
+    label: string
+    sortKey: typeof sort.key
+  }) => (
+    <button
+      type="button"
+      onClick={() => handleSort(sortKey)}
+      className="inline-flex items-center gap-1 font-medium text-foreground"
+    >
+      <span>{label}</span>
+      <span className="text-xs text-muted-foreground">
+        {sort.key === sortKey ? (sort.direction === "asc" ? "A→Z" : "Z→A") : "A→Z"}
+      </span>
+    </button>
+  )
 
   // Show empty state when no centers
   if (centers.length === 0) {
@@ -145,14 +197,22 @@ export function CentersTab({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Account Name</TableHead>
-                    <TableHead>Center Name</TableHead>
-                    <TableHead>Center Type</TableHead>
-                    <TableHead>Employee Range</TableHead>
+                    <TableHead>
+                      <SortButton label="Account Name" sortKey="account" />
+                    </TableHead>
+                    <TableHead>
+                      <SortButton label="Center Name" sortKey="name" />
+                    </TableHead>
+                    <TableHead>
+                      <SortButton label="Center Type" sortKey="type" />
+                    </TableHead>
+                    <TableHead>
+                      <SortButton label="Employee Range" sortKey="employees" />
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {getPaginatedData(centers, currentPage, itemsPerPage).map(
+                  {getPaginatedData(sortedCenters, currentPage, itemsPerPage).map(
                     (center, index) => (
                       <CenterRow
                         key={`${center.cn_unique_key}-${index}`}
@@ -164,21 +224,21 @@ export function CentersTab({
                 </TableBody>
               </Table>
             </div>
-            {centers.length > 0 && (
-              <div className="flex items-center justify-between mt-4">
-                <div className="flex items-center gap-4">
-                  <p className="text-sm text-muted-foreground">
-                    Showing{" "}
-                    {getPageInfo(currentPage, centers.length, itemsPerPage).startItem} to{" "}
-                    {getPageInfo(currentPage, centers.length, itemsPerPage).endItem} of{" "}
-                    {centers.length} results
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => exportToExcel(centers, "centers-export", "Centers")}
-                    className="flex items-center gap-2"
-                  >
+                {centers.length > 0 && (
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center gap-4">
+                      <p className="text-sm text-muted-foreground">
+                        Showing{" "}
+                        {getPageInfo(currentPage, centers.length, itemsPerPage).startItem} to{" "}
+                        {getPageInfo(currentPage, centers.length, itemsPerPage).endItem} of{" "}
+                        {centers.length} results
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => exportToExcel(sortedCenters, "centers-export", "Centers")}
+                        className="flex items-center gap-2"
+                      >
                     <Download className="h-4 w-4" />
                     Export Centers
                   </Button>

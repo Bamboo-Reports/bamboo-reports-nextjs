@@ -48,6 +48,10 @@ export function AccountsTab({
 }: AccountsTabProps) {
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [sort, setSort] = useState<{ key: "name" | "location" | "industry" | "revenue"; direction: "asc" | "desc" }>({
+    key: "name",
+    direction: "asc",
+  })
 
   const handleAccountClick = (account: Account) => {
     setSelectedAccount(account)
@@ -62,6 +66,54 @@ export function AccountsTab({
       </TabsContent>
     )
   }
+
+  const handleSort = (key: typeof sort.key) => {
+    setSort((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }))
+    setCurrentPage(1)
+  }
+
+  const sortedAccounts = React.useMemo(() => {
+    const compare = (a: string | undefined | null, b: string | undefined | null) =>
+      (a || "").localeCompare(b || "", undefined, { sensitivity: "base" })
+
+    const getValue = (account: Account) => {
+      switch (sort.key) {
+        case "location":
+          return [account.account_hq_city, account.account_hq_country].filter(Boolean).join(", ")
+        case "industry":
+          return account.account_hq_industry
+        case "revenue":
+          return account.account_hq_revenue_range
+        default:
+          return account.account_global_legal_name
+      }
+    }
+
+    const sorted = [...accounts].sort((a, b) => compare(getValue(a), getValue(b)))
+    return sort.direction === "asc" ? sorted : sorted.reverse()
+  }, [accounts, sort])
+
+  const SortButton = ({
+    label,
+    sortKey,
+  }: {
+    label: string
+    sortKey: typeof sort.key
+  }) => (
+    <button
+      type="button"
+      onClick={() => handleSort(sortKey)}
+      className="inline-flex items-center gap-1 font-medium text-foreground"
+    >
+      <span>{label}</span>
+      <span className="text-xs text-muted-foreground">
+        {sort.key === sortKey ? (sort.direction === "asc" ? "A→Z" : "Z→A") : "A→Z"}
+      </span>
+    </button>
+  )
 
   return (
     <TabsContent value="accounts">
@@ -129,14 +181,22 @@ export function AccountsTab({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Account Name</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Industry</TableHead>
-                    <TableHead>Revenue Range</TableHead>
+                    <TableHead>
+                      <SortButton label="Account Name" sortKey="name" />
+                    </TableHead>
+                    <TableHead>
+                      <SortButton label="Location" sortKey="location" />
+                    </TableHead>
+                    <TableHead>
+                      <SortButton label="Industry" sortKey="industry" />
+                    </TableHead>
+                    <TableHead>
+                      <SortButton label="Revenue Range" sortKey="revenue" />
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {getPaginatedData(accounts, currentPage, itemsPerPage).map(
+                  {getPaginatedData(sortedAccounts, currentPage, itemsPerPage).map(
                     (account, index) => (
                       <AccountRow
                         key={`${account.account_global_legal_name}-${index}`}
@@ -148,21 +208,21 @@ export function AccountsTab({
                 </TableBody>
               </Table>
             </div>
-            {accounts.length > 0 && (
-              <div className="flex items-center justify-between mt-4">
-                <div className="flex items-center gap-4">
-                  <p className="text-sm text-muted-foreground">
-                    Showing{" "}
-                    {getPageInfo(currentPage, accounts.length, itemsPerPage).startItem} to{" "}
-                    {getPageInfo(currentPage, accounts.length, itemsPerPage).endItem} of{" "}
-                    {accounts.length} results
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => exportToExcel(accounts, "accounts-export", "Accounts")}
-                    className="flex items-center gap-2"
-                  >
+                {accounts.length > 0 && (
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center gap-4">
+                      <p className="text-sm text-muted-foreground">
+                        Showing{" "}
+                        {getPageInfo(currentPage, accounts.length, itemsPerPage).startItem} to{" "}
+                        {getPageInfo(currentPage, accounts.length, itemsPerPage).endItem} of{" "}
+                        {accounts.length} results
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => exportToExcel(sortedAccounts, "accounts-export", "Accounts")}
+                        className="flex items-center gap-2"
+                      >
                     <Download className="h-4 w-4" />
                     Export Accounts
                   </Button>

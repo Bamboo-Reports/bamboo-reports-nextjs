@@ -39,11 +39,63 @@ export function ProspectsTab({
 }: ProspectsTabProps) {
   const [selectedProspect, setSelectedProspect] = useState<Prospect | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [sort, setSort] = useState<{ key: "first" | "last" | "title" | "account"; direction: "asc" | "desc" }>({
+    key: "first",
+    direction: "asc",
+  })
 
   const handleProspectClick = (prospect: Prospect) => {
     setSelectedProspect(prospect)
     setIsDialogOpen(true)
   }
+
+  const handleSort = (key: typeof sort.key) => {
+    setSort((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }))
+    setCurrentPage(1)
+  }
+
+  const sortedProspects = React.useMemo(() => {
+    const compare = (a: string | undefined | null, b: string | undefined | null) =>
+      (a || "").localeCompare(b || "", undefined, { sensitivity: "base" })
+
+    const getValue = (prospect: Prospect) => {
+      switch (sort.key) {
+        case "last":
+          return prospect.prospect_last_name
+        case "title":
+          return prospect.prospect_title
+        case "account":
+          return prospect.account_global_legal_name
+        default:
+          return prospect.prospect_first_name
+      }
+    }
+
+    const sorted = [...prospects].sort((a, b) => compare(getValue(a), getValue(b)))
+    return sort.direction === "asc" ? sorted : sorted.reverse()
+  }, [prospects, sort])
+
+  const SortButton = ({
+    label,
+    sortKey,
+  }: {
+    label: string
+    sortKey: typeof sort.key
+  }) => (
+    <button
+      type="button"
+      onClick={() => handleSort(sortKey)}
+      className="inline-flex items-center gap-1 font-medium text-foreground"
+    >
+      <span>{label}</span>
+      <span className="text-xs text-muted-foreground">
+        {sort.key === sortKey ? (sort.direction === "asc" ? "A→Z" : "Z→A") : "A→Z"}
+      </span>
+    </button>
+  )
 
   // Show empty state when no prospects
   if (prospects.length === 0) {
@@ -113,14 +165,22 @@ export function ProspectsTab({
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-16"></TableHead>
-                    <TableHead>First Name</TableHead>
-                    <TableHead>Last Name</TableHead>
-                    <TableHead>Job Title</TableHead>
-                    <TableHead>Account Name</TableHead>
+                    <TableHead>
+                      <SortButton label="First Name" sortKey="first" />
+                    </TableHead>
+                    <TableHead>
+                      <SortButton label="Last Name" sortKey="last" />
+                    </TableHead>
+                    <TableHead>
+                      <SortButton label="Job Title" sortKey="title" />
+                    </TableHead>
+                    <TableHead>
+                      <SortButton label="Account Name" sortKey="account" />
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {getPaginatedData(prospects, currentPage, itemsPerPage).map(
+                  {getPaginatedData(sortedProspects, currentPage, itemsPerPage).map(
                     (prospect, index) => (
                       <ProspectRow
                       key={`${prospect.prospect_email}-${index}`}
@@ -132,21 +192,21 @@ export function ProspectsTab({
                 </TableBody>
               </Table>
             </div>
-            {prospects.length > 0 && (
-              <div className="flex items-center justify-between mt-4">
-                <div className="flex items-center gap-4">
-                  <p className="text-sm text-muted-foreground">
-                    Showing{" "}
-                    {getPageInfo(currentPage, prospects.length, itemsPerPage).startItem} to{" "}
-                    {getPageInfo(currentPage, prospects.length, itemsPerPage).endItem} of{" "}
-                    {prospects.length} results
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => exportToExcel(prospects, "prospects-export", "Prospects")}
-                    className="flex items-center gap-2"
-                  >
+                {prospects.length > 0 && (
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center gap-4">
+                      <p className="text-sm text-muted-foreground">
+                        Showing{" "}
+                        {getPageInfo(currentPage, prospects.length, itemsPerPage).startItem} to{" "}
+                        {getPageInfo(currentPage, prospects.length, itemsPerPage).endItem} of{" "}
+                        {prospects.length} results
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => exportToExcel(sortedProspects, "prospects-export", "Prospects")}
+                        className="flex items-center gap-2"
+                      >
                     <Download className="h-4 w-4" />
                     Export Prospects
                   </Button>
