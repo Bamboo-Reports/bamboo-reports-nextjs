@@ -38,7 +38,7 @@ export const PieChartCard = memo(({ title, data, dataKey = "value" }: PieChartCa
       </CardHeader>
       <CardContent>
         {safeData.length > 0 ? (
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <ChartContainer config={chartConfig} className="h-[400px] w-full">
             <PieChart>
               <ChartTooltip
                 content={<ChartTooltipContent hideLabel />}
