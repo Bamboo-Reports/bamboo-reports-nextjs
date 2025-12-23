@@ -11,7 +11,6 @@ import { Slider } from "@/components/ui/slider"
 import {
   Filter,
   RotateCcw,
-  Download,
   Loader2,
   Building,
   Briefcase,
@@ -39,7 +38,6 @@ interface FiltersSidebarProps {
   // Callback functions
   setPendingFilters: React.Dispatch<React.SetStateAction<Filters>>
   resetFilters: () => void
-  handleExportAll: () => void
   handleMinRevenueChange: (value: string) => void
   handleMaxRevenueChange: (value: string) => void
 
@@ -58,7 +56,6 @@ export function FiltersSidebar({
   accountNames,
   setPendingFilters,
   resetFilters,
-  handleExportAll,
   handleMinRevenueChange,
   handleMaxRevenueChange,
   getTotalActiveFilters,
@@ -114,15 +111,6 @@ export function FiltersSidebar({
             >
               <RotateCcw className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleExportAll}
-              className="border border-sidebar-border/70 bg-sidebar-accent/60 text-foreground hover:bg-sidebar-accent"
-              title="Export results"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
           </div>
         </div>
       )}
@@ -161,14 +149,10 @@ export function FiltersSidebar({
             totalActiveFilters={activeFilters}
           />
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2">
             <Button variant="outline" size="sm" onClick={resetFilters} className="h-10 justify-center border-dashed">
               <RotateCcw className="h-4 w-4" />
               Reset
-            </Button>
-            <Button variant="default" size="sm" onClick={handleExportAll} className="h-10 justify-center">
-              <Download className="h-4 w-4" />
-              Export
             </Button>
           </div>
 

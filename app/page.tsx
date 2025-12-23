@@ -14,7 +14,6 @@ import {
   Filter,
   RotateCcw,
   Info,
-  Download,
   Database,
   RefreshCw,
   AlertCircle,
@@ -58,10 +57,6 @@ import {
   calculateCityChartData,
   calculateFunctionChartData,
 } from "@/lib/utils/chart-helpers"
-import {
-  exportToExcel,
-  exportAllData as exportAll,
-} from "@/lib/utils/export-helpers"
 import type { Account, Center, Function, Service, Prospect, Filters, FilterOption, AvailableOptions } from "@/lib/types"
 
 function DashboardContent() {
@@ -1011,15 +1006,6 @@ function DashboardContent() {
     setFilters(savedFilters)
   }
 
-  const handleExportAll = () => {
-    exportAll(
-      filteredData.filteredAccounts,
-      filteredData.filteredCenters,
-      filteredData.filteredFunctions,
-      filteredData.filteredServices
-    )
-  }
-
   const handleMinRevenueChange = (value: string) => {
     const numValue = Number.parseFloat(value) || revenueRange.min
     const clampedValue = Math.max(revenueRange.min, Math.min(numValue, pendingFilters.accountRevenueRange[1]))
@@ -1064,7 +1050,6 @@ function DashboardContent() {
             accountNames={accountNames}
             setPendingFilters={setPendingFilters}
             resetFilters={resetFilters}
-            handleExportAll={handleExportAll}
             handleMinRevenueChange={handleMinRevenueChange}
             handleMaxRevenueChange={handleMaxRevenueChange}
             getTotalActiveFilters={getTotalActiveFilters}
