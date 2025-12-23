@@ -155,14 +155,6 @@ export function FiltersSidebar({
               Reset
             </Button>
           </div>
-
-          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-            <span className="inline-flex items-center gap-2 rounded-full bg-background/70 px-2 py-1">
-              <Loader2 className="h-3 w-3 text-blue-600" />
-              Auto-applies as you select
-            </span>
-            <span>Use +/- to include or exclude</span>
-          </div>
         </div>
 
         {/* Accordion Filters */}

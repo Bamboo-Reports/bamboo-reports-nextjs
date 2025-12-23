@@ -361,18 +361,77 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
   const hasSavedFilters = savedFilters.length > 0
 
   return (
-    <div className={`grid w-full gap-2 ${hasSavedFilters ? "grid-cols-2" : "grid-cols-1"}`}>
+    <div className="flex w-full items-center gap-3">
+      {/* Load Saved Filters with Delete Option */}
+      {hasSavedFilters && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="h-10 flex-1 items-center justify-center gap-2 border border-sidebar-border/60 bg-background"
+            >
+              <FolderOpen className="h-4 w-4" />
+              Saved Filters
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-[240px]">
+            <div className="px-2 py-1.5 text-sm font-medium text-foreground">Saved Filter Sets</div>
+            <DropdownMenuSeparator />
+            {savedFilters.map((filter) => (
+              <DropdownMenuItem key={filter.id} className="flex items-center justify-between p-0">
+                <button
+                  className="flex-1 flex items-center justify-between px-2 py-1.5 hover:bg-muted rounded text-left"
+                  onClick={() => handleLoadFilter(filter)}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{filter.name}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {getFilterSummary(filter.filters)}
+                    </Badge>
+                  </div>
+                </button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 mr-1"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDeleteFilter(filter)
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="p-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-muted-foreground"
+                onClick={() => setManageDialogOpen(true)}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Manage all filters...
+              </Button>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+
       {/* Save Current Filters */}
       <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
         <DialogTrigger asChild>
           <Button
-            variant="outline"
-            size="sm"
+            variant="secondary"
+            size="icon"
             disabled={totalActiveFilters === 0}
-            className="h-10 w-full items-center justify-center gap-2 border-dashed border-sidebar-border/70 bg-background/70"
+            className="h-10 w-10 rounded-full border border-sidebar-border/70 bg-background shadow-sm"
+            title="Save current filters"
           >
             <Save className="h-4 w-4" />
-            Save Filters
           </Button>
         </DialogTrigger>
         <DialogContent>
