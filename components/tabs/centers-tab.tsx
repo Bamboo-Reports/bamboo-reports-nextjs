@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TabsContent } from "@/components/ui/tabs"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Download, PieChartIcon, Table as TableIcon, MapIcon } from "lucide-react"
+import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, Download, PieChartIcon, Table as TableIcon, MapIcon } from "lucide-react"
 import { CenterRow } from "@/components/tables"
 import { PieChartCard } from "@/components/charts/pie-chart-card"
 import { EmptyState } from "@/components/states/empty-state"
@@ -46,9 +46,12 @@ export function CentersTab({
 }: CentersTabProps) {
   const [selectedCenter, setSelectedCenter] = useState<Center | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [sort, setSort] = useState<{ key: "account" | "name" | "type" | "employees"; direction: "asc" | "desc" }>({
+  const [sort, setSort] = useState<{
+    key: "account" | "name" | "type" | "employees"
+    direction: "asc" | "desc" | null
+  }>({
     key: "account",
-    direction: "asc",
+    direction: null,
   })
 
   const handleCenterClick = (center: Center) => {
@@ -57,14 +60,19 @@ export function CentersTab({
   }
 
   const handleSort = (key: typeof sort.key) => {
-    setSort((prev) => ({
-      key,
-      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
-    }))
+    setSort((prev) => {
+      if (prev.key !== key || prev.direction === null) {
+        return { key, direction: "asc" }
+      }
+      if (prev.direction === "asc") return { key, direction: "desc" }
+      return { key, direction: null }
+    })
     setCurrentPage(1)
   }
 
   const sortedCenters = React.useMemo(() => {
+    if (!sort.direction) return centers
+
     const compare = (a: string | undefined | null, b: string | undefined | null) =>
       (a || "").localeCompare(b || "", undefined, { sensitivity: "base" })
 
@@ -98,9 +106,13 @@ export function CentersTab({
       className="inline-flex items-center gap-1 font-medium text-foreground"
     >
       <span>{label}</span>
-      <span className="text-xs text-muted-foreground">
-        {sort.key === sortKey ? (sort.direction === "asc" ? "A→Z" : "Z→A") : "A→Z"}
-      </span>
+      {sort.key !== sortKey || sort.direction === null ? (
+        <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+      ) : sort.direction === "asc" ? (
+        <ArrowUpAZ className="h-3.5 w-3.5 text-muted-foreground" />
+      ) : (
+        <ArrowDownAZ className="h-3.5 w-3.5 text-muted-foreground" />
+      )}
     </button>
   )
 
