@@ -358,8 +358,10 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
     setEditName(filter.name)
   }, [])
 
+  const hasSavedFilters = savedFilters.length > 0
+
   return (
-    <div className="flex items-center gap-2">
+    <div className={`grid w-full gap-2 ${hasSavedFilters ? "grid-cols-2" : "grid-cols-1"}`}>
       {/* Save Current Filters */}
       <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
         <DialogTrigger asChild>
@@ -367,7 +369,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
             variant="outline"
             size="sm"
             disabled={totalActiveFilters === 0}
-            className="flex items-center gap-2 bg-transparent"
+            className="h-10 w-full items-center justify-center gap-2 border-dashed border-sidebar-border/70 bg-background/70"
           >
             <Save className="h-4 w-4" />
             Save Filters
@@ -405,12 +407,16 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
       </Dialog>
 
       {/* Load Saved Filters with Delete Option */}
-      {savedFilters.length > 0 && (
+      {hasSavedFilters && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="flex items-center gap-2 bg-transparent">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="h-10 w-full items-center justify-center gap-2 border border-sidebar-border/60 bg-background"
+            >
               <FolderOpen className="h-4 w-4" />
-              Load saved filters...
+              Load saved filters
               <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -460,7 +466,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
       )}
 
       {/* Manage Saved Filters */}
-      {savedFilters.length > 0 && (
+      {hasSavedFilters && (
         <Dialog open={manageDialogOpen} onOpenChange={setManageDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
@@ -488,7 +494,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Filter Set</AlertDialogTitle>
             <AlertDialogDescription>
-              {`Are you sure you want to delete “${filterToDelete?.name ?? ""}”? This action cannot be undone.`}
+              {`Are you sure you want to delete "${filterToDelete?.name ?? ""}"? This action cannot be undone.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -66,20 +66,21 @@ export function FiltersSidebar({
   formatRevenueInMillions,
 }: FiltersSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const activeFilters = getTotalActiveFilters()
 
   return (
     <div className={cn(
-      "border-r bg-sidebar overflow-y-auto transition-all duration-300 relative",
-      isCollapsed ? "w-12" : "w-[30%]"
+      "relative h-full border-r bg-sidebar/95 overflow-y-auto transition-all duration-300 backdrop-blur supports-[backdrop-filter]:backdrop-blur-sm",
+      isCollapsed ? "w-14 px-0" : "w-[30%] min-w-[320px] max-w-[380px] px-4 shadow-sm"
     )}>
       {/* Collapse/Expand Button */}
       <Button
-        variant="ghost"
-        size="sm"
+        variant="outline"
+        size="icon"
         onClick={() => setIsCollapsed(!isCollapsed)}
         className={cn(
-          "absolute top-4 z-10 h-8 w-8 p-0 hover:bg-accent",
-          isCollapsed ? "left-2" : "right-2"
+          "absolute top-4 z-20 h-9 w-9 rounded-full border-sidebar-border/70 bg-background/90 text-muted-foreground shadow-sm transition hover:shadow",
+          isCollapsed ? "left-1/2 -translate-x-1/2" : "right-1"
         )}
         title={isCollapsed ? "Expand filters" : "Collapse filters"}
       >
@@ -88,14 +89,40 @@ export function FiltersSidebar({
 
       {/* Collapsed State */}
       {isCollapsed && (
-        <div className="flex flex-col items-center pt-16 space-y-4">
-          <div className="flex flex-col items-center gap-2">
-            <Filter className="h-5 w-5 text-muted-foreground" />
-            {getTotalActiveFilters() > 0 && (
-              <Badge variant="secondary" className="w-6 h-6 p-0 flex items-center justify-center text-xs">
-                {getTotalActiveFilters()}
+        <div className="flex h-full flex-col items-center justify-between py-10">
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sidebar-accent text-sidebar-foreground shadow-sm">
+              <Filter className="h-5 w-5" />
+            </div>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              Filters
+            </span>
+            {activeFilters > 0 && (
+              <Badge variant="secondary" className="rounded-full px-2 py-1 text-[10px]">
+                {activeFilters}
               </Badge>
             )}
+          </div>
+
+          <div className="flex flex-col items-center gap-2 pb-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={resetFilters}
+              className="border border-sidebar-border/70 bg-sidebar-accent/60 text-foreground hover:bg-sidebar-accent"
+              title="Reset filters"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleExportAll}
+              className="border border-sidebar-border/70 bg-sidebar-accent/60 text-foreground hover:bg-sidebar-accent"
+              title="Export results"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       )}
@@ -104,39 +131,53 @@ export function FiltersSidebar({
       {!isCollapsed && (
         <div className="p-4 space-y-4 pt-16">
         {/* Filter Actions */}
-        <div className="flex flex-col gap-2 mb-4 pb-4 border-b border-sidebar-border">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-semibold text-foreground">Filters</span>
-            {getTotalActiveFilters() > 0 && (
-              <Badge variant="secondary" className="ml-auto">{getTotalActiveFilters()} active</Badge>
-            )}
-            {isApplying && (
-              <Badge variant="outline" className="text-blue-600 border-blue-600 flex items-center gap-1">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                Auto-applying
-              </Badge>
-            )}
+        <div className="space-y-4 rounded-2xl border border-sidebar-border/70 bg-gradient-to-b from-sidebar-accent/80 via-sidebar to-sidebar px-4 py-5 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Filter className="h-4 w-4" />
+            </div>
+            <div className="flex-1 space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-foreground">Filters</span>
+                {activeFilters > 0 && (
+                  <Badge variant="secondary" className="rounded-full">{activeFilters} active</Badge>
+                )}
+                {isApplying && (
+                  <Badge variant="outline" className="flex items-center gap-1 text-blue-600 border-blue-600">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Auto-applying
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Curate results, save favorite filter sets, or quickly reset and export.
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <SavedFiltersManager
-              currentFilters={filters}
-              onLoadFilters={handleLoadSavedFilters}
-              totalActiveFilters={getTotalActiveFilters()}
-            />
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={resetFilters} className="flex-1">
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Reset
-              </Button>
-              <Button variant="default" size="sm" onClick={handleExportAll} className="flex-1 flex items-center justify-center gap-2">
-                <Download className="h-4 w-4" />
-                Export
-              </Button>
-            </div>
-            <div className="text-xs text-muted-foreground px-1">
-              Filters auto-apply as you select. Use +/- to include/exclude.
-            </div>
+
+          <SavedFiltersManager
+            currentFilters={filters}
+            onLoadFilters={handleLoadSavedFilters}
+            totalActiveFilters={activeFilters}
+          />
+
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" size="sm" onClick={resetFilters} className="h-10 justify-center border-dashed">
+              <RotateCcw className="h-4 w-4" />
+              Reset
+            </Button>
+            <Button variant="default" size="sm" onClick={handleExportAll} className="h-10 justify-center">
+              <Download className="h-4 w-4" />
+              Export
+            </Button>
+          </div>
+
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+            <span className="inline-flex items-center gap-2 rounded-full bg-background/70 px-2 py-1">
+              <Loader2 className="h-3 w-3 text-blue-600" />
+              Auto-applies as you select
+            </span>
+            <span>Use +/- to include or exclude</span>
           </div>
         </div>
 
