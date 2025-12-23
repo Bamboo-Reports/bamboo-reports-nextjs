@@ -102,7 +102,7 @@ export function FiltersSidebar({
 
       {/* Expanded State */}
       {!isCollapsed && (
-        <div className="p-3 space-y-3 pt-16">
+        <div className="p-3 space-y-3">
           {/* Filter Actions */}
           <div className="flex flex-col gap-2 mb-3 pb-3 border-b border-sidebar-border">
             <div className="flex items-center gap-2">
