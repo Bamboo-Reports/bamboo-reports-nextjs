@@ -78,12 +78,14 @@ export function FiltersSidebar({
         size="icon"
         onClick={() => setIsCollapsed(!isCollapsed)}
         className={cn(
-          "absolute top-3 z-10 h-6 w-6 rounded-full border bg-background shadow-md hover:bg-accent flex items-center justify-center",
-          isCollapsed ? "left-1/2 -translate-x-1/2" : "-right-3"
+          "absolute top-3 z-10 h-6 border bg-background shadow-md hover:bg-accent flex items-center justify-center transition-all duration-300",
+          isCollapsed
+            ? "w-6 left-1/2 -translate-x-1/2 rounded-full"
+            : "w-9 right-6 rounded-full"
         )}
         title={isCollapsed ? "Expand filters" : "Collapse filters"}
       >
-        {isCollapsed ? <PanelLeftOpen className="h-3 w-3" /> : <PanelLeftClose className="h-3 w-3" />}
+        {isCollapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
       </Button>
 
       {/* Collapsed State */}
