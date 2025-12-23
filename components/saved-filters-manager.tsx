@@ -68,6 +68,8 @@ interface SavedFiltersManagerProps {
   currentFilters: Filters
   onLoadFilters: (filters: Filters) => void
   totalActiveFilters: number
+  onReset?: () => void
+  onExport?: () => void
 }
 
 // Memoized FilterBadge component to prevent re-renders
@@ -79,12 +81,12 @@ const FilterBadge = memo(({ filterKey, value }: { filterKey: string; value: stri
 FilterBadge.displayName = "FilterBadge"
 
 // Memoized SavedFilterCard component to prevent re-renders
-const SavedFilterCard = memo(({ 
-  filter, 
-  onLoad, 
-  onEdit, 
-  onDelete 
-}: { 
+const SavedFilterCard = memo(({
+  filter,
+  onLoad,
+  onEdit,
+  onDelete
+}: {
   filter: SavedFilter
   onLoad: (filter: SavedFilter) => void
   onEdit: (filter: SavedFilter) => void
@@ -216,10 +218,12 @@ const SavedFilterCard = memo(({
 SavedFilterCard.displayName = "SavedFilterCard"
 
 // Main component wrapped in memo to prevent unnecessary re-renders
-export const SavedFiltersManager = memo(function SavedFiltersManager({ 
-  currentFilters, 
-  onLoadFilters, 
-  totalActiveFilters 
+export const SavedFiltersManager = memo(function SavedFiltersManager({
+  currentFilters,
+  onLoadFilters,
+  totalActiveFilters,
+  onReset,
+  onExport
 }: SavedFiltersManagerProps) {
   const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([])
   const [loading, setLoading] = useState(false)
@@ -359,128 +363,176 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
   }, [])
 
   return (
-    <div className="flex items-center gap-2">
-      {/* Save Current Filters */}
-      <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
-        <DialogTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={totalActiveFilters === 0}
-            className="flex items-center gap-2 bg-transparent"
-          >
-            <Save className="h-4 w-4" />
-            Save Filters
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Save Current Filters</DialogTitle>
-            <DialogDescription>Give your current filter combination a name to save it for later use.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="filter-name">Filter Set Name</Label>
-              <Input
-                id="filter-name"
-                placeholder="e.g., US Tech Companies, Indian Centers..."
-                value={filterName}
-                onChange={(e) => setFilterName(e.target.value)}
-              />
-            </div>
-            <div className="bg-muted p-3 rounded-lg">
-              <p className="text-sm font-medium text-foreground mb-2">Current Filters Summary:</p>
-              <Badge variant="secondary">{totalActiveFilters} active filters</Badge>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveFilter} disabled={!filterName.trim() || loading}>
-              {loading ? "Saving..." : "Save Filters"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Load Saved Filters with Delete Option */}
-      {savedFilters.length > 0 && (
+    <div className="flex flex-col gap-3 w-full bg-sidebar-accent/5 p-3 rounded-lg border border-sidebar-border/50">
+      <div className="flex items-center gap-2 w-full">
+        {/* Load Saved Filters Dropdown - Takes full width minus button */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="flex items-center gap-2 bg-transparent">
-              <FolderOpen className="h-4 w-4" />
-              Load saved filters...
-              <ChevronDown className="h-4 w-4" />
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 justify-between bg-background hover:bg-accent/50 border-input/50 h-9"
+            >
+              <div className="flex items-center gap-2 truncate">
+                <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <span className="truncate">Saved Filters</span>
+              </div>
+              <ChevronDown className="h-3.5 w-3.5 opacity-50 ml-2 shrink-0" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-80">
-            <div className="px-2 py-1.5 text-sm font-medium text-foreground">Saved Filter Sets</div>
+          <DropdownMenuContent className="w-[280px]" align="start">
+            <div className="px-2 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              My Saved Filters
+            </div>
             <DropdownMenuSeparator />
-            {savedFilters.map((filter) => (
-              <DropdownMenuItem key={filter.id} className="flex items-center justify-between p-0">
-                <button
-                  className="flex-1 flex items-center justify-between px-2 py-1.5 hover:bg-muted rounded text-left"
-                  onClick={() => handleLoadFilter(filter)}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{filter.name}</span>
-                    <Badge variant="outline" className="text-xs">
+            {savedFilters.length === 0 ? (
+              <div className="px-4 py-3 text-sm text-center text-muted-foreground italic">
+                No saved filters yet
+              </div>
+            ) : (
+              savedFilters.map((filter) => (
+                <DropdownMenuItem key={filter.id} className="flex items-center justify-between p-0 group">
+                  <button
+                    className="flex-1 flex items-center justify-between px-2 py-2 hover:bg-accent rounded-sm text-left transition-colors"
+                    onClick={() => handleLoadFilter(filter)}
+                  >
+                    <span className="font-medium text-sm truncate max-w-[180px]">{filter.name}</span>
+                    <Badge variant="secondary" className="text-[10px] h-5 px-1.5 ml-2 shrink-0 bg-muted/50">
                       {getFilterSummary(filter.filters)}
                     </Badge>
-                  </div>
-                </button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 mr-1"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleDeleteFilter(filter)
-                  }}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="p-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-muted-foreground"
-                onClick={() => setManageDialogOpen(true)}
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Manage all filters...
-              </Button>
-            </DropdownMenuItem>
+                  </button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 mr-1 transition-all"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDeleteFilter(filter)
+                    }}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </DropdownMenuItem>
+              ))
+            )}
+            {savedFilters.length > 0 && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="p-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-xs h-8 font-normal text-muted-foreground hover:text-foreground"
+                    onClick={() => setManageDialogOpen(true)}
+                  >
+                    <Settings className="h-3.5 w-3.5 mr-2" />
+                    Manage all filters...
+                  </Button>
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Save Current Filters - Circular Button */}
+        <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+          <DialogTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={totalActiveFilters === 0}
+              className="h-9 w-9 rounded-full shrink-0 bg-background hover:bg-primary hover:text-primary-foreground border-input/50 transition-all shadow-sm"
+              title="Save current filters"
+            >
+              <Save className="h-4 w-4" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Save Filter Configuration</DialogTitle>
+              <DialogDescription>
+                Save your current layout of {totalActiveFilters} active filters to easily access them later.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="filter-name">Name</Label>
+                <Input
+                  id="filter-name"
+                  placeholder="e.g., Q4 Prospect List, Tech Hiring..."
+                  value={filterName}
+                  onChange={(e) => setFilterName(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setSaveDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveFilter} disabled={!filterName.trim() || loading}>
+                {loading ? "Saving..." : "Save List"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Action Buttons Row */}
+      {(onReset || onExport) && (
+        <div className="grid grid-cols-2 gap-2 w-full">
+          {onReset && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onReset}
+              className="w-full h-8 text-xs font-medium bg-secondary/50 hover:bg-secondary/80 text-secondary-foreground border border-transparent hover:border-border/50 transition-all"
+            >
+              Reset
+            </Button>
+          )}
+          {onExport && (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={onExport}
+              className="w-full h-8 text-xs font-medium shadow-none hover:shadow-sm transition-all"
+            >
+              Export
+            </Button>
+          )}
+        </div>
       )}
 
+      {/* Logic for Managing and Deleting Filters (unchanged usually but included for completeness in single file) */}
+
       {/* Manage Saved Filters */}
-      {savedFilters.length > 0 && (
-        <Dialog open={manageDialogOpen} onOpenChange={setManageDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Manage Saved Filters</DialogTitle>
-              <DialogDescription>View, edit, or delete your saved filter sets.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              {savedFilters.map((filter) => (
+      <Dialog open={manageDialogOpen} onOpenChange={setManageDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Manage Saved Filters</DialogTitle>
+            <DialogDescription>View, edit, or delete your saved filter sets.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {savedFilters.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">No saved filters found.</div>
+            ) : (
+              savedFilters.map((filter) => (
                 <SavedFilterCard
                   key={filter.id}
                   filter={filter}
-                  onLoad={handleLoadFilter}
+                  onLoad={(f) => {
+                    handleLoadFilter(f)
+                    setManageDialogOpen(false)
+                  }}
                   onEdit={handleEdit}
                   onDelete={handleDeleteFilter}
                 />
-              ))}
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
@@ -488,12 +540,12 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Filter Set</AlertDialogTitle>
             <AlertDialogDescription>
-              {`Are you sure you want to delete “${filterToDelete?.name ?? ""}”? This action cannot be undone.`}
+              {`Are you sure you want to delete "${filterToDelete?.name ?? ""}"? This action cannot be undone.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setFilterToDelete(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteFilter} className="bg-red-600 hover:bg-red-700" disabled={loading}>
+            <AlertDialogAction onClick={confirmDeleteFilter} className="bg-destructive hover:bg-destructive/90" disabled={loading}>
               {loading ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -512,21 +564,20 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Filter Name</DialogTitle>
-            <DialogDescription>Change the name of your saved filter set.</DialogDescription>
+            <DialogTitle>Rename Filter Set</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="edit-name">Filter Set Name</Label>
+              <Label htmlFor="edit-name">Name</Label>
               <Input id="edit-name" value={editName} onChange={(e) => setEditName(e.target.value)} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingFilter(null)}>
+            <Button variant="ghost" onClick={() => setEditingFilter(null)}>
               Cancel
             </Button>
             <Button onClick={handleUpdateFilter} disabled={!editName.trim() || loading}>
-              {loading ? "Updating..." : "Update"}
+              {loading ? "Updating..." : "Update Name"}
             </Button>
           </DialogFooter>
         </DialogContent>
