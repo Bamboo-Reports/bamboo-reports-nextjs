@@ -17,8 +17,8 @@ import {
   Briefcase,
   Users,
   X,
-  ChevronLeft,
-  ChevronRight,
+  PanelLeftOpen,
+  PanelLeftClose,
   Plus,
   Minus,
 } from "lucide-react"
