@@ -318,10 +318,7 @@ export function AccountAutocomplete({
         )}
       </div>
 
-      {/* Help text */}
-      <p className="text-xs text-muted-foreground">
-        Type to search from {uniqueAccountNames.length.toLocaleString()} accounts. Click + to include or - to exclude.
-      </p>
+
     </div>
   )
 }

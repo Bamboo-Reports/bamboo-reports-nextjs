@@ -126,9 +126,6 @@ export function FiltersSidebar({
                 onReset={resetFilters}
                 onExport={handleExportAll}
               />
-              <div className="text-xs text-muted-foreground px-1">
-                Filters auto-apply as you select. Use +/- to include/exclude.
-              </div>
             </div>
           </div>
 
@@ -158,7 +155,7 @@ export function FiltersSidebar({
                   {/* Account Filters */}
                   <div className="space-y-3">
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Countries ({availableOptions.accountCountries?.length || 0})</Label>
+                      <Label className="text-xs font-medium">Countries</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.accountCountries || []}
                         selected={pendingFilters.accountCountries}
@@ -167,7 +164,7 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Regions ({availableOptions.accountRegions?.length || 0})</Label>
+                      <Label className="text-xs font-medium">Regions</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.accountRegions || []}
                         selected={pendingFilters.accountRegions}
@@ -176,7 +173,7 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Industries ({availableOptions.accountIndustries.length})</Label>
+                      <Label className="text-xs font-medium">Industries</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.accountIndustries}
                         selected={pendingFilters.accountIndustries}
@@ -185,7 +182,7 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Sub Industries ({availableOptions.accountSubIndustries.length})</Label>
+                      <Label className="text-xs font-medium">Sub Industries</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.accountSubIndustries}
                         selected={pendingFilters.accountSubIndustries}
@@ -196,7 +193,7 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Primary Categories ({availableOptions.accountPrimaryCategories.length})</Label>
+                      <Label className="text-xs font-medium">Primary Categories</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.accountPrimaryCategories}
                         selected={pendingFilters.accountPrimaryCategories}
@@ -207,7 +204,7 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Primary Nature ({availableOptions.accountPrimaryNatures.length})</Label>
+                      <Label className="text-xs font-medium">Primary Nature</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.accountPrimaryNatures}
                         selected={pendingFilters.accountPrimaryNatures}
@@ -218,7 +215,7 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">NASSCOM Status ({availableOptions.accountNasscomStatuses.length})</Label>
+                      <Label className="text-xs font-medium">NASSCOM Status</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.accountNasscomStatuses}
                         selected={pendingFilters.accountNasscomStatuses}
@@ -229,7 +226,7 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Employees Range ({availableOptions.accountEmployeesRanges.length})</Label>
+                      <Label className="text-xs font-medium">Employees Range</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.accountEmployeesRanges}
                         selected={pendingFilters.accountEmployeesRanges}
@@ -240,7 +237,7 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Center Employees ({availableOptions.accountCenterEmployees.length})</Label>
+                      <Label className="text-xs font-medium">Center Employees</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.accountCenterEmployees}
                         selected={pendingFilters.accountCenterEmployees}
@@ -340,7 +337,7 @@ export function FiltersSidebar({
                   {/* Center Filters */}
                   <div className="space-y-3">
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Center Types ({availableOptions.centerTypes.length})</Label>
+                      <Label className="text-xs font-medium">Center Types</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.centerTypes}
                         selected={pendingFilters.centerTypes}
@@ -349,7 +346,7 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Center Focus ({availableOptions.centerFocus.length})</Label>
+                      <Label className="text-xs font-medium">Center Focus</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.centerFocus}
                         selected={pendingFilters.centerFocus}
@@ -358,7 +355,7 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Cities ({availableOptions.centerCities.length})</Label>
+                      <Label className="text-xs font-medium">Cities</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.centerCities}
                         selected={pendingFilters.centerCities}
@@ -367,7 +364,7 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">States ({availableOptions.centerStates.length})</Label>
+                      <Label className="text-xs font-medium">States</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.centerStates}
                         selected={pendingFilters.centerStates}
@@ -376,7 +373,7 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Countries ({availableOptions.centerCountries.length})</Label>
+                      <Label className="text-xs font-medium">Countries</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.centerCountries}
                         selected={pendingFilters.centerCountries}
@@ -385,7 +382,7 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Center Employees ({availableOptions.centerEmployees.length})</Label>
+                      <Label className="text-xs font-medium">Center Employees</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.centerEmployees}
                         selected={pendingFilters.centerEmployees}
@@ -394,7 +391,7 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Center Status ({availableOptions.centerStatuses.length})</Label>
+                      <Label className="text-xs font-medium">Center Status</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.centerStatuses}
                         selected={pendingFilters.centerStatuses}
@@ -405,7 +402,7 @@ export function FiltersSidebar({
 
                     {/* Functions nested inside Centers */}
                     <div className="space-y-2 pt-4 mt-4 border-t border-border">
-                      <Label className="text-xs font-medium">Functions ({availableOptions.functionTypes.length})</Label>
+                      <Label className="text-xs font-medium">Functions</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.functionTypes}
                         selected={pendingFilters.functionTypes}
@@ -431,7 +428,7 @@ export function FiltersSidebar({
                   {/* Prospect Filters */}
                   <div className="space-y-3">
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Departments ({availableOptions.prospectDepartments?.length || 0})</Label>
+                      <Label className="text-xs font-medium">Departments</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.prospectDepartments || []}
                         selected={pendingFilters.prospectDepartments}
@@ -440,7 +437,7 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Levels ({availableOptions.prospectLevels?.length || 0})</Label>
+                      <Label className="text-xs font-medium">Levels</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.prospectLevels || []}
                         selected={pendingFilters.prospectLevels}
@@ -449,7 +446,7 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Cities ({availableOptions.prospectCities?.length || 0})</Label>
+                      <Label className="text-xs font-medium">Cities</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.prospectCities || []}
                         selected={pendingFilters.prospectCities}
