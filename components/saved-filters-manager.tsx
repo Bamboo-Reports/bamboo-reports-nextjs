@@ -380,7 +380,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
               <ChevronDown className="h-3.5 w-3.5 opacity-50 ml-2 shrink-0" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-[280px]" align="start">
+          <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-[220px]" align="start">
             <div className="px-2 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               My Saved Filters
             </div>
