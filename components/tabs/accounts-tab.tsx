@@ -125,7 +125,7 @@ export function AccountsTab({
             <CardTitle>Accounts Data</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            <div className="overflow-auto max-h-[60vh]">
               <Table>
                 <TableHeader>
                   <TableRow>
