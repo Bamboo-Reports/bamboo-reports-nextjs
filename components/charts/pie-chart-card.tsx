@@ -50,13 +50,18 @@ export const PieChartCard = memo(({ title, data, dataKey = "value" }: PieChartCa
                 cx="50%"
                 cy="50%"
                 outerRadius={80}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) => {
+                  if (percent < 0.05) return null
+                  return `${name}: ${(percent * 100).toFixed(0)}%`
+                }}
               >
                 {safeData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                 ))}
               </Pie>
-              <ChartLegend content={<ChartLegendContent />} />
+              <ChartLegend
+                content={<ChartLegendContent className="flex-wrap gap-x-8 gap-y-2 justify-center px-4" />}
+              />
             </PieChart>
           </ChartContainer>
         ) : (
