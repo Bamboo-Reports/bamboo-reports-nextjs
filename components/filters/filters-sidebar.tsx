@@ -110,10 +110,6 @@ export function FiltersSidebar({
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-semibold text-foreground">Filters</span>
-              {getTotalActiveFilters() > 0 && (
-                <Badge variant="secondary" className="ml-auto">{getTotalActiveFilters()} active</Badge>
-              )}
-
             </div>
             <div className="flex flex-col gap-2">
               <SavedFiltersManager
