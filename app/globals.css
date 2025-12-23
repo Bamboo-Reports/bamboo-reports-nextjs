@@ -93,6 +93,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Google Sans', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont,
+      'Segoe UI', sans-serif;
   }
 
   /* Performance optimizations */
