@@ -70,7 +70,7 @@ export function FiltersSidebar({
   return (
     <div className={cn(
       "border-r bg-sidebar overflow-y-auto transition-all duration-300 relative",
-      isCollapsed ? "w-12" : "w-[280px] shrink-0"
+      isCollapsed ? "w-12" : "w-[384px] shrink-0"
     )}>
       {/* Collapse/Expand Button */}
       <Button
