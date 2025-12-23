@@ -70,7 +70,7 @@ export function FiltersSidebar({
   return (
     <div className={cn(
       "border-r bg-sidebar overflow-y-auto transition-all duration-300 relative",
-      isCollapsed ? "w-12" : "w-[30%]"
+      isCollapsed ? "w-12" : "w-[280px] shrink-0"
     )}>
       {/* Collapse/Expand Button */}
       <Button
@@ -102,9 +102,9 @@ export function FiltersSidebar({
 
       {/* Expanded State */}
       {!isCollapsed && (
-        <div className="p-4 space-y-4 pt-16">
+        <div className="p-3 space-y-3 pt-16">
           {/* Filter Actions */}
-          <div className="flex flex-col gap-2 mb-4 pb-4 border-b border-sidebar-border">
+          <div className="flex flex-col gap-2 mb-3 pb-3 border-b border-sidebar-border">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-semibold text-foreground">Filters</span>

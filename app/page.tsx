@@ -951,7 +951,7 @@ function DashboardContent() {
       pendingFilters.accountEmployeesRanges.length +
       pendingFilters.accountCenterEmployees.length +
       (pendingFilters.accountRevenueRange[0] !== revenueRange.min ||
-      pendingFilters.accountRevenueRange[1] !== revenueRange.max
+        pendingFilters.accountRevenueRange[1] !== revenueRange.max
         ? 1
         : 0) +
       (pendingFilters.includeNullRevenue ? 1 : 0) +
@@ -1073,7 +1073,7 @@ function DashboardContent() {
           />
 
           {/* Right Side - Data View (70%) */}
-          <div className="flex-1 w-[70%] overflow-y-auto bg-background">
+          <div className="flex-1 overflow-y-auto bg-background">
             <div className="p-6">
               <SummaryCards
                 filteredAccountsCount={filteredData.filteredAccounts.length}
@@ -1092,46 +1092,46 @@ function DashboardContent() {
                   <TabsTrigger value="prospects">Prospects ({filteredData.filteredProspects.length})</TabsTrigger>
                 </TabsList>
 
-              <AccountsTab
-                accounts={filteredData.filteredAccounts}
-                centers={filteredData.filteredCenters}
-                prospects={filteredData.filteredProspects}
-                services={filteredData.filteredServices}
-                functions={functions}
-                accountChartData={accountChartData}
-                accountsView={accountsView}
-                setAccountsView={setAccountsView}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-              />
+                <AccountsTab
+                  accounts={filteredData.filteredAccounts}
+                  centers={filteredData.filteredCenters}
+                  prospects={filteredData.filteredProspects}
+                  services={filteredData.filteredServices}
+                  functions={functions}
+                  accountChartData={accountChartData}
+                  accountsView={accountsView}
+                  setAccountsView={setAccountsView}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                />
 
-              <CentersTab
-                centers={filteredData.filteredCenters}
-                functions={functions}
-                services={filteredData.filteredServices}
-                centerChartData={centerChartData}
-                centersView={centersView}
-                setCentersView={setCentersView}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-              />
+                <CentersTab
+                  centers={filteredData.filteredCenters}
+                  functions={functions}
+                  services={filteredData.filteredServices}
+                  centerChartData={centerChartData}
+                  centersView={centersView}
+                  setCentersView={setCentersView}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                />
 
-              <ProspectsTab
-                prospects={filteredData.filteredProspects}
-                prospectChartData={prospectChartData}
-                prospectsView={prospectsView}
-                setProspectsView={setProspectsView}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-              />
-            </Tabs>
+                <ProspectsTab
+                  prospects={filteredData.filteredProspects}
+                  prospectChartData={prospectChartData}
+                  prospectsView={prospectsView}
+                  setProspectsView={setProspectsView}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                />
+              </Tabs>
             </div>
           </div>
         </div>
-        )}
+      )}
     </div>
   )
 }
