@@ -79,12 +79,12 @@ const FilterBadge = memo(({ filterKey, value }: { filterKey: string; value: stri
 FilterBadge.displayName = "FilterBadge"
 
 // Memoized SavedFilterCard component to prevent re-renders
-const SavedFilterCard = memo(({ 
-  filter, 
-  onLoad, 
-  onEdit, 
-  onDelete 
-}: { 
+const SavedFilterCard = memo(({
+  filter,
+  onLoad,
+  onEdit,
+  onDelete
+}: {
   filter: SavedFilter
   onLoad: (filter: SavedFilter) => void
   onEdit: (filter: SavedFilter) => void
@@ -216,10 +216,10 @@ const SavedFilterCard = memo(({
 SavedFilterCard.displayName = "SavedFilterCard"
 
 // Main component wrapped in memo to prevent unnecessary re-renders
-export const SavedFiltersManager = memo(function SavedFiltersManager({ 
-  currentFilters, 
-  onLoadFilters, 
-  totalActiveFilters 
+export const SavedFiltersManager = memo(function SavedFiltersManager({
+  currentFilters,
+  onLoadFilters,
+  totalActiveFilters
 }: SavedFiltersManagerProps) {
   const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([])
   const [loading, setLoading] = useState(false)
@@ -404,60 +404,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
         </DialogContent>
       </Dialog>
 
-      {/* Load Saved Filters with Delete Option */}
-      {savedFilters.length > 0 && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="flex items-center gap-2 bg-transparent">
-              <FolderOpen className="h-4 w-4" />
-              Load saved filters...
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-80">
-            <div className="px-2 py-1.5 text-sm font-medium text-foreground">Saved Filter Sets</div>
-            <DropdownMenuSeparator />
-            {savedFilters.map((filter) => (
-              <DropdownMenuItem key={filter.id} className="flex items-center justify-between p-0">
-                <button
-                  className="flex-1 flex items-center justify-between px-2 py-1.5 hover:bg-muted rounded text-left"
-                  onClick={() => handleLoadFilter(filter)}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{filter.name}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {getFilterSummary(filter.filters)}
-                    </Badge>
-                  </div>
-                </button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 mr-1"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleDeleteFilter(filter)
-                  }}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="p-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-muted-foreground"
-                onClick={() => setManageDialogOpen(true)}
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Manage all filters...
-              </Button>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
+
 
       {/* Manage Saved Filters */}
       {savedFilters.length > 0 && (
