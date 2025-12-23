@@ -111,12 +111,7 @@ export function FiltersSidebar({
               {getTotalActiveFilters() > 0 && (
                 <Badge variant="secondary" className="ml-auto">{getTotalActiveFilters()} active</Badge>
               )}
-              {isApplying && (
-                <Badge variant="outline" className="text-blue-600 border-blue-600 flex items-center gap-1">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  Auto-applying
-                </Badge>
-              )}
+
             </div>
             <div className="flex flex-col gap-2">
               <SavedFiltersManager
