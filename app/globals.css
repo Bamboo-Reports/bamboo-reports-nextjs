@@ -95,29 +95,6 @@
     @apply bg-background text-foreground;
     font-family: 'Google Sans', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont,
       'Segoe UI', sans-serif;
-    position: relative;
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background:
-      radial-gradient(circle at 20% 20%, hsl(var(--chart-1) / 0.12), transparent 35%),
-      radial-gradient(circle at 80% 10%, hsl(var(--chart-3) / 0.12), transparent 32%),
-      radial-gradient(circle at 70% 80%, hsl(var(--chart-2) / 0.12), transparent 38%),
-      linear-gradient(145deg, hsl(var(--background)), hsl(var(--background) / 0.8));
-    opacity: 0.95;
-  }
-
-  .dark body::before {
-    background:
-      radial-gradient(circle at 22% 18%, hsl(var(--chart-1) / 0.18), transparent 36%),
-      radial-gradient(circle at 78% 8%, hsl(var(--chart-5) / 0.16), transparent 34%),
-      radial-gradient(circle at 70% 82%, hsl(var(--chart-2) / 0.14), transparent 36%),
-      linear-gradient(155deg, hsl(var(--background)), hsl(var(--background) / 0.7));
-    opacity: 0.9;
   }
 
   /* Performance optimizations */
