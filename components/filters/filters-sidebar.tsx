@@ -70,15 +70,15 @@ export function FiltersSidebar({
   return (
     <div className={cn(
       "border-r bg-sidebar overflow-y-auto transition-all duration-300 relative",
-      isCollapsed ? "w-12" : "w-[384px] shrink-0"
+      isCollapsed ? "w-16" : "w-[384px] shrink-0"
     )}>
       {/* Collapse/Expand Button */}
       <Button
         variant="ghost"
-        size="sm"
+        size="icon"
         onClick={() => setIsCollapsed(!isCollapsed)}
         className={cn(
-          "absolute top-4 z-10 h-8 w-8 p-0 hover:bg-accent",
+          "absolute -right-3 top-2 h-6 w-14 rounded-full border bg-background shadow-md z-10 hover:bg-accent",
           isCollapsed ? "left-2" : "right-2"
         )}
         title={isCollapsed ? "Expand filters" : "Collapse filters"}
