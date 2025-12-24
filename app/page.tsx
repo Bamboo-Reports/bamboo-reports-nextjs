@@ -1054,7 +1054,7 @@ function DashboardContent() {
       <Header onRefresh={loadData} />
 
       {dataLoaded && (
-        <div className="flex h-[calc(100vh-88px)]">
+        <div className="flex h-[calc(100vh-88px)] min-h-0">
           <FiltersSidebar
             filters={filters}
             pendingFilters={pendingFilters}
@@ -1073,19 +1073,21 @@ function DashboardContent() {
           />
 
           {/* Right Side - Data View (70%) */}
-          <div className="flex-1 overflow-y-auto bg-background">
-            <div className="p-6">
-              <SummaryCards
-                filteredAccountsCount={filteredData.filteredAccounts.length}
-                totalAccountsCount={accounts.length}
-                filteredCentersCount={filteredData.filteredCenters.length}
-                totalCentersCount={centers.length}
-                filteredProspectsCount={filteredData.filteredProspects.length}
-                totalProspectsCount={prospects.length}
-              />
+          <div className="flex-1 min-h-0 bg-background">
+            <div className="flex h-full min-h-0 flex-col overflow-hidden p-6">
+              <div className="mb-4 flex-none">
+                <SummaryCards
+                  filteredAccountsCount={filteredData.filteredAccounts.length}
+                  totalAccountsCount={accounts.length}
+                  filteredCentersCount={filteredData.filteredCenters.length}
+                  totalCentersCount={centers.length}
+                  filteredProspectsCount={filteredData.filteredProspects.length}
+                  totalProspectsCount={prospects.length}
+                />
+              </div>
 
               {/* Data Tables */}
-              <Tabs defaultValue="accounts" className="space-y-4">
+              <Tabs defaultValue="accounts" className="flex flex-1 min-h-0 flex-col gap-4 overflow-hidden">
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="accounts">Accounts ({filteredData.filteredAccounts.length})</TabsTrigger>
                   <TabsTrigger value="centers">Centers ({filteredData.filteredCenters.length})</TabsTrigger>

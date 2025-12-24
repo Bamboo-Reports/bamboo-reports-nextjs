@@ -112,16 +112,16 @@ export function ProspectsTab({
   // Show empty state when no prospects
   if (prospects.length === 0) {
     return (
-      <TabsContent value="prospects">
+      <TabsContent value="prospects" className="mt-2 flex h-full min-h-0 flex-col overflow-hidden">
         <EmptyState type="no-results" />
       </TabsContent>
     )
   }
 
   return (
-    <TabsContent value="prospects">
+    <TabsContent value="prospects" className="mt-2 flex h-full min-h-0 flex-col overflow-hidden">
       {/* Header with View Toggle */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="mb-4 flex shrink-0 items-center gap-2">
         <PieChartIcon className="h-5 w-5 text-[hsl(var(--chart-1))]" />
         <h2 className="text-lg font-semibold text-foreground">Prospect Analytics</h2>
         <Badge variant="secondary" className="ml-2">
@@ -167,58 +167,56 @@ export function ProspectsTab({
 
       {/* Data Table */}
       {prospectsView === "data" && (
-        <Card>
-          <CardHeader>
+        <Card className="flex flex-1 min-h-0 flex-col overflow-hidden">
+          <CardHeader className="flex-none">
             <CardTitle>Prospects Data</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-auto max-h-[60vh]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-16"></TableHead>
-                    <TableHead>
-                      <SortButton label="First Name" sortKey="first" />
-                    </TableHead>
-                    <TableHead>
-                      <SortButton label="Last Name" sortKey="last" />
-                    </TableHead>
-                    <TableHead>
-                      <SortButton label="Job Title" sortKey="title" />
-                    </TableHead>
-                    <TableHead>
-                      <SortButton label="Account Name" sortKey="account" />
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {getPaginatedData(sortedProspects, currentPage, itemsPerPage).map(
-                    (prospect, index) => (
+          <CardContent className="flex flex-1 min-h-0 flex-col overflow-hidden">
+            <div className="flex-1 overflow-hidden">
+              <div className="h-full overflow-y-auto rounded-md border border-border/50">
+                <Table className="min-w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16"></TableHead>
+                      <TableHead>
+                        <SortButton label="First Name" sortKey="first" />
+                      </TableHead>
+                      <TableHead>
+                        <SortButton label="Last Name" sortKey="last" />
+                      </TableHead>
+                      <TableHead>
+                        <SortButton label="Job Title" sortKey="title" />
+                      </TableHead>
+                      <TableHead>
+                        <SortButton label="Account Name" sortKey="account" />
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {getPaginatedData(sortedProspects, currentPage, itemsPerPage).map((prospect, index) => (
                       <ProspectRow
-                      key={`${prospect.prospect_email}-${index}`}
+                        key={`${prospect.prospect_email}-${index}`}
                         prospect={prospect}
                         onClick={() => handleProspectClick(prospect)}
                       />
-                    )
-                  )}
-                </TableBody>
-              </Table>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
-                {prospects.length > 0 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-4">
-                      <p className="text-sm text-muted-foreground">
-                        Showing{" "}
-                        {getPageInfo(currentPage, prospects.length, itemsPerPage).startItem} to{" "}
-                        {getPageInfo(currentPage, prospects.length, itemsPerPage).endItem} of{" "}
-                        {prospects.length} results
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => exportToExcel(sortedProspects, "prospects-export", "Prospects")}
-                        className="flex items-center gap-2"
-                      >
+            {prospects.length > 0 && (
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {getPageInfo(currentPage, prospects.length, itemsPerPage).startItem} to{" "}
+                    {getPageInfo(currentPage, prospects.length, itemsPerPage).endItem} of {prospects.length} results
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportToExcel(sortedProspects, "prospects-export", "Prospects")}
+                    className="flex items-center gap-2"
+                  >
                     <Download className="h-4 w-4" />
                     Export Prospects
                   </Button>
@@ -240,13 +238,9 @@ export function ProspectsTab({
                       variant="outline"
                       size="sm"
                       onClick={() =>
-                        setCurrentPage((prev) =>
-                          Math.min(prev + 1, getTotalPages(prospects.length, itemsPerPage))
-                        )
+                        setCurrentPage((prev) => Math.min(prev + 1, getTotalPages(prospects.length, itemsPerPage)))
                       }
-                      disabled={
-                        currentPage === getTotalPages(prospects.length, itemsPerPage)
-                      }
+                      disabled={currentPage === getTotalPages(prospects.length, itemsPerPage)}
                     >
                       Next
                     </Button>
