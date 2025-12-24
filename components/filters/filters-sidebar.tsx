@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,6 +21,8 @@ import {
   PanelLeftClose,
   Plus,
   Minus,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react"
 import { EnhancedMultiSelect } from "@/components/enhanced-multi-select"
 import { SavedFiltersManager } from "@/components/saved-filters-manager"
@@ -66,6 +68,27 @@ export function FiltersSidebar({
   formatRevenueInMillions,
 }: FiltersSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [showApplied, setShowApplied] = useState(false)
+  const wasApplyingRef = useRef(false)
+
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined
+
+    if (isApplying) {
+      wasApplyingRef.current = true
+      setShowApplied(false)
+    } else if (wasApplyingRef.current) {
+      setShowApplied(true)
+      timeoutId = setTimeout(() => setShowApplied(false), 1800)
+      wasApplyingRef.current = false
+    }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
+    }
+  }, [isApplying])
 
   return (
     <div className={cn(
@@ -107,9 +130,25 @@ export function FiltersSidebar({
         <div className="p-3 space-y-3">
           {/* Filter Actions */}
           <div className="flex flex-col gap-2 mb-3 pb-3 border-b border-sidebar-border">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-semibold text-foreground">Filters</span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-semibold text-foreground">Filters</span>
+              </div>
+              <div className="ml-auto flex items-center gap-2">
+                {isApplying && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-2.5 py-1 text-[11px] font-medium text-primary">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Applying filters...
+                  </span>
+                )}
+                {!isApplying && showApplied && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/50 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-200">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Filters applied
+                  </span>
+                )}
+              </div>
             </div>
             <div className="flex flex-col gap-2">
               <SavedFiltersManager
