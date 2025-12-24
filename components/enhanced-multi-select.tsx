@@ -254,7 +254,7 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
       setShowSuccess(true)
       const timer = setTimeout(() => {
         setShowSuccess(false)
-      }, 2000)
+      }, 500)
       return () => clearTimeout(timer)
     }
     prevIsApplying.current = isApplying
