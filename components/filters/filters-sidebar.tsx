@@ -66,6 +66,7 @@ export function FiltersSidebar({
   formatRevenueInMillions,
 }: FiltersSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [activeFilter, setActiveFilter] = useState<string | null>(null)
 
   return (
     <div className={cn(
@@ -152,9 +153,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.accountCountries || []}
                         selected={pendingFilters.accountCountries}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountCountries: selected }))}
+                        onChange={(selected) => {
+                          setPendingFilters((prev) => ({ ...prev, accountCountries: selected }))
+                          setActiveFilter("accountCountries")
+                        }}
                         placeholder="Select countries..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "accountCountries"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -162,9 +166,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.accountRegions || []}
                         selected={pendingFilters.accountRegions}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountRegions: selected }))}
+                        onChange={(selected) => {
+                          setPendingFilters((prev) => ({ ...prev, accountRegions: selected }))
+                          setActiveFilter("accountRegions")
+                        }}
                         placeholder="Select regions..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "accountRegions"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -172,9 +179,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.accountIndustries}
                         selected={pendingFilters.accountIndustries}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountIndustries: selected }))}
+                        onChange={(selected) => {
+                          setPendingFilters((prev) => ({ ...prev, accountIndustries: selected }))
+                          setActiveFilter("accountIndustries")
+                        }}
                         placeholder="Select industries..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "accountIndustries"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -182,11 +192,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.accountSubIndustries}
                         selected={pendingFilters.accountSubIndustries}
-                        onChange={(selected) =>
+                        onChange={(selected) => {
                           setPendingFilters((prev) => ({ ...prev, accountSubIndustries: selected }))
-                        }
+                          setActiveFilter("accountSubIndustries")
+                        }}
                         placeholder="Select sub industries..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "accountSubIndustries"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -194,11 +205,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.accountPrimaryCategories}
                         selected={pendingFilters.accountPrimaryCategories}
-                        onChange={(selected) =>
+                        onChange={(selected) => {
                           setPendingFilters((prev) => ({ ...prev, accountPrimaryCategories: selected }))
-                        }
+                          setActiveFilter("accountPrimaryCategories")
+                        }}
                         placeholder="Select categories..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "accountPrimaryCategories"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -206,11 +218,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.accountPrimaryNatures}
                         selected={pendingFilters.accountPrimaryNatures}
-                        onChange={(selected) =>
+                        onChange={(selected) => {
                           setPendingFilters((prev) => ({ ...prev, accountPrimaryNatures: selected }))
-                        }
+                          setActiveFilter("accountPrimaryNatures")
+                        }}
                         placeholder="Select nature..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "accountPrimaryNatures"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -218,11 +231,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.accountNasscomStatuses}
                         selected={pendingFilters.accountNasscomStatuses}
-                        onChange={(selected) =>
+                        onChange={(selected) => {
                           setPendingFilters((prev) => ({ ...prev, accountNasscomStatuses: selected }))
-                        }
+                          setActiveFilter("accountNasscomStatuses")
+                        }}
                         placeholder="Select NASSCOM status..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "accountNasscomStatuses"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -230,11 +244,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.accountEmployeesRanges}
                         selected={pendingFilters.accountEmployeesRanges}
-                        onChange={(selected) =>
+                        onChange={(selected) => {
                           setPendingFilters((prev) => ({ ...prev, accountEmployeesRanges: selected }))
-                        }
+                          setActiveFilter("accountEmployeesRanges")
+                        }}
                         placeholder="Select employees range..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "accountEmployeesRanges"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -242,11 +257,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.accountCenterEmployees}
                         selected={pendingFilters.accountCenterEmployees}
-                        onChange={(selected) =>
+                        onChange={(selected) => {
                           setPendingFilters((prev) => ({ ...prev, accountCenterEmployees: selected }))
-                        }
+                          setActiveFilter("accountCenterEmployees")
+                        }}
                         placeholder="Select center employees..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "accountCenterEmployees"}
                       />
                     </div>
 
@@ -343,9 +359,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.centerTypes}
                         selected={pendingFilters.centerTypes}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerTypes: selected }))}
+                        onChange={(selected) => {
+                          setPendingFilters((prev) => ({ ...prev, centerTypes: selected }))
+                          setActiveFilter("centerTypes")
+                        }}
                         placeholder="Select types..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "centerTypes"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -353,9 +372,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.centerFocus}
                         selected={pendingFilters.centerFocus}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerFocus: selected }))}
+                        onChange={(selected) => {
+                          setPendingFilters((prev) => ({ ...prev, centerFocus: selected }))
+                          setActiveFilter("centerFocus")
+                        }}
                         placeholder="Select focus..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "centerFocus"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -363,9 +385,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.centerCities}
                         selected={pendingFilters.centerCities}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerCities: selected }))}
+                        onChange={(selected) => {
+                          setPendingFilters((prev) => ({ ...prev, centerCities: selected }))
+                          setActiveFilter("centerCities")
+                        }}
                         placeholder="Select cities..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "centerCities"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -373,9 +398,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.centerStates}
                         selected={pendingFilters.centerStates}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerStates: selected }))}
+                        onChange={(selected) => {
+                          setPendingFilters((prev) => ({ ...prev, centerStates: selected }))
+                          setActiveFilter("centerStates")
+                        }}
                         placeholder="Select states..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "centerStates"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -383,9 +411,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.centerCountries}
                         selected={pendingFilters.centerCountries}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerCountries: selected }))}
+                        onChange={(selected) => {
+                          setPendingFilters((prev) => ({ ...prev, centerCountries: selected }))
+                          setActiveFilter("centerCountries")
+                        }}
                         placeholder="Select countries..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "centerCountries"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -393,9 +424,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.centerEmployees}
                         selected={pendingFilters.centerEmployees}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerEmployees: selected }))}
+                        onChange={(selected) => {
+                          setPendingFilters((prev) => ({ ...prev, centerEmployees: selected }))
+                          setActiveFilter("centerEmployees")
+                        }}
                         placeholder="Select employees range..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "centerEmployees"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -403,9 +437,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.centerStatuses}
                         selected={pendingFilters.centerStatuses}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerStatuses: selected }))}
+                        onChange={(selected) => {
+                          setPendingFilters((prev) => ({ ...prev, centerStatuses: selected }))
+                          setActiveFilter("centerStatuses")
+                        }}
                         placeholder="Select status..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "centerStatuses"}
                       />
                     </div>
 
@@ -415,9 +452,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.functionTypes}
                         selected={pendingFilters.functionTypes}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, functionTypes: selected }))}
+                        onChange={(selected) => {
+                          setPendingFilters((prev) => ({ ...prev, functionTypes: selected }))
+                          setActiveFilter("functionTypes")
+                        }}
                         placeholder="Select functions..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "functionTypes"}
                       />
                     </div>
                   </div>
@@ -442,9 +482,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.prospectDepartments || []}
                         selected={pendingFilters.prospectDepartments}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, prospectDepartments: selected }))}
+                        onChange={(selected) => {
+                          setPendingFilters((prev) => ({ ...prev, prospectDepartments: selected }))
+                          setActiveFilter("prospectDepartments")
+                        }}
                         placeholder="Select departments..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "prospectDepartments"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -452,9 +495,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.prospectLevels || []}
                         selected={pendingFilters.prospectLevels}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, prospectLevels: selected }))}
+                        onChange={(selected) => {
+                          setPendingFilters((prev) => ({ ...prev, prospectLevels: selected }))
+                          setActiveFilter("prospectLevels")
+                        }}
                         placeholder="Select levels..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "prospectLevels"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -462,9 +508,12 @@ export function FiltersSidebar({
                       <EnhancedMultiSelect
                         options={availableOptions.prospectCities || []}
                         selected={pendingFilters.prospectCities}
-                        onChange={(selected) => setPendingFilters((prev) => ({ ...prev, prospectCities: selected }))}
+                        onChange={(selected) => {
+                          setPendingFilters((prev) => ({ ...prev, prospectCities: selected }))
+                          setActiveFilter("prospectCities")
+                        }}
                         placeholder="Select cities..."
-                        isApplying={isApplying}
+                        isApplying={isApplying && activeFilter === "prospectCities"}
                       />
                     </div>
                     <div className="space-y-2 pt-4 mt-4 border-t border-border">
