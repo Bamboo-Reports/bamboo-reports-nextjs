@@ -119,7 +119,7 @@ export function ProspectsTab({
   }
 
   return (
-    <TabsContent value="prospects">
+    <TabsContent value="prospects" className="h-full overflow-auto">
       {/* Header with View Toggle */}
       <div className="flex items-center gap-2 mb-4">
         <PieChartIcon className="h-5 w-5 text-[hsl(var(--chart-1))]" />
@@ -195,7 +195,7 @@ export function ProspectsTab({
                   {getPaginatedData(sortedProspects, currentPage, itemsPerPage).map(
                     (prospect, index) => (
                       <ProspectRow
-                      key={`${prospect.prospect_email}-${index}`}
+                        key={`${prospect.prospect_email}-${index}`}
                         prospect={prospect}
                         onClick={() => handleProspectClick(prospect)}
                       />
@@ -204,21 +204,21 @@ export function ProspectsTab({
                 </TableBody>
               </Table>
             </div>
-                {prospects.length > 0 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-4">
-                      <p className="text-sm text-muted-foreground">
-                        Showing{" "}
-                        {getPageInfo(currentPage, prospects.length, itemsPerPage).startItem} to{" "}
-                        {getPageInfo(currentPage, prospects.length, itemsPerPage).endItem} of{" "}
-                        {prospects.length} results
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => exportToExcel(sortedProspects, "prospects-export", "Prospects")}
-                        className="flex items-center gap-2"
-                      >
+            {prospects.length > 0 && (
+              <div className="flex items-center justify-between mt-4">
+                <div className="flex items-center gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    Showing{" "}
+                    {getPageInfo(currentPage, prospects.length, itemsPerPage).startItem} to{" "}
+                    {getPageInfo(currentPage, prospects.length, itemsPerPage).endItem} of{" "}
+                    {prospects.length} results
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportToExcel(sortedProspects, "prospects-export", "Prospects")}
+                    className="flex items-center gap-2"
+                  >
                     <Download className="h-4 w-4" />
                     Export Prospects
                   </Button>

@@ -126,7 +126,7 @@ export function CentersTab({
   }
 
   return (
-    <TabsContent value="centers">
+    <TabsContent value="centers" className="h-full overflow-auto">
       {/* Header with View Toggle */}
       <div className="flex items-center gap-2 mb-4">
         <PieChartIcon className="h-5 w-5 text-[hsl(var(--chart-2))]" />
@@ -236,21 +236,21 @@ export function CentersTab({
                 </TableBody>
               </Table>
             </div>
-                {centers.length > 0 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-4">
-                      <p className="text-sm text-muted-foreground">
-                        Showing{" "}
-                        {getPageInfo(currentPage, centers.length, itemsPerPage).startItem} to{" "}
-                        {getPageInfo(currentPage, centers.length, itemsPerPage).endItem} of{" "}
-                        {centers.length} results
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => exportToExcel(sortedCenters, "centers-export", "Centers")}
-                        className="flex items-center gap-2"
-                      >
+            {centers.length > 0 && (
+              <div className="flex items-center justify-between mt-4">
+                <div className="flex items-center gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    Showing{" "}
+                    {getPageInfo(currentPage, centers.length, itemsPerPage).startItem} to{" "}
+                    {getPageInfo(currentPage, centers.length, itemsPerPage).endItem} of{" "}
+                    {centers.length} results
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportToExcel(sortedCenters, "centers-export", "Centers")}
+                    className="flex items-center gap-2"
+                  >
                     <Download className="h-4 w-4" />
                     Export Centers
                   </Button>
