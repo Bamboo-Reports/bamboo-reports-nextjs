@@ -15,6 +15,7 @@ interface EnhancedMultiSelectProps {
   onChange: (selected: FilterValue[]) => void
   placeholder?: string
   className?: string
+  isApplying?: boolean
 }
 
 // Memoized Badge component with include/exclude toggle
@@ -155,6 +156,7 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
   onChange,
   placeholder = "Select items...",
   className,
+  isApplying = false,
 }: EnhancedMultiSelectProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -242,52 +244,86 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
   const includeCount = selected.filter(s => s.mode === 'include').length
   const excludeCount = selected.filter(s => s.mode === 'exclude').length
 
+  // Handle isApplying changes to trigger success state
+  const [showSuccess, setShowSuccess] = React.useState(false)
+  const prevIsApplying = React.useRef(isApplying)
+
+  React.useEffect(() => {
+    if (prevIsApplying.current && !isApplying) {
+      // Just finished applying
+      setShowSuccess(true)
+      const timer = setTimeout(() => {
+        setShowSuccess(false)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+    prevIsApplying.current = isApplying
+  }, [isApplying])
+
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="justify-between h-auto min-h-10 bg-transparent hover:bg-accent/30"
-          >
-            <div className="flex gap-1 flex-wrap items-center w-full">
-              {selected.length === 0 && <span className="text-muted-foreground">{placeholder}</span>}
-              {selected.length > 0 && (
-                <div className="flex items-center gap-2 mr-2">
-                  {includeCount > 0 && (
-                    <span className="text-xs text-green-600 dark:text-green-400 font-medium">
-                      +{includeCount}
-                    </span>
-                  )}
-                  {excludeCount > 0 && (
-                    <span className="text-xs text-red-600 dark:text-red-400 font-medium">
-                      -{excludeCount}
-                    </span>
-                  )}
-                </div>
-              )}
-              {renderBadges}
-            </div>
-            <ChevronsUpDown className={cn(
-              "h-4 w-4 shrink-0 opacity-50 ml-2",
-              open && "rotate-180"
-            )} />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] min-w-[200px] p-0" align="start">
-          <Command>
-            <CommandInput placeholder="Search..." className="h-9" />
-            <CommandList className="max-h-64">
-              <CommandEmpty>No item found.</CommandEmpty>
-              <CommandGroup>
-                {renderOptions}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+      <div className="flex items-center gap-2 w-full">
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="justify-between h-auto min-h-10 bg-transparent hover:bg-accent/30 flex-1"
+            >
+              <div className="flex gap-1 flex-wrap items-center w-full">
+                {selected.length === 0 && <span className="text-muted-foreground">{placeholder}</span>}
+                {selected.length > 0 && (
+                  <div className="flex items-center gap-2 mr-2">
+                    {includeCount > 0 && (
+                      <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                        +{includeCount}
+                      </span>
+                    )}
+                    {excludeCount > 0 && (
+                      <span className="text-xs text-red-600 dark:text-red-400 font-medium">
+                        -{excludeCount}
+                      </span>
+                    )}
+                  </div>
+                )}
+                {renderBadges}
+              </div>
+              <ChevronsUpDown className={cn(
+                "h-4 w-4 shrink-0 opacity-50 ml-2",
+                open && "rotate-180"
+              )} />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[--radix-popover-trigger-width] min-w-[200px] p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Search..." className="h-9" />
+              <CommandList className="max-h-64">
+                <CommandEmpty>No item found.</CommandEmpty>
+                <CommandGroup>
+                  {renderOptions}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
+        {/* Status Chips */}
+        {isApplying && (
+          <div className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-medium animate-pulse shrink-0">
+            <div className="w-1.5 h-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: '0ms' }} />
+            <div className="w-1.5 h-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: '150ms' }} />
+            <div className="w-1.5 h-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: '300ms' }} />
+            <span className="ml-1">Applying</span>
+          </div>
+        )}
+
+        {!isApplying && showSuccess && (
+          <div className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-full text-xs font-medium animate-in fade-in zoom-in duration-300 shrink-0">
+            <span>Applied</span>
+          </div>
+        )}
+      </div>
     </div>
   )
 })

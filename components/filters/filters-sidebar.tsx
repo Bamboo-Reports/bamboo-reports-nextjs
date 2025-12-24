@@ -154,6 +154,7 @@ export function FiltersSidebar({
                         selected={pendingFilters.accountCountries}
                         onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountCountries: selected }))}
                         placeholder="Select countries..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2">
@@ -163,6 +164,7 @@ export function FiltersSidebar({
                         selected={pendingFilters.accountRegions}
                         onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountRegions: selected }))}
                         placeholder="Select regions..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2">
@@ -172,6 +174,7 @@ export function FiltersSidebar({
                         selected={pendingFilters.accountIndustries}
                         onChange={(selected) => setPendingFilters((prev) => ({ ...prev, accountIndustries: selected }))}
                         placeholder="Select industries..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2">
@@ -183,6 +186,7 @@ export function FiltersSidebar({
                           setPendingFilters((prev) => ({ ...prev, accountSubIndustries: selected }))
                         }
                         placeholder="Select sub industries..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2">
@@ -194,6 +198,7 @@ export function FiltersSidebar({
                           setPendingFilters((prev) => ({ ...prev, accountPrimaryCategories: selected }))
                         }
                         placeholder="Select categories..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2">
@@ -205,6 +210,7 @@ export function FiltersSidebar({
                           setPendingFilters((prev) => ({ ...prev, accountPrimaryNatures: selected }))
                         }
                         placeholder="Select nature..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2">
@@ -216,6 +222,7 @@ export function FiltersSidebar({
                           setPendingFilters((prev) => ({ ...prev, accountNasscomStatuses: selected }))
                         }
                         placeholder="Select NASSCOM status..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2">
@@ -227,6 +234,7 @@ export function FiltersSidebar({
                           setPendingFilters((prev) => ({ ...prev, accountEmployeesRanges: selected }))
                         }
                         placeholder="Select employees range..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2">
@@ -238,6 +246,7 @@ export function FiltersSidebar({
                           setPendingFilters((prev) => ({ ...prev, accountCenterEmployees: selected }))
                         }
                         placeholder="Select center employees..."
+                        isApplying={isApplying}
                       />
                     </div>
 
@@ -336,6 +345,7 @@ export function FiltersSidebar({
                         selected={pendingFilters.centerTypes}
                         onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerTypes: selected }))}
                         placeholder="Select types..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2">
@@ -345,6 +355,7 @@ export function FiltersSidebar({
                         selected={pendingFilters.centerFocus}
                         onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerFocus: selected }))}
                         placeholder="Select focus..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2">
@@ -354,6 +365,7 @@ export function FiltersSidebar({
                         selected={pendingFilters.centerCities}
                         onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerCities: selected }))}
                         placeholder="Select cities..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2">
@@ -363,6 +375,7 @@ export function FiltersSidebar({
                         selected={pendingFilters.centerStates}
                         onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerStates: selected }))}
                         placeholder="Select states..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2">
@@ -372,6 +385,7 @@ export function FiltersSidebar({
                         selected={pendingFilters.centerCountries}
                         onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerCountries: selected }))}
                         placeholder="Select countries..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2">
@@ -381,6 +395,7 @@ export function FiltersSidebar({
                         selected={pendingFilters.centerEmployees}
                         onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerEmployees: selected }))}
                         placeholder="Select employees range..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2">
@@ -390,6 +405,7 @@ export function FiltersSidebar({
                         selected={pendingFilters.centerStatuses}
                         onChange={(selected) => setPendingFilters((prev) => ({ ...prev, centerStatuses: selected }))}
                         placeholder="Select status..."
+                        isApplying={isApplying}
                       />
                     </div>
 
@@ -401,6 +417,7 @@ export function FiltersSidebar({
                         selected={pendingFilters.functionTypes}
                         onChange={(selected) => setPendingFilters((prev) => ({ ...prev, functionTypes: selected }))}
                         placeholder="Select functions..."
+                        isApplying={isApplying}
                       />
                     </div>
                   </div>
@@ -427,6 +444,7 @@ export function FiltersSidebar({
                         selected={pendingFilters.prospectDepartments}
                         onChange={(selected) => setPendingFilters((prev) => ({ ...prev, prospectDepartments: selected }))}
                         placeholder="Select departments..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2">
@@ -436,6 +454,7 @@ export function FiltersSidebar({
                         selected={pendingFilters.prospectLevels}
                         onChange={(selected) => setPendingFilters((prev) => ({ ...prev, prospectLevels: selected }))}
                         placeholder="Select levels..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2">
@@ -445,6 +464,7 @@ export function FiltersSidebar({
                         selected={pendingFilters.prospectCities}
                         onChange={(selected) => setPendingFilters((prev) => ({ ...prev, prospectCities: selected }))}
                         placeholder="Select cities..."
+                        isApplying={isApplying}
                       />
                     </div>
                     <div className="space-y-2 pt-4 mt-4 border-t border-border">
