@@ -1073,8 +1073,8 @@ function DashboardContent() {
           />
 
           {/* Right Side - Data View (70%) */}
-          <div className="flex-1 overflow-y-auto bg-background">
-            <div className="p-6">
+          <div className="flex-1 flex flex-col overflow-hidden bg-background">
+            <div className="p-6 flex flex-col flex-1 overflow-hidden">
               <SummaryCards
                 filteredAccountsCount={filteredData.filteredAccounts.length}
                 totalAccountsCount={accounts.length}
@@ -1085,8 +1085,8 @@ function DashboardContent() {
               />
 
               {/* Data Tables */}
-              <Tabs defaultValue="accounts" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-3">
+              <Tabs defaultValue="accounts" className="flex-1 flex flex-col overflow-hidden">
+                <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
                   <TabsTrigger value="accounts">Accounts ({filteredData.filteredAccounts.length})</TabsTrigger>
                   <TabsTrigger value="centers">Centers ({filteredData.filteredCenters.length})</TabsTrigger>
                   <TabsTrigger value="prospects">Prospects ({filteredData.filteredProspects.length})</TabsTrigger>
