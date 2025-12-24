@@ -119,7 +119,7 @@ export function ProspectsTab({
   }
 
   return (
-    <TabsContent value="prospects">
+    <TabsContent value="prospects" className="h-full flex flex-col data-[state=inactive]:hidden">
       {/* Header with View Toggle */}
       <div className="flex items-center gap-2 mb-4">
         <PieChartIcon className="h-5 w-5 text-[hsl(var(--chart-1))]" />
@@ -167,12 +167,12 @@ export function ProspectsTab({
 
       {/* Data Table */}
       {prospectsView === "data" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Prospects Data</CardTitle>
+        <Card className="flex-1 flex flex-col min-h-0 shadow-md">
+          <CardHeader className="py-3 px-4 shrink-0 border-b">
+            <CardTitle className="text-base">Prospects Data</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-auto max-h-[60vh]">
+          <CardContent className="flex-1 flex flex-col min-h-0 p-0">
+            <div className="flex-1 overflow-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -195,7 +195,7 @@ export function ProspectsTab({
                   {getPaginatedData(sortedProspects, currentPage, itemsPerPage).map(
                     (prospect, index) => (
                       <ProspectRow
-                      key={`${prospect.prospect_email}-${index}`}
+                        key={`${prospect.prospect_email}-${index}`}
                         prospect={prospect}
                         onClick={() => handleProspectClick(prospect)}
                       />
@@ -204,56 +204,57 @@ export function ProspectsTab({
                 </TableBody>
               </Table>
             </div>
-                {prospects.length > 0 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-4">
-                      <p className="text-sm text-muted-foreground">
-                        Showing{" "}
-                        {getPageInfo(currentPage, prospects.length, itemsPerPage).startItem} to{" "}
-                        {getPageInfo(currentPage, prospects.length, itemsPerPage).endItem} of{" "}
-                        {prospects.length} results
-                      </p>
+            <div className="shrink-0 p-4 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              {prospects.length > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <p className="text-sm text-muted-foreground">
+                      Showing{" "}
+                      {getPageInfo(currentPage, prospects.length, itemsPerPage).startItem} to{" "}
+                      {getPageInfo(currentPage, prospects.length, itemsPerPage).endItem} of{" "}
+                      {prospects.length} results
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => exportToExcel(sortedProspects, "prospects-export", "Prospects")}
+                      className="flex items-center gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Export Prospects
+                    </Button>
+                  </div>
+                  {getTotalPages(prospects.length, itemsPerPage) > 1 && (
+                    <div className="flex items-center space-x-2">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => exportToExcel(sortedProspects, "prospects-export", "Prospects")}
-                        className="flex items-center gap-2"
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
                       >
-                    <Download className="h-4 w-4" />
-                    Export Prospects
-                  </Button>
+                        Previous
+                      </Button>
+                      <span className="text-sm text-muted-foreground">
+                        Page {currentPage} of {getTotalPages(prospects.length, itemsPerPage)}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(prev + 1, getTotalPages(prospects.length, itemsPerPage))
+                          )
+                        }
+                        disabled={
+                          currentPage === getTotalPages(prospects.length, itemsPerPage)
+                        }
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                {getTotalPages(prospects.length, itemsPerPage) > 1 && (
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </Button>
-                    <span className="text-sm text-muted-foreground">
-                      Page {currentPage} of {getTotalPages(prospects.length, itemsPerPage)}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((prev) =>
-                          Math.min(prev + 1, getTotalPages(prospects.length, itemsPerPage))
-                        )
-                      }
-                      disabled={
-                        currentPage === getTotalPages(prospects.length, itemsPerPage)
-                      }
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
+              )}
           </CardContent>
         </Card>
       )}

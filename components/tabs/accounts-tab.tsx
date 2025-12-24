@@ -184,12 +184,12 @@ export function AccountsTab({
 
       {/* Data Table */}
       {accountsView === "data" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Accounts Data</CardTitle>
+        <Card className="flex-1 flex flex-col min-h-0 shadow-md">
+          <CardHeader className="py-3 px-4 shrink-0 border-b">
+            <CardTitle className="text-base">Accounts Data</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-auto max-h-[60vh]">
+          <CardContent className="flex-1 flex flex-col min-h-0 p-0">
+            <div className="flex-1 overflow-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -220,59 +220,61 @@ export function AccountsTab({
                 </TableBody>
               </Table>
             </div>
-                {accounts.length > 0 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-4">
-                      <p className="text-sm text-muted-foreground">
-                        Showing{" "}
-                        {getPageInfo(currentPage, accounts.length, itemsPerPage).startItem} to{" "}
-                        {getPageInfo(currentPage, accounts.length, itemsPerPage).endItem} of{" "}
-                        {accounts.length} results
-                      </p>
+            <div className="shrink-0 p-4 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              {accounts.length > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <p className="text-sm text-muted-foreground">
+                      Showing{" "}
+                      {getPageInfo(currentPage, accounts.length, itemsPerPage).startItem} to{" "}
+                      {getPageInfo(currentPage, accounts.length, itemsPerPage).endItem} of{" "}
+                      {accounts.length} results
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => exportToExcel(sortedAccounts, "accounts-export", "Accounts")}
+                      className="flex items-center gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Export Accounts
+                    </Button>
+                  </div>
+                  {getTotalPages(accounts.length, itemsPerPage) > 1 && (
+                    <div className="flex items-center space-x-2">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => exportToExcel(sortedAccounts, "accounts-export", "Accounts")}
-                        className="flex items-center gap-2"
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
                       >
-                    <Download className="h-4 w-4" />
-                    Export Accounts
-                  </Button>
+                        Previous
+                      </Button>
+                      <span className="text-sm text-muted-foreground">
+                        Page {currentPage} of {getTotalPages(accounts.length, itemsPerPage)}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(prev + 1, getTotalPages(accounts.length, itemsPerPage))
+                          )
+                        }
+                        disabled={
+                          currentPage === getTotalPages(accounts.length, itemsPerPage)
+                        }
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                {getTotalPages(accounts.length, itemsPerPage) > 1 && (
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </Button>
-                    <span className="text-sm text-muted-foreground">
-                      Page {currentPage} of {getTotalPages(accounts.length, itemsPerPage)}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((prev) =>
-                          Math.min(prev + 1, getTotalPages(accounts.length, itemsPerPage))
-                        )
-                      }
-                      disabled={
-                        currentPage === getTotalPages(accounts.length, itemsPerPage)
-                      }
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
+              )}
           </CardContent>
         </Card>
-      )}
+      )
+      }
 
       {/* Account Details Dialog */}
       <AccountDetailsDialog
@@ -283,6 +285,6 @@ export function AccountsTab({
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
       />
-    </TabsContent>
+    </TabsContent >
   )
 }

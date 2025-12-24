@@ -126,7 +126,7 @@ export function CentersTab({
   }
 
   return (
-    <TabsContent value="centers">
+    <TabsContent value="centers" className="h-full flex flex-col data-[state=inactive]:hidden">
       {/* Header with View Toggle */}
       <div className="flex items-center gap-2 mb-4">
         <PieChartIcon className="h-5 w-5 text-[hsl(var(--chart-2))]" />
@@ -200,12 +200,12 @@ export function CentersTab({
 
       {/* Data Table */}
       {centersView === "data" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Centers Data</CardTitle>
+        <Card className="flex-1 flex flex-col min-h-0 shadow-md">
+          <CardHeader className="py-3 px-4 shrink-0 border-b">
+            <CardTitle className="text-base">Centers Data</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-auto max-h-[60vh]">
+          <CardContent className="flex-1 flex flex-col min-h-0 p-0">
+            <div className="flex-1 overflow-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -236,56 +236,57 @@ export function CentersTab({
                 </TableBody>
               </Table>
             </div>
-                {centers.length > 0 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-4">
-                      <p className="text-sm text-muted-foreground">
-                        Showing{" "}
-                        {getPageInfo(currentPage, centers.length, itemsPerPage).startItem} to{" "}
-                        {getPageInfo(currentPage, centers.length, itemsPerPage).endItem} of{" "}
-                        {centers.length} results
-                      </p>
+            <div className="shrink-0 p-4 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              {centers.length > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <p className="text-sm text-muted-foreground">
+                      Showing{" "}
+                      {getPageInfo(currentPage, centers.length, itemsPerPage).startItem} to{" "}
+                      {getPageInfo(currentPage, centers.length, itemsPerPage).endItem} of{" "}
+                      {centers.length} results
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => exportToExcel(sortedCenters, "centers-export", "Centers")}
+                      className="flex items-center gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Export Centers
+                    </Button>
+                  </div>
+                  {getTotalPages(centers.length, itemsPerPage) > 1 && (
+                    <div className="flex items-center space-x-2">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => exportToExcel(sortedCenters, "centers-export", "Centers")}
-                        className="flex items-center gap-2"
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
                       >
-                    <Download className="h-4 w-4" />
-                    Export Centers
-                  </Button>
+                        Previous
+                      </Button>
+                      <span className="text-sm text-muted-foreground">
+                        Page {currentPage} of {getTotalPages(centers.length, itemsPerPage)}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(prev + 1, getTotalPages(centers.length, itemsPerPage))
+                          )
+                        }
+                        disabled={
+                          currentPage === getTotalPages(centers.length, itemsPerPage)
+                        }
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                {getTotalPages(centers.length, itemsPerPage) > 1 && (
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </Button>
-                    <span className="text-sm text-muted-foreground">
-                      Page {currentPage} of {getTotalPages(centers.length, itemsPerPage)}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((prev) =>
-                          Math.min(prev + 1, getTotalPages(centers.length, itemsPerPage))
-                        )
-                      }
-                      disabled={
-                        currentPage === getTotalPages(centers.length, itemsPerPage)
-                      }
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
+              )}
           </CardContent>
         </Card>
       )}
