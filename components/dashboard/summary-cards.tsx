@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
@@ -19,23 +19,47 @@ export const SummaryCards = React.memo(function SummaryCards({
   filteredProspectsCount,
   totalProspectsCount,
 }: SummaryCardsProps) {
-  const [animationKey, setAnimationKey] = useState(0)
+  const AnimatedNumber = ({ value, className }: { value: number; className?: string }) => {
+    const [displayValue, setDisplayValue] = useState(value)
+    const frameRef = useRef<number | null>(null)
+    const startValueRef = useRef(value)
 
-  useEffect(() => {
-    setAnimationKey((prev) => prev + 1)
-  }, [filteredAccountsCount, filteredCentersCount, filteredProspectsCount])
+    useEffect(() => {
+      startValueRef.current = displayValue
+      const startTime = performance.now()
+      const duration = 600
 
-  const AnimatedNumber = ({ value, className }: { value: number; className?: string }) => (
-    <span
-      key={`${animationKey}-${value}`}
-      className={cn(
-        "inline-flex items-baseline gap-1 text-3xl font-semibold leading-tight animate-scale-in",
-        className
-      )}
-    >
-      {value.toLocaleString()}
-    </span>
-  )
+      const step = () => {
+        const elapsed = performance.now() - startTime
+        const progress = Math.min(elapsed / duration, 1)
+        const eased = 1 - Math.pow(1 - progress, 3) // cubic ease-out
+        const nextValue = startValueRef.current + (value - startValueRef.current) * eased
+        setDisplayValue(Math.round(nextValue))
+
+        if (progress < 1) {
+          frameRef.current = requestAnimationFrame(step)
+        }
+      }
+
+      frameRef.current = requestAnimationFrame(step)
+
+      return () => {
+        if (frameRef.current) cancelAnimationFrame(frameRef.current)
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [value])
+
+    return (
+      <span
+        className={cn(
+          "inline-flex items-baseline gap-1 text-3xl font-semibold leading-tight animate-scale-in",
+          className
+        )}
+      >
+        {displayValue.toLocaleString()}
+      </span>
+    )
+  }
 
   const cards = [
     {
