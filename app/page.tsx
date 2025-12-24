@@ -1073,8 +1073,8 @@ function DashboardContent() {
           />
 
           {/* Right Side - Data View (70%) */}
-          <div className="flex-1 overflow-y-auto bg-background">
-            <div className="p-6">
+          <div className="flex-1 flex flex-col overflow-hidden bg-background">
+            <div className="p-6 h-full flex flex-col">
               <SummaryCards
                 filteredAccountsCount={filteredData.filteredAccounts.length}
                 totalAccountsCount={accounts.length}
@@ -1085,48 +1085,51 @@ function DashboardContent() {
               />
 
               {/* Data Tables */}
-              <Tabs defaultValue="accounts" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-3">
+              <Tabs defaultValue="accounts" className="space-y-4 flex-1 flex flex-col min-h-0">
+                <TabsList className="grid w-full grid-cols-3 shrink-0">
                   <TabsTrigger value="accounts">Accounts ({filteredData.filteredAccounts.length})</TabsTrigger>
                   <TabsTrigger value="centers">Centers ({filteredData.filteredCenters.length})</TabsTrigger>
                   <TabsTrigger value="prospects">Prospects ({filteredData.filteredProspects.length})</TabsTrigger>
                 </TabsList>
 
-                <AccountsTab
-                  accounts={filteredData.filteredAccounts}
-                  centers={filteredData.filteredCenters}
-                  prospects={filteredData.filteredProspects}
-                  services={filteredData.filteredServices}
-                  functions={functions}
-                  accountChartData={accountChartData}
-                  accountsView={accountsView}
-                  setAccountsView={setAccountsView}
-                  currentPage={currentPage}
-                  setCurrentPage={setCurrentPage}
-                  itemsPerPage={itemsPerPage}
-                />
+                <div className="flex-1 min-h-0">
 
-                <CentersTab
-                  centers={filteredData.filteredCenters}
-                  functions={functions}
-                  services={filteredData.filteredServices}
-                  centerChartData={centerChartData}
-                  centersView={centersView}
-                  setCentersView={setCentersView}
-                  currentPage={currentPage}
-                  setCurrentPage={setCurrentPage}
-                  itemsPerPage={itemsPerPage}
-                />
+                  <AccountsTab
+                    accounts={filteredData.filteredAccounts}
+                    centers={filteredData.filteredCenters}
+                    prospects={filteredData.filteredProspects}
+                    services={filteredData.filteredServices}
+                    functions={functions}
+                    accountChartData={accountChartData}
+                    accountsView={accountsView}
+                    setAccountsView={setAccountsView}
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                    itemsPerPage={itemsPerPage}
+                  />
 
-                <ProspectsTab
-                  prospects={filteredData.filteredProspects}
-                  prospectChartData={prospectChartData}
-                  prospectsView={prospectsView}
-                  setProspectsView={setProspectsView}
-                  currentPage={currentPage}
-                  setCurrentPage={setCurrentPage}
-                  itemsPerPage={itemsPerPage}
-                />
+                  <CentersTab
+                    centers={filteredData.filteredCenters}
+                    functions={functions}
+                    services={filteredData.filteredServices}
+                    centerChartData={centerChartData}
+                    centersView={centersView}
+                    setCentersView={setCentersView}
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                    itemsPerPage={itemsPerPage}
+                  />
+
+                  <ProspectsTab
+                    prospects={filteredData.filteredProspects}
+                    prospectChartData={prospectChartData}
+                    prospectsView={prospectsView}
+                    setProspectsView={setProspectsView}
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                    itemsPerPage={itemsPerPage}
+                  />
+                </div>
               </Tabs>
             </div>
           </div>

@@ -128,9 +128,9 @@ export function AccountsTab({
   )
 
   return (
-    <TabsContent value="accounts">
+    <TabsContent value="accounts" className="h-full flex flex-col">
       {/* Header with View Toggle */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-4 shrink-0">
         <PieChartIcon className="h-5 w-5 text-[hsl(var(--chart-1))]" />
         <h2 className="text-lg font-semibold text-foreground">Account Analytics</h2>
         <Badge variant="secondary" className="ml-2">
@@ -184,12 +184,12 @@ export function AccountsTab({
 
       {/* Data Table */}
       {accountsView === "data" && (
-        <Card>
-          <CardHeader>
+        <Card className="flex-1 flex flex-col overflow-hidden">
+          <CardHeader className="shrink-0">
             <CardTitle>Accounts Data</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-auto max-h-[60vh]">
+          <CardContent className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 overflow-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -220,21 +220,21 @@ export function AccountsTab({
                 </TableBody>
               </Table>
             </div>
-                {accounts.length > 0 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-4">
-                      <p className="text-sm text-muted-foreground">
-                        Showing{" "}
-                        {getPageInfo(currentPage, accounts.length, itemsPerPage).startItem} to{" "}
-                        {getPageInfo(currentPage, accounts.length, itemsPerPage).endItem} of{" "}
-                        {accounts.length} results
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => exportToExcel(sortedAccounts, "accounts-export", "Accounts")}
-                        className="flex items-center gap-2"
-                      >
+            {accounts.length > 0 && (
+              <div className="flex items-center justify-between mt-4">
+                <div className="flex items-center gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    Showing{" "}
+                    {getPageInfo(currentPage, accounts.length, itemsPerPage).startItem} to{" "}
+                    {getPageInfo(currentPage, accounts.length, itemsPerPage).endItem} of{" "}
+                    {accounts.length} results
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportToExcel(sortedAccounts, "accounts-export", "Accounts")}
+                    className="flex items-center gap-2"
+                  >
                     <Download className="h-4 w-4" />
                     Export Accounts
                   </Button>
