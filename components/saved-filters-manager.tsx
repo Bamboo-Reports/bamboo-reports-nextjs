@@ -34,27 +34,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Save, FolderOpen, Settings, Trash2, Edit, Calendar, Filter, X, ChevronDown } from "lucide-react"
 import { saveFilterSet, getSavedFilters, deleteSavedFilter, updateSavedFilter } from "@/app/actions"
-
-interface Filters {
-  accountCountries: string[]
-  accountRegions: string[]
-  accountIndustries: string[]
-  accountSubIndustries: string[]
-  accountPrimaryCategories: string[]
-  accountPrimaryNatures: string[]
-  accountNasscomStatuses: string[]
-  accountEmployeesRanges: string[]
-  accountCenterEmployees: string[]
-  centerTypes: string[]
-  centerFocus: string[]
-  centerCities: string[]
-  centerStates: string[]
-  centerCountries: string[]
-  centerEmployees: string[]
-  centerStatuses: string[]
-  functionTypes: string[]
-  searchTerm: string
-}
+import type { Filters, FilterValue } from "@/lib/types"
 
 interface SavedFilter {
   id: number
@@ -62,6 +42,76 @@ interface SavedFilter {
   filters: Filters
   created_at: string
   updated_at: string
+}
+
+type FilterValueLike = FilterValue | string | null | undefined
+
+const DEFAULT_REVENUE_RANGE: [number, number] = [0, 1000000]
+
+const calculateActiveFilters = (filters: Filters) => {
+  const [minRevenue, maxRevenue] = filters.accountRevenueRange || DEFAULT_REVENUE_RANGE
+  const revenueFilterActive = minRevenue !== DEFAULT_REVENUE_RANGE[0] || maxRevenue !== DEFAULT_REVENUE_RANGE[1]
+
+  return (
+    filters.accountCountries.length +
+    filters.accountRegions.length +
+    filters.accountIndustries.length +
+    filters.accountSubIndustries.length +
+    filters.accountPrimaryCategories.length +
+    filters.accountPrimaryNatures.length +
+    filters.accountNasscomStatuses.length +
+    filters.accountEmployeesRanges.length +
+    filters.accountCenterEmployees.length +
+    (revenueFilterActive ? 1 : 0) +
+    (filters.includeNullRevenue ? 1 : 0) +
+    filters.accountNameKeywords.length +
+    filters.centerTypes.length +
+    filters.centerFocus.length +
+    filters.centerCities.length +
+    filters.centerStates.length +
+    filters.centerCountries.length +
+    filters.centerEmployees.length +
+    filters.centerStatuses.length +
+    filters.functionTypes.length +
+    filters.prospectDepartments.length +
+    filters.prospectLevels.length +
+    filters.prospectCities.length +
+    filters.prospectTitleKeywords.length
+  )
+}
+
+const withFilterDefaults = (filters: Partial<Filters> | null | undefined): Filters => {
+  const revenueRange = Array.isArray(filters?.accountRevenueRange) && filters?.accountRevenueRange.length === 2
+    ? filters.accountRevenueRange.map(Number) as [number, number]
+    : DEFAULT_REVENUE_RANGE
+
+  return {
+    accountCountries: filters?.accountCountries ?? [],
+    accountRegions: filters?.accountRegions ?? [],
+    accountIndustries: filters?.accountIndustries ?? [],
+    accountSubIndustries: filters?.accountSubIndustries ?? [],
+    accountPrimaryCategories: filters?.accountPrimaryCategories ?? [],
+    accountPrimaryNatures: filters?.accountPrimaryNatures ?? [],
+    accountNasscomStatuses: filters?.accountNasscomStatuses ?? [],
+    accountEmployeesRanges: filters?.accountEmployeesRanges ?? [],
+    accountCenterEmployees: filters?.accountCenterEmployees ?? [],
+    accountRevenueRange: revenueRange,
+    includeNullRevenue: filters?.includeNullRevenue ?? false,
+    accountNameKeywords: filters?.accountNameKeywords ?? [],
+    centerTypes: filters?.centerTypes ?? [],
+    centerFocus: filters?.centerFocus ?? [],
+    centerCities: filters?.centerCities ?? [],
+    centerStates: filters?.centerStates ?? [],
+    centerCountries: filters?.centerCountries ?? [],
+    centerEmployees: filters?.centerEmployees ?? [],
+    centerStatuses: filters?.centerStatuses ?? [],
+    functionTypes: filters?.functionTypes ?? [],
+    prospectDepartments: filters?.prospectDepartments ?? [],
+    prospectLevels: filters?.prospectLevels ?? [],
+    prospectCities: filters?.prospectCities ?? [],
+    prospectTitleKeywords: filters?.prospectTitleKeywords ?? [],
+    searchTerm: filters?.searchTerm ?? "",
+  }
 }
 
 interface SavedFiltersManagerProps {
@@ -72,13 +122,39 @@ interface SavedFiltersManagerProps {
   onExport?: () => void
 }
 
+// Safely extract label/mode from saved filter values (handles legacy string arrays too)
+const normalizeFilterValue = (value: FilterValueLike) => {
+  if (!value) return null
+  if (typeof value === "string") return { label: value, mode: "include" as FilterValue["mode"] }
+  if (typeof value === "object" && "value" in value) return { label: value.value, mode: value.mode }
+  return { label: String(value), mode: "include" as FilterValue["mode"] }
+}
+
 // Memoized FilterBadge component to prevent re-renders
-const FilterBadge = memo(({ filterKey, value }: { filterKey: string; value: string }) => (
-  <Badge variant="outline" className="text-xs">
+const FilterBadge = memo((
+  { filterKey, value, mode }: { filterKey: string; value: string; mode?: FilterValue["mode"] }
+) => (
+  <Badge variant={mode === "exclude" ? "destructive" : "outline"} className="text-xs">
     {filterKey}: {value}
+    {mode === "exclude" ? " (excluded)" : ""}
   </Badge>
 ))
 FilterBadge.displayName = "FilterBadge"
+
+const renderFilterValues = (values: FilterValueLike[] = [], label: string) =>
+  values.map((item, index) => {
+    const normalized = normalizeFilterValue(item)
+    if (!normalized) return null
+
+    return (
+      <FilterBadge
+        key={`${label}-${normalized.label}-${index}`}
+        filterKey={label}
+        value={normalized.label}
+        mode={normalized.mode}
+      />
+    )
+  })
 
 // Memoized SavedFilterCard component to prevent re-renders
 const SavedFilterCard = memo(({
@@ -94,28 +170,10 @@ const SavedFilterCard = memo(({
 }) => {
   // Memoize filter count calculation
   const filterCount = useCallback(() => {
-    const filters = filter.filters
-    return (
-      filters.accountCountries.length +
-      filters.accountRegions.length +
-      filters.accountIndustries.length +
-      filters.accountSubIndustries.length +
-      filters.accountPrimaryCategories.length +
-      filters.accountPrimaryNatures.length +
-      filters.accountNasscomStatuses.length +
-      filters.accountEmployeesRanges.length +
-      filters.accountCenterEmployees.length +
-      filters.centerTypes.length +
-      filters.centerFocus.length +
-      filters.centerCities.length +
-      filters.centerStates.length +
-      filters.centerCountries.length +
-      filters.centerEmployees.length +
-      filters.centerStatuses.length +
-      filters.functionTypes.length +
-      (filters.searchTerm ? 1 : 0)
-    )
+    return calculateActiveFilters(filter.filters)
   }, [filter.filters])
+  const [minRevenue, maxRevenue] = filter.filters.accountRevenueRange || DEFAULT_REVENUE_RANGE
+  const revenueFilterActive = minRevenue !== DEFAULT_REVENUE_RANGE[0] || maxRevenue !== DEFAULT_REVENUE_RANGE[1]
 
   return (
     <Card>
@@ -164,48 +222,37 @@ const SavedFilterCard = memo(({
             </Button>
           </div>
           <div className="flex flex-wrap gap-1">
-            {filter.filters.accountCountries.map((country) => (
-              <FilterBadge key={`country-${country}`} filterKey="Country" value={country} />
-            ))}
-            {filter.filters.accountRegions.map((region) => (
-              <FilterBadge key={`region-${region}`} filterKey="Region" value={region} />
-            ))}
-            {filter.filters.accountIndustries.map((industry) => (
-              <FilterBadge key={`industry-${industry}`} filterKey="Industry" value={industry} />
-            ))}
-            {filter.filters.accountSubIndustries.map((subIndustry) => (
-              <FilterBadge key={`subind-${subIndustry}`} filterKey="Sub Industry" value={subIndustry} />
-            ))}
-            {filter.filters.accountPrimaryCategories.map((category) => (
-              <FilterBadge key={`cat-${category}`} filterKey="Category" value={category} />
-            ))}
-            {filter.filters.accountPrimaryNatures.map((nature) => (
-              <FilterBadge key={`nature-${nature}`} filterKey="Nature" value={nature} />
-            ))}
-            {filter.filters.accountNasscomStatuses.map((status) => (
-              <FilterBadge key={`nasscom-${status}`} filterKey="NASSCOM" value={status} />
-            ))}
-            {filter.filters.accountEmployeesRanges.map((range) => (
-              <FilterBadge key={`emprange-${range}`} filterKey="Emp Range" value={range} />
-            ))}
-            {filter.filters.accountCenterEmployees.map((emp) => (
-              <FilterBadge key={`centemp-${emp}`} filterKey="Center Emp" value={emp} />
-            ))}
-            {filter.filters.centerTypes.map((type) => (
-              <FilterBadge key={`type-${type}`} filterKey="Type" value={type} />
-            ))}
-            {filter.filters.centerCities.map((city) => (
-              <FilterBadge key={`city-${city}`} filterKey="City" value={city} />
-            ))}
-            {filter.filters.centerCountries.map((country) => (
-              <FilterBadge key={`centcountry-${country}`} filterKey="Center Country" value={country} />
-            ))}
-            {filter.filters.centerEmployees.map((emp) => (
-              <FilterBadge key={`centemps-${emp}`} filterKey="Center Employees" value={emp} />
-            ))}
-            {filter.filters.centerStatuses.map((status) => (
-              <FilterBadge key={`centstatus-${status}`} filterKey="Center Status" value={status} />
-            ))}
+            {renderFilterValues(filter.filters.accountNameKeywords, "Account Name")}
+            {renderFilterValues(filter.filters.accountCountries, "Country")}
+            {renderFilterValues(filter.filters.accountRegions, "Region")}
+            {renderFilterValues(filter.filters.accountIndustries, "Industry")}
+            {renderFilterValues(filter.filters.accountSubIndustries, "Sub Industry")}
+            {renderFilterValues(filter.filters.accountPrimaryCategories, "Category")}
+            {renderFilterValues(filter.filters.accountPrimaryNatures, "Nature")}
+            {renderFilterValues(filter.filters.accountNasscomStatuses, "NASSCOM")}
+            {renderFilterValues(filter.filters.accountEmployeesRanges, "Emp Range")}
+            {renderFilterValues(filter.filters.accountCenterEmployees, "Center Emp")}
+            {renderFilterValues(filter.filters.centerTypes, "Type")}
+            {renderFilterValues(filter.filters.centerFocus, "Focus")}
+            {renderFilterValues(filter.filters.centerCities, "City")}
+            {renderFilterValues(filter.filters.centerStates, "State")}
+            {renderFilterValues(filter.filters.centerCountries, "Center Country")}
+            {renderFilterValues(filter.filters.centerEmployees, "Center Employees")}
+            {renderFilterValues(filter.filters.centerStatuses, "Center Status")}
+            {renderFilterValues(filter.filters.functionTypes, "Function")}
+            {renderFilterValues(filter.filters.prospectDepartments, "Prospect Dept")}
+            {renderFilterValues(filter.filters.prospectLevels, "Prospect Level")}
+            {renderFilterValues(filter.filters.prospectCities, "Prospect City")}
+            {renderFilterValues(filter.filters.prospectTitleKeywords, "Prospect Title")}
+            {revenueFilterActive && (
+              <FilterBadge
+                filterKey="Revenue"
+                value={`${minRevenue.toLocaleString()} - ${maxRevenue.toLocaleString()}`}
+              />
+            )}
+            {filter.filters.includeNullRevenue && (
+              <FilterBadge filterKey="Revenue" value="Include null revenue" />
+            )}
             {filter.filters.searchTerm && (
               <FilterBadge filterKey="Search" value={`"${filter.filters.searchTerm}"`} />
             )}
@@ -240,7 +287,21 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
     setLoading(true)
     try {
       const filters = await getSavedFilters()
-      setSavedFilters(filters)
+      const normalizedFilters = Array.isArray(filters)
+        ? filters
+          .map((filter: any) => {
+            try {
+              const parsedFilters = typeof filter.filters === "string" ? JSON.parse(filter.filters) : filter.filters
+              if (!parsedFilters) return null
+              return { ...filter, filters: withFilterDefaults(parsedFilters) }
+            } catch (error) {
+              console.error("Failed to parse saved filter:", error)
+              return null
+            }
+          })
+          .filter((item): item is SavedFilter => Boolean(item))
+        : []
+      setSavedFilters(normalizedFilters)
     } catch (error) {
       console.error("Failed to load saved filters:", error)
     } finally {
@@ -329,31 +390,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
 
   // Memoize getFilterSummary
   const getFilterSummary = useCallback((filters: Filters) => {
-    const activeFilters = [
-      ...filters.accountCountries,
-      ...filters.accountRegions,
-      ...filters.accountIndustries,
-      ...filters.accountSubIndustries,
-      ...filters.accountPrimaryCategories,
-      ...filters.accountPrimaryNatures,
-      ...filters.accountNasscomStatuses,
-      ...filters.accountEmployeesRanges,
-      ...filters.accountCenterEmployees,
-      ...filters.centerTypes,
-      ...filters.centerFocus,
-      ...filters.centerCities,
-      ...filters.centerStates,
-      ...filters.centerCountries,
-      ...filters.centerEmployees,
-      ...filters.centerStatuses,
-      ...filters.functionTypes,
-    ]
-
-    if (filters.searchTerm) {
-      activeFilters.push(`Search: "${filters.searchTerm}"`)
-    }
-
-    return activeFilters.length
+    return calculateActiveFilters(filters)
   }, [])
 
   // Memoize edit handler
