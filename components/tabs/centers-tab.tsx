@@ -200,9 +200,9 @@ export function CentersTab({
 
        {/* Data Table */}
        {centersView === "data" && (
-         <Card className="flex flex-col h-[calc(100vh-360px)]">
-           <CardHeader className="shrink-0">
-             <CardTitle>Centers Data</CardTitle>
+         <Card className="flex flex-col h-[calc(100vh-360px)] border shadow-sm">
+           <CardHeader className="shrink-0 px-6 py-4">
+             <CardTitle className="text-lg">Centers Data</CardTitle>
            </CardHeader>
             <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
               <div className="flex-1 overflow-auto">
@@ -237,7 +237,7 @@ export function CentersTab({
                 </Table>
               </div>
                   {centers.length > 0 && (
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border-t shrink-0">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-4 border-t shrink-0 bg-muted/20">
                       <div className="flex flex-wrap items-center gap-3">
                         <p className="text-sm text-muted-foreground">
                           {getPageInfo(currentPage, centers.length, itemsPerPage).startItem}–{getPageInfo(currentPage, centers.length, itemsPerPage).endItem} of{" "}
@@ -247,7 +247,7 @@ export function CentersTab({
                           variant="outline"
                           size="sm"
                           onClick={() => exportToExcel(sortedCenters, "centers-export", "Centers")}
-                          className="flex items-center gap-2"
+                          className="flex items-center gap-2 h-8"
                         >
                       <Download className="h-4 w-4" />
                       Export
@@ -260,6 +260,7 @@ export function CentersTab({
                         size="sm"
                         onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
+                        className="h-8"
                       >
                         Previous
                       </Button>
@@ -277,6 +278,7 @@ export function CentersTab({
                         disabled={
                           currentPage === getTotalPages(centers.length, itemsPerPage)
                         }
+                        className="h-8"
                       >
                         Next
                       </Button>
