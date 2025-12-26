@@ -11,7 +11,7 @@ const CustomTooltip = memo(({ active, payload, total }: TooltipProps<any, any> &
 
   const data = payload[0].payload
   const value = payload[0].value
-  const percent = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
+  const percent = total > 0 ? Math.round((value / total) * 100) : 0
   const color = data.fill || CHART_COLORS[0]
 
   return (
