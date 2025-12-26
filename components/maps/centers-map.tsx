@@ -7,6 +7,7 @@ import "mapbox-gl/dist/mapbox-gl.css"
 
 interface CentersMapProps {
   centers: Center[]
+  heightClass?: string
 }
 
 interface CityCluster {
@@ -19,12 +20,14 @@ interface CityCluster {
   headcount: number
 }
 
-export function CentersMap({ centers }: CentersMapProps) {
+export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapProps) {
   const [hoveredCity, setHoveredCity] = useState<string | null>(null)
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
+  const [isMapReady, setIsMapReady] = useState(false)
   const mapRef = React.useRef<any>(null)
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     setIsClient(true)
@@ -32,6 +35,33 @@ export function CentersMap({ centers }: CentersMapProps) {
     console.log("[CentersMap] Centers count:", centers?.length)
     console.log("[CentersMap] Mapbox token exists:", !!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN)
   }, [centers])
+
+  // Fallback to ensure the map shows even if onLoad is delayed
+  useEffect(() => {
+    const fallback = setTimeout(() => setIsMapReady(true), 700)
+    return () => clearTimeout(fallback)
+  }, [])
+
+  // Force map to recalc size when container changes to avoid clipped bottom
+  useEffect(() => {
+    if (!isClient || typeof ResizeObserver === "undefined") return
+    const container = containerRef.current
+    if (!container) return
+
+    const resizeMap = () => {
+      if (mapRef.current?.resize) {
+        mapRef.current.resize()
+      }
+    }
+
+    const observer = new ResizeObserver(resizeMap)
+    observer.observe(container)
+
+    // Initial pass after layout
+    requestAnimationFrame(resizeMap)
+
+    return () => observer.disconnect()
+  }, [isClient])
 
   // Aggregate centers by city and calculate cluster data
   const cityData = useMemo(() => {
@@ -132,6 +162,9 @@ export function CentersMap({ centers }: CentersMapProps) {
   const maxCount = useMemo(() => {
     return Math.max(...cityData.map((city) => city.count), 1)
   }, [cityData])
+  // Ensure stops used in map styles are strictly increasing even for single-point datasets
+  const effectiveMaxCount = useMemo(() => Math.max(maxCount, 2), [maxCount])
+  const midCountStop = useMemo(() => (effectiveMaxCount > 2 ? effectiveMaxCount / 2 : 1.5), [effectiveMaxCount])
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
@@ -149,7 +182,7 @@ export function CentersMap({ centers }: CentersMapProps) {
   // Show error if any
   if (error) {
     return (
-      <div className="flex items-center justify-center h-[750px] bg-muted rounded-lg">
+      <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
         <div className="text-center">
           <p className="text-lg font-semibold text-red-500 mb-2">Error Loading Map</p>
           <p className="text-sm text-muted-foreground">{error}</p>
@@ -162,7 +195,7 @@ export function CentersMap({ centers }: CentersMapProps) {
   // Wait for client-side rendering
   if (!isClient) {
     return (
-      <div className="flex items-center justify-center h-[750px] bg-muted rounded-lg">
+      <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
         <div className="text-center">
           <p className="text-sm text-muted-foreground">Loading map...</p>
         </div>
@@ -173,7 +206,7 @@ export function CentersMap({ centers }: CentersMapProps) {
   if (!mapboxToken) {
     console.error("[CentersMap] Mapbox token is missing")
     return (
-      <div className="flex items-center justify-center h-[750px] bg-muted rounded-lg">
+      <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
         <div className="text-center">
           <p className="text-lg font-semibold text-muted-foreground mb-2">
             Mapbox Access Token Missing
@@ -189,7 +222,7 @@ export function CentersMap({ centers }: CentersMapProps) {
   if (cityData.length === 0) {
     console.warn("[CentersMap] No city data with coordinates")
     return (
-      <div className="flex items-center justify-center h-[750px] bg-muted rounded-lg">
+      <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
         <div className="text-center">
           <p className="text-lg font-semibold text-muted-foreground mb-2">No Location Data</p>
           <p className="text-sm text-muted-foreground">
@@ -204,13 +237,27 @@ export function CentersMap({ centers }: CentersMapProps) {
 
   try {
     return (
-      <div className="relative w-full h-[750px] rounded-lg overflow-hidden border">
+      <div
+        ref={containerRef}
+        className={`relative w-full ${heightClass} rounded-lg overflow-hidden outline-none`}
+      >
+        {!isMapReady && (
+          <div className="absolute inset-0 bg-muted/70 animate-pulse pointer-events-none" />
+        )}
         <MapGL
         ref={mapRef}
+        style={{ width: "100%", height: "100%", opacity: isMapReady ? 1 : 0, transition: "opacity 150ms ease-out" }}
         initialViewState={initialViewState}
         mapStyle="mapbox://styles/abhishekfx/cltyaz9ek00nx01p783ygdi9z"
         mapboxAccessToken={mapboxToken}
         projection="mercator"
+        onLoad={(e) => {
+          // Force a resize calculation after map loads to ensure it fills container
+          setTimeout(() => {
+            e.target.resize()
+            setIsMapReady(true)
+          }, 200)
+        }}
         interactiveLayerIds={["centers-circles"]}
         onMouseMove={(e) => {
           const features = e.features
@@ -275,7 +322,7 @@ export function CentersMap({ centers }: CentersMapProps) {
                 ["get", "count"],
                 1,
                 7.2, // 20% bigger than inner (6 * 1.2)
-                maxCount,
+                effectiveMaxCount,
                 30, // 20% bigger than inner (25 * 1.2)
               ],
               "circle-color": [
@@ -284,9 +331,9 @@ export function CentersMap({ centers }: CentersMapProps) {
                 ["get", "count"],
                 1,
                 "#f97316", // Orange color matching your Tableau screenshot
-                maxCount / 2,
+                midCountStop,
                 "#ea580c",
-                maxCount,
+                effectiveMaxCount,
                 "#c2410c",
               ],
               "circle-opacity": 0.15, // Very transparent halo
@@ -305,7 +352,7 @@ export function CentersMap({ centers }: CentersMapProps) {
                 ["get", "count"],
                 1,
                 6, // Smaller base size
-                maxCount,
+                effectiveMaxCount,
                 25, // Smaller max size
               ],
               "circle-color": [
@@ -314,9 +361,9 @@ export function CentersMap({ centers }: CentersMapProps) {
                 ["get", "count"],
                 1,
                 "#fb923c", // Lighter orange for small clusters
-                maxCount / 2,
+                midCountStop,
                 "#f97316", // Medium orange
-                maxCount,
+                effectiveMaxCount,
                 "#ea580c", // Darker orange for large clusters
               ],
               "circle-opacity": 0.6, // Semi-transparent
@@ -396,7 +443,7 @@ export function CentersMap({ centers }: CentersMapProps) {
   } catch (err) {
     console.error("[CentersMap] Render error:", err)
     return (
-      <div className="flex items-center justify-center h-[750px] bg-muted rounded-lg">
+      <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
         <div className="text-center">
           <p className="text-lg font-semibold text-red-500 mb-2">Map Rendering Error</p>
           <p className="text-sm text-muted-foreground">
