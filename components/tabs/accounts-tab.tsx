@@ -183,12 +183,12 @@ export function AccountsTab({
 
       {/* Data Table */}
       {accountsView === "data" && (
-        <Card>
-          <CardHeader>
+        <Card className="flex flex-col h-[calc(100vh-340px)]">
+          <CardHeader className="shrink-0">
             <CardTitle>Accounts Data</CardTitle>
           </CardHeader>
-           <CardContent className="p-0">
-             <div className="overflow-auto max-h-[calc(100vh-380px)]">
+           <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
+             <div className="flex-1 overflow-auto">
                <Table>
                  <TableHeader>
                    <TableRow>
@@ -220,7 +220,7 @@ export function AccountsTab({
                </Table>
              </div>
                  {accounts.length > 0 && (
-                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border-t">
+                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border-t shrink-0">
                      <div className="flex flex-wrap items-center gap-3">
                        <p className="text-sm text-muted-foreground">
                          {getPageInfo(currentPage, accounts.length, itemsPerPage).startItem}–{getPageInfo(currentPage, accounts.length, itemsPerPage).endItem} of{" "}
@@ -267,9 +267,9 @@ export function AccountsTab({
                  )}
                </div>
              )}
-           </CardContent>
-        </Card>
-      )}
+            </CardContent>
+         </Card>
+       )}
 
       {/* Account Details Dialog */}
       <AccountDetailsDialog

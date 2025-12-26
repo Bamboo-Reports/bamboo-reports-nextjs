@@ -165,96 +165,96 @@ export function ProspectsTab({
         </div>
       )}
 
-      {/* Data Table */}
-      {prospectsView === "data" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Prospects Data</CardTitle>
-          </CardHeader>
-           <CardContent className="p-0">
-             <div className="overflow-auto max-h-[calc(100vh-380px)]">
-               <Table>
-                 <TableHeader>
-                   <TableRow>
-                     <TableHead className="w-16"></TableHead>
-                     <TableHead>
-                       <SortButton label="First Name" sortKey="first" />
-                     </TableHead>
-                     <TableHead>
-                       <SortButton label="Last Name" sortKey="last" />
-                     </TableHead>
-                     <TableHead>
-                       <SortButton label="Job Title" sortKey="title" />
-                     </TableHead>
-                     <TableHead>
-                       <SortButton label="Account Name" sortKey="account" />
-                     </TableHead>
-                   </TableRow>
-                 </TableHeader>
-                 <TableBody>
-                   {getPaginatedData(sortedProspects, currentPage, itemsPerPage).map(
-                     (prospect, index) => (
-                       <ProspectRow
-                       key={`${prospect.prospect_email}-${index}`}
-                         prospect={prospect}
-                         onClick={() => handleProspectClick(prospect)}
-                       />
-                     )
-                   )}
-                 </TableBody>
-               </Table>
-             </div>
-                 {prospects.length > 0 && (
-                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border-t">
-                     <div className="flex flex-wrap items-center gap-3">
-                       <p className="text-sm text-muted-foreground">
-                         {getPageInfo(currentPage, prospects.length, itemsPerPage).startItem}–{getPageInfo(currentPage, prospects.length, itemsPerPage).endItem} of{" "}
-                         {prospects.length}
-                       </p>
-                       <Button
-                         variant="outline"
-                         size="sm"
-                         onClick={() => exportToExcel(sortedProspects, "prospects-export", "Prospects")}
-                         className="flex items-center gap-2"
-                       >
-                     <Download className="h-4 w-4" />
-                     Export
-                   </Button>
-                 </div>
-                 {getTotalPages(prospects.length, itemsPerPage) > 1 && (
-                   <div className="flex items-center gap-2">
-                     <Button
-                       variant="outline"
-                       size="sm"
-                       onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                       disabled={currentPage === 1}
-                     >
-                       Previous
-                     </Button>
-                     <span className="text-sm text-muted-foreground min-w-[60px] text-center">
-                       {currentPage}/{getTotalPages(prospects.length, itemsPerPage)}
-                     </span>
-                     <Button
-                       variant="outline"
-                       size="sm"
-                       onClick={() =>
-                         setCurrentPage((prev) =>
-                           Math.min(prev + 1, getTotalPages(prospects.length, itemsPerPage))
-                         )
-                       }
-                       disabled={
-                         currentPage === getTotalPages(prospects.length, itemsPerPage)
-                       }
-                     >
-                       Next
-                     </Button>
-                   </div>
-                 )}
-               </div>
-             )}
-           </CardContent>
-        </Card>
-      )}
+       {/* Data Table */}
+       {prospectsView === "data" && (
+         <Card className="flex flex-col h-[calc(100vh-340px)]">
+           <CardHeader className="shrink-0">
+             <CardTitle>Prospects Data</CardTitle>
+           </CardHeader>
+            <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
+              <div className="flex-1 overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16"></TableHead>
+                      <TableHead>
+                        <SortButton label="First Name" sortKey="first" />
+                      </TableHead>
+                      <TableHead>
+                        <SortButton label="Last Name" sortKey="last" />
+                      </TableHead>
+                      <TableHead>
+                        <SortButton label="Job Title" sortKey="title" />
+                      </TableHead>
+                      <TableHead>
+                        <SortButton label="Account Name" sortKey="account" />
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {getPaginatedData(sortedProspects, currentPage, itemsPerPage).map(
+                      (prospect, index) => (
+                        <ProspectRow
+                        key={`${prospect.prospect_email}-${index}`}
+                          prospect={prospect}
+                          onClick={() => handleProspectClick(prospect)}
+                        />
+                      )
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+                  {prospects.length > 0 && (
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border-t shrink-0">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <p className="text-sm text-muted-foreground">
+                          {getPageInfo(currentPage, prospects.length, itemsPerPage).startItem}–{getPageInfo(currentPage, prospects.length, itemsPerPage).endItem} of{" "}
+                          {prospects.length}
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => exportToExcel(sortedProspects, "prospects-export", "Prospects")}
+                          className="flex items-center gap-2"
+                        >
+                      <Download className="h-4 w-4" />
+                      Export
+                    </Button>
+                  </div>
+                  {getTotalPages(prospects.length, itemsPerPage) > 1 && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                      >
+                        Previous
+                      </Button>
+                      <span className="text-sm text-muted-foreground min-w-[60px] text-center">
+                        {currentPage}/{getTotalPages(prospects.length, itemsPerPage)}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(prev + 1, getTotalPages(prospects.length, itemsPerPage))
+                          )
+                        }
+                        disabled={
+                          currentPage === getTotalPages(prospects.length, itemsPerPage)
+                        }
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+         </Card>
+       )}
 
       {/* Prospect Details Dialog */}
       <ProspectDetailsDialog

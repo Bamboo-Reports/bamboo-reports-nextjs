@@ -198,95 +198,95 @@ export function CentersTab({
          </div>
        )}
 
-      {/* Data Table */}
-      {centersView === "data" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Centers Data</CardTitle>
-          </CardHeader>
-           <CardContent className="p-0">
-             <div className="overflow-auto max-h-[calc(100vh-380px)]">
-               <Table>
-                 <TableHeader>
-                   <TableRow>
-                     <TableHead>
-                       <SortButton label="Account Name" sortKey="account" />
-                     </TableHead>
-                     <TableHead>
-                       <SortButton label="Center Name" sortKey="name" />
-                     </TableHead>
-                     <TableHead>
-                       <SortButton label="Center Type" sortKey="type" />
-                     </TableHead>
-                     <TableHead>
-                       <SortButton label="Employee Range" sortKey="employees" />
-                     </TableHead>
-                   </TableRow>
-                 </TableHeader>
-                 <TableBody>
-                   {getPaginatedData(sortedCenters, currentPage, itemsPerPage).map(
-                     (center, index) => (
-                       <CenterRow
-                         key={`${center.cn_unique_key}-${index}`}
-                         center={center}
-                         onClick={() => handleCenterClick(center)}
-                       />
-                     )
-                   )}
-                 </TableBody>
-               </Table>
-             </div>
-                 {centers.length > 0 && (
-                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border-t">
-                     <div className="flex flex-wrap items-center gap-3">
-                       <p className="text-sm text-muted-foreground">
-                         {getPageInfo(currentPage, centers.length, itemsPerPage).startItem}–{getPageInfo(currentPage, centers.length, itemsPerPage).endItem} of{" "}
-                         {centers.length}
-                       </p>
-                       <Button
-                         variant="outline"
-                         size="sm"
-                         onClick={() => exportToExcel(sortedCenters, "centers-export", "Centers")}
-                         className="flex items-center gap-2"
-                       >
-                     <Download className="h-4 w-4" />
-                     Export
-                   </Button>
-                 </div>
-                 {getTotalPages(centers.length, itemsPerPage) > 1 && (
-                   <div className="flex items-center gap-2">
-                     <Button
-                       variant="outline"
-                       size="sm"
-                       onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                       disabled={currentPage === 1}
-                     >
-                       Previous
-                     </Button>
-                     <span className="text-sm text-muted-foreground min-w-[60px] text-center">
-                       {currentPage}/{getTotalPages(centers.length, itemsPerPage)}
-                     </span>
-                     <Button
-                       variant="outline"
-                       size="sm"
-                       onClick={() =>
-                         setCurrentPage((prev) =>
-                           Math.min(prev + 1, getTotalPages(centers.length, itemsPerPage))
-                         )
-                       }
-                       disabled={
-                         currentPage === getTotalPages(centers.length, itemsPerPage)
-                       }
-                     >
-                       Next
-                     </Button>
-                   </div>
-                 )}
-               </div>
-             )}
-           </CardContent>
-        </Card>
-      )}
+       {/* Data Table */}
+       {centersView === "data" && (
+         <Card className="flex flex-col h-[calc(100vh-340px)]">
+           <CardHeader className="shrink-0">
+             <CardTitle>Centers Data</CardTitle>
+           </CardHeader>
+            <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
+              <div className="flex-1 overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>
+                        <SortButton label="Account Name" sortKey="account" />
+                      </TableHead>
+                      <TableHead>
+                        <SortButton label="Center Name" sortKey="name" />
+                      </TableHead>
+                      <TableHead>
+                        <SortButton label="Center Type" sortKey="type" />
+                      </TableHead>
+                      <TableHead>
+                        <SortButton label="Employee Range" sortKey="employees" />
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {getPaginatedData(sortedCenters, currentPage, itemsPerPage).map(
+                      (center, index) => (
+                        <CenterRow
+                          key={`${center.cn_unique_key}-${index}`}
+                          center={center}
+                          onClick={() => handleCenterClick(center)}
+                        />
+                      )
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+                  {centers.length > 0 && (
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border-t shrink-0">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <p className="text-sm text-muted-foreground">
+                          {getPageInfo(currentPage, centers.length, itemsPerPage).startItem}–{getPageInfo(currentPage, centers.length, itemsPerPage).endItem} of{" "}
+                          {centers.length}
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => exportToExcel(sortedCenters, "centers-export", "Centers")}
+                          className="flex items-center gap-2"
+                        >
+                      <Download className="h-4 w-4" />
+                      Export
+                    </Button>
+                  </div>
+                  {getTotalPages(centers.length, itemsPerPage) > 1 && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                      >
+                        Previous
+                      </Button>
+                      <span className="text-sm text-muted-foreground min-w-[60px] text-center">
+                        {currentPage}/{getTotalPages(centers.length, itemsPerPage)}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(prev + 1, getTotalPages(centers.length, itemsPerPage))
+                          )
+                        }
+                        disabled={
+                          currentPage === getTotalPages(centers.length, itemsPerPage)
+                        }
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+         </Card>
+       )}
 
       {/* Center Details Dialog */}
       <CenterDetailsDialog
