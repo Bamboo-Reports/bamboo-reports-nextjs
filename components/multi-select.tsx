@@ -22,7 +22,7 @@ const SelectBadge = React.memo(({ item, onRemove }: { item: string; onRemove: ()
   <Badge
     variant="secondary"
     key={item}
-    className="mr-1 mb-1 hover:bg-secondary/80 cursor-pointer group"
+    className="mr-1 mb-1 hover:bg-secondary/80 cursor-pointer group filter-chip interactive"
     onClick={(e) => {
       e.preventDefault()
       e.stopPropagation()
@@ -30,7 +30,7 @@ const SelectBadge = React.memo(({ item, onRemove }: { item: string; onRemove: ()
     }}
   >
     {item}
-    <X className="ml-1 h-3 w-3" />
+    <X className="ml-1 h-3 w-3 transition-transform group-hover:scale-110" />
   </Badge>
 ))
 SelectBadge.displayName = "SelectBadge"
@@ -54,7 +54,7 @@ const SelectItem = React.memo(({
     onSelect={onSelect}
     disabled={disabled}
     className={cn(
-      "cursor-pointer",
+      "cursor-pointer interactive transition-colors duration-150",
       disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-accent/50"
     )}
   >
@@ -119,7 +119,7 @@ export const MultiSelect = React.memo(function MultiSelect({
     return options.map((option) => {
       const value = typeof option === "string" ? option : option.value
       const count = typeof option === "object" ? option.count : undefined
-      const disabled = typeof option === "object" ? option.disabled : false
+      const disabled = typeof option === "object" ? (option.disabled ?? false) : false
 
       return (
         <SelectItem
@@ -149,7 +149,7 @@ export const MultiSelect = React.memo(function MultiSelect({
               {renderBadges}
             </div>
             <ChevronsUpDown className={cn(
-              "h-4 w-4 shrink-0 opacity-50",
+              "h-4 w-4 shrink-0 opacity-50 transition-transform duration-200",
               open && "rotate-180"
             )} />
           </Button>
