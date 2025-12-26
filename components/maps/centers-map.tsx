@@ -241,6 +241,12 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         mapStyle="mapbox://styles/abhishekfx/cltyaz9ek00nx01p783ygdi9z"
         mapboxAccessToken={mapboxToken}
         projection="mercator"
+        onLoad={(e) => {
+          // Force a resize calculation after map loads to ensure it fills container
+          setTimeout(() => {
+            e.target.resize()
+          }, 200)
+        }}
         interactiveLayerIds={["centers-circles"]}
         onMouseMove={(e) => {
           const features = e.features
