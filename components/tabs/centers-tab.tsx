@@ -191,11 +191,16 @@ export function CentersTab({
 
        {/* Map Section */}
        {centersView === "map" && (
-         <div className="mb-6">
-           <MapErrorBoundary>
-             <CentersMap centers={centers} heightClass="h-[calc(100vh-340px)]" />
-           </MapErrorBoundary>
-         </div>
+         <Card className="flex flex-col h-[calc(100vh-360px)] border shadow-sm">
+           <CardHeader className="shrink-0 px-6 py-4">
+             <CardTitle className="text-lg">Centers Map</CardTitle>
+           </CardHeader>
+           <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
+             <MapErrorBoundary>
+               <CentersMap centers={centers} heightClass="h-full" />
+             </MapErrorBoundary>
+           </CardContent>
+         </Card>
        )}
 
        {/* Data Table */}
