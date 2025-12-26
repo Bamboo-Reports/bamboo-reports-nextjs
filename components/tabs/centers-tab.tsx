@@ -172,18 +172,26 @@ export function CentersTab({
             <PieChartCard
               title="Center Type Distribution"
               data={centerChartData.centerTypeData}
+              countLabel="Total Centers"
+              showBigPercentage
             />
             <PieChartCard
               title="Employee Range Distribution"
               data={centerChartData.employeesRangeData}
+              countLabel="Total Centers"
+              showBigPercentage
             />
             <PieChartCard
               title="City Distribution (Top 5)"
               data={centerChartData.cityData}
+              countLabel="Total Centers"
+              showBigPercentage
             />
             <PieChartCard
               title="Functions Distribution"
               data={centerChartData.functionData}
+              countLabel="Total Centers"
+              showBigPercentage
             />
           </div>
         </div>

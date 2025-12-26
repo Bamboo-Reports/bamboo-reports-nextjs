@@ -164,22 +164,26 @@ export function AccountsTab({
             <PieChartCard
               title="Region Split"
               data={accountChartData.regionData}
-              isAccountChart
+              countLabel="Total Accounts"
+              showBigPercentage
             />
             <PieChartCard
               title="Primary Nature Split"
               data={accountChartData.primaryNatureData}
-              isAccountChart
+              countLabel="Total Accounts"
+              showBigPercentage
             />
             <PieChartCard
               title="Revenue Range Split"
               data={accountChartData.revenueRangeData}
-              isAccountChart
+              countLabel="Total Accounts"
+              showBigPercentage
             />
             <PieChartCard
               title="Employees Range Split"
               data={accountChartData.employeesRangeData}
-              isAccountChart
+              countLabel="Total Accounts"
+              showBigPercentage
             />
           </div>
         </div>
