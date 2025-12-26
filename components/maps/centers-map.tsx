@@ -26,6 +26,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
   const [error, setError] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
   const mapRef = React.useRef<any>(null)
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     setIsClient(true)
@@ -33,6 +34,27 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     console.log("[CentersMap] Centers count:", centers?.length)
     console.log("[CentersMap] Mapbox token exists:", !!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN)
   }, [centers])
+
+  // Force map to recalc size when container changes to avoid clipped bottom
+  useEffect(() => {
+    if (!isClient || typeof ResizeObserver === "undefined") return
+    const container = containerRef.current
+    if (!container) return
+
+    const resizeMap = () => {
+      if (mapRef.current?.resize) {
+        mapRef.current.resize()
+      }
+    }
+
+    const observer = new ResizeObserver(resizeMap)
+    observer.observe(container)
+
+    // Initial pass after layout
+    requestAnimationFrame(resizeMap)
+
+    return () => observer.disconnect()
+  }, [isClient])
 
   // Aggregate centers by city and calculate cluster data
   const cityData = useMemo(() => {
@@ -208,7 +230,10 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
 
   try {
     return (
-      <div className={`relative w-full ${heightClass} rounded-lg overflow-hidden outline-none`}>
+      <div
+        ref={containerRef}
+        className={`relative w-full ${heightClass} rounded-lg overflow-hidden outline-none`}
+      >
         <MapGL
         ref={mapRef}
         style={{ width: "100%", height: "100%" }}
