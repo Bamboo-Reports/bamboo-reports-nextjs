@@ -6,7 +6,7 @@ import { PieChartIcon } from "lucide-react"
 import { CHART_COLORS } from "@/lib/utils/chart-helpers"
 import type { ChartData } from "@/lib/types"
 
-const CustomTooltip = memo(({ active, payload, total }: TooltipProps<any, any> & { total: number }) => {
+const CustomTooltip = memo(({ active, payload, total, isAccountChart = false }: TooltipProps<any, any> & { total: number; isAccountChart?: boolean }) => {
   if (!active || !payload || !payload.length) return null
 
   const data = payload[0].payload
@@ -19,10 +19,10 @@ const CustomTooltip = memo(({ active, payload, total }: TooltipProps<any, any> &
       <p className="text-sm font-semibold text-foreground mb-2">{data.name}</p>
       <div className="space-y-1">
         <p className="text-xs text-muted-foreground">
-          Count: <span className="font-medium text-foreground" style={{ color }}>{Number(value).toLocaleString()}</span>
+          {isAccountChart ? 'Total Accounts' : 'Count'}: <span className="font-medium text-foreground" style={{ color }}>{Number(value).toLocaleString()}</span>
         </p>
         <p className="text-xs text-muted-foreground">
-          Percentage: <span className="font-medium" style={{ color }}>{percent}%</span>
+          {isAccountChart ? <span className="text-2xl font-bold" style={{ color }}>{percent}%</span> : <span className="font-medium" style={{ color }}>{percent}%</span>}
         </p>
       </div>
     </div>
@@ -34,9 +34,10 @@ interface PieChartCardProps {
   title: string
   data: ChartData[]
   dataKey?: string
+  isAccountChart?: boolean
 }
 
-export const PieChartCard = memo(({ title, data, dataKey = "value" }: PieChartCardProps) => {
+export const PieChartCard = memo(({ title, data, dataKey = "value", isAccountChart = false }: PieChartCardProps) => {
   // Safety check: ensure data is an array
   const safeData = React.useMemo(() => data || [], [data])
 
@@ -69,7 +70,7 @@ export const PieChartCard = memo(({ title, data, dataKey = "value" }: PieChartCa
         {safeData.length > 0 ? (
           <ChartContainer config={chartConfig} className="h-[400px] w-full">
             <PieChart>
-              <ChartTooltip content={(props) => <CustomTooltip {...props} total={total} />} />
+              <ChartTooltip content={(props) => <CustomTooltip {...props} total={total} isAccountChart={isAccountChart} />} />
               <Pie
                 data={safeData}
                 dataKey={dataKey}
