@@ -133,6 +133,9 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
   const maxCount = useMemo(() => {
     return Math.max(...cityData.map((city) => city.count), 1)
   }, [cityData])
+  // Ensure stops used in map styles are strictly increasing even for single-point datasets
+  const effectiveMaxCount = useMemo(() => Math.max(maxCount, 2), [maxCount])
+  const midCountStop = useMemo(() => (effectiveMaxCount > 2 ? effectiveMaxCount / 2 : 1.5), [effectiveMaxCount])
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
@@ -276,7 +279,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
                 ["get", "count"],
                 1,
                 7.2, // 20% bigger than inner (6 * 1.2)
-                maxCount,
+                effectiveMaxCount,
                 30, // 20% bigger than inner (25 * 1.2)
               ],
               "circle-color": [
@@ -285,9 +288,9 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
                 ["get", "count"],
                 1,
                 "#f97316", // Orange color matching your Tableau screenshot
-                maxCount / 2,
+                midCountStop,
                 "#ea580c",
-                maxCount,
+                effectiveMaxCount,
                 "#c2410c",
               ],
               "circle-opacity": 0.15, // Very transparent halo
@@ -306,7 +309,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
                 ["get", "count"],
                 1,
                 6, // Smaller base size
-                maxCount,
+                effectiveMaxCount,
                 25, // Smaller max size
               ],
               "circle-color": [
@@ -315,9 +318,9 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
                 ["get", "count"],
                 1,
                 "#fb923c", // Lighter orange for small clusters
-                maxCount / 2,
+                midCountStop,
                 "#f97316", // Medium orange
-                maxCount,
+                effectiveMaxCount,
                 "#ea580c", // Darker orange for large clusters
               ],
               "circle-opacity": 0.6, // Semi-transparent
