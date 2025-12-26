@@ -97,6 +97,31 @@
       'Segoe UI', sans-serif;
   }
 
+  /* Typography Hierarchy Enhancement */
+  h1 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  h2 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+
+  h3 {
+    @apply text-xl font-semibold tracking-tight;
+  }
+
+  h4 {
+    @apply text-lg font-medium tracking-tight;
+  }
+
+  h5 {
+    @apply text-base font-medium tracking-tight;
+  }
+
+  h6 {
+    @apply text-sm font-medium tracking-tight;
+  }
+
   /* Performance optimizations */
   * {
     -webkit-font-smoothing: antialiased;
@@ -116,23 +141,23 @@
 
   /* Optimize scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
     background: hsl(var(--muted));
-    border-radius: 4px;
+    border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.3);
-    border-radius: 4px;
-    transition: background 0.2s;
+    background: hsl(var(--muted-foreground) / 0.25);
+    border-radius: 3px;
+    transition: background 0.15s ease;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.5);
+    background: hsl(var(--muted-foreground) / 0.4);
   }
 
   /* Glassmorphism Dialog Styles */
@@ -150,5 +175,317 @@
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+}
+
+/* Smooth Microinteractions */
+@layer utilities {
+  /* Subtle scale on hover for interactive elements */
+  .hover-scale {
+    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
+
+  .hover-scale:active {
+    transform: scale(0.98);
+  }
+
+  /* Smooth fade in animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out forwards;
+  }
+
+  /* Staggered animation for list items */
+  .animate-stagger {
+    opacity: 0;
+    animation: fadeIn 0.2s ease-out forwards;
+  }
+
+  .animate-stagger:nth-child(1) { animation-delay: 0ms; }
+  .animate-stagger:nth-child(2) { animation-delay: 25ms; }
+  .animate-stagger:nth-child(3) { animation-delay: 50ms; }
+  .animate-stagger:nth-child(4) { animation-delay: 75ms; }
+  .animate-stagger:nth-child(5) { animation-delay: 100ms; }
+  .animate-stagger:nth-child(6) { animation-delay: 125ms; }
+  .animate-stagger:nth-child(7) { animation-delay: 150ms; }
+  .animate-stagger:nth-child(8) { animation-delay: 175ms; }
+  .animate-stagger:nth-child(9) { animation-delay: 200ms; }
+  .animate-stagger:nth-child(10) { animation-delay: 225ms; }
+
+  /* Smooth slide animation */
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-slide-in {
+    animation: slideIn 0.2s ease-out forwards;
+  }
+
+  /* Pulse effect for loading states */
+  @keyframes subtle-pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  .animate-subtle-pulse {
+    animation: subtle-pulse 1.5s ease-in-out infinite;
+  }
+
+  /* Button press effect */
+  .button-press {
+    transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .button-press:active {
+    transform: scale(0.97);
+  }
+
+  /* Smooth transition for all interactive elements */
+  .interactive {
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Card hover elevation */
+  .card-hover {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px 1px rgba(0, 0, 0, 0.08),
+                0 2px 4px 0 rgba(0, 0, 0, 0.04);
+  }
+
+  .dark .card-hover:hover {
+    box-shadow: 0 4px 12px 1px rgba(0, 0, 0, 0.4),
+                0 2px 4px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  /* Smooth badge transitions */
+  .badge-smooth {
+    transition: all 0.15s ease;
+  }
+
+  .badge-smooth:hover {
+    transform: scale(1.05);
+  }
+
+  /* Input focus animation */
+  .input-focus {
+    transition: all 0.15s ease;
+  }
+
+  .input-focus:focus {
+    transform: translateY(-1px);
+  }
+
+  /* Table row hover */
+  .table-row-hover {
+    transition: background-color 0.1s ease;
+  }
+
+  /* Chip/Filter tag animations */
+  .chip-appear {
+    animation: chipIn 0.15s ease-out forwards;
+  }
+
+  @keyframes chipIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .chip-remove {
+    animation: chipOut 0.15s ease-in forwards;
+  }
+
+  @keyframes chipOut {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+  }
+
+  /* Ripple effect utility */
+  .ripple {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ripple::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, hsl(var(--primary) / 0.1) 10%, transparent 10%);
+    background-repeat: no-repeat;
+    background-position: 50%;
+    transform: scale(10);
+    opacity: 0;
+    transition: transform 0.5s, opacity 1s;
+  }
+
+  .ripple:active::after {
+    transform: scale(0);
+    opacity: 1;
+    transition: 0s;
+  }
+
+  /* Smooth skeleton loading */
+  @keyframes skeleton-shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .skeleton-loading {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted) / 0.5) 0%,
+      hsl(var(--muted) / 0.8) 50%,
+      hsl(var(--muted) / 0.5) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* Smooth modal backdrop */
+  .modal-backdrop {
+    transition: opacity 0.2s ease;
+  }
+
+  /* Smooth tab transition */
+  .tab-content {
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  /* Accordion animations */
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+
+  /* Select dropdown animation */
+  @keyframes select-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-select-in {
+    animation: select-in 0.15s ease-out;
+  }
+
+  /* Checkbox scale animation */
+  @keyframes scale-in {
+    from {
+      transform: scale(0);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.15s ease-out;
+  }
+}
+
+/* Component-specific enhancements */
+@layer components {
+  /* Enhanced button styles */
+  .btn-enhanced {
+    @apply interactive button-press;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Enhanced card styles */
+  .card-enhanced {
+    @apply card-hover;
+  }
+
+  /* Enhanced table row */
+  .row-enhanced {
+    @apply table-row-hover;
+  }
+
+  /* Enhanced input */
+  .input-enhanced {
+    @apply input-focus;
+  }
+
+  /* Enhanced badge */
+  .badge-enhanced {
+    @apply badge-smooth;
+  }
+
+  /* Smooth filter removal */
+  .filter-chip {
+    @apply chip-appear badge-enhanced;
+  }
+
+  .filter-chip.removing {
+    @apply chip-remove;
   }
 }
