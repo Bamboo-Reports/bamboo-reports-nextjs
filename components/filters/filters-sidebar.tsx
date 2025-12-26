@@ -82,7 +82,7 @@ export function FiltersSidebar({
           "absolute top-3 z-10 h-6 border bg-background shadow-md hover:bg-accent flex items-center justify-center transition-all duration-300",
           isCollapsed
             ? "w-6 left-1/2 -translate-x-1/2 rounded-full"
-            : "w-9 right-6 rounded-full"
+            : "w-9 left-3 rounded-full"
         )}
         title={isCollapsed ? "Expand filters" : "Collapse filters"}
       >
