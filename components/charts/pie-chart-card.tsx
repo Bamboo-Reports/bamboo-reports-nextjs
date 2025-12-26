@@ -49,8 +49,8 @@ export const PieChartCard = memo(({ title, data, dataKey = "value" }: PieChartCa
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={80}
-                innerRadius={60}
+                outerRadius={90}
+                innerRadius={55}
                 label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
               >
                 {safeData.map((entry, index) => (
