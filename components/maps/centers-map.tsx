@@ -208,9 +208,10 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
 
   try {
     return (
-      <div className={`relative w-full ${heightClass} rounded-lg overflow-hidden border`}>
+      <div className={`relative w-full ${heightClass} rounded-lg overflow-hidden outline-none`}>
         <MapGL
         ref={mapRef}
+        style={{ width: "100%", height: "100%" }}
         initialViewState={initialViewState}
         mapStyle="mapbox://styles/abhishekfx/cltyaz9ek00nx01p783ygdi9z"
         mapboxAccessToken={mapboxToken}
