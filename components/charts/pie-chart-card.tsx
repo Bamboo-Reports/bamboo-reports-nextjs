@@ -6,12 +6,11 @@ import { PieChartIcon } from "lucide-react"
 import { CHART_COLORS } from "@/lib/utils/chart-helpers"
 import type { ChartData } from "@/lib/types"
 
-const CustomTooltip = memo(({ active, payload }: TooltipProps<any, any>) => {
+const CustomTooltip = memo(({ active, payload, total }: TooltipProps<any, any> & { total: number }) => {
   if (!active || !payload || !payload.length) return null
 
   const data = payload[0].payload
   const value = payload[0].value
-  const total = payload.reduce((acc, curr) => acc + (curr.value || 0), 0)
   const percent = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
   const color = data.fill || CHART_COLORS[0]
 
@@ -41,6 +40,11 @@ export const PieChartCard = memo(({ title, data, dataKey = "value" }: PieChartCa
   // Safety check: ensure data is an array
   const safeData = React.useMemo(() => data || [], [data])
 
+  // Calculate total for percentage calculation
+  const total = React.useMemo(() => {
+    return safeData.reduce((sum, item) => sum + (item.value || 0), 0)
+  }, [safeData])
+
   // Create chart config from data
   const chartConfig = React.useMemo(() => {
     const config: ChartConfig = {}
@@ -65,7 +69,7 @@ export const PieChartCard = memo(({ title, data, dataKey = "value" }: PieChartCa
         {safeData.length > 0 ? (
           <ChartContainer config={chartConfig} className="h-[400px] w-full">
             <PieChart>
-              <ChartTooltip content={<CustomTooltip />} />
+              <ChartTooltip content={(props) => <CustomTooltip {...props} total={total} />} />
               <Pie
                 data={safeData}
                 dataKey={dataKey}
