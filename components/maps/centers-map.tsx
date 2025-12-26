@@ -7,6 +7,7 @@ import "mapbox-gl/dist/mapbox-gl.css"
 
 interface CentersMapProps {
   centers: Center[]
+  heightClass?: string
 }
 
 interface CityCluster {
@@ -19,7 +20,7 @@ interface CityCluster {
   headcount: number
 }
 
-export function CentersMap({ centers }: CentersMapProps) {
+export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapProps) {
   const [hoveredCity, setHoveredCity] = useState<string | null>(null)
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -149,7 +150,7 @@ export function CentersMap({ centers }: CentersMapProps) {
   // Show error if any
   if (error) {
     return (
-      <div className="flex items-center justify-center h-[750px] bg-muted rounded-lg">
+      <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
         <div className="text-center">
           <p className="text-lg font-semibold text-red-500 mb-2">Error Loading Map</p>
           <p className="text-sm text-muted-foreground">{error}</p>
@@ -162,7 +163,7 @@ export function CentersMap({ centers }: CentersMapProps) {
   // Wait for client-side rendering
   if (!isClient) {
     return (
-      <div className="flex items-center justify-center h-[750px] bg-muted rounded-lg">
+      <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
         <div className="text-center">
           <p className="text-sm text-muted-foreground">Loading map...</p>
         </div>
@@ -173,7 +174,7 @@ export function CentersMap({ centers }: CentersMapProps) {
   if (!mapboxToken) {
     console.error("[CentersMap] Mapbox token is missing")
     return (
-      <div className="flex items-center justify-center h-[750px] bg-muted rounded-lg">
+      <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
         <div className="text-center">
           <p className="text-lg font-semibold text-muted-foreground mb-2">
             Mapbox Access Token Missing
@@ -189,7 +190,7 @@ export function CentersMap({ centers }: CentersMapProps) {
   if (cityData.length === 0) {
     console.warn("[CentersMap] No city data with coordinates")
     return (
-      <div className="flex items-center justify-center h-[750px] bg-muted rounded-lg">
+      <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
         <div className="text-center">
           <p className="text-lg font-semibold text-muted-foreground mb-2">No Location Data</p>
           <p className="text-sm text-muted-foreground">
@@ -204,7 +205,7 @@ export function CentersMap({ centers }: CentersMapProps) {
 
   try {
     return (
-      <div className="relative w-full h-[750px] rounded-lg overflow-hidden border">
+      <div className={`relative w-full ${heightClass} rounded-lg overflow-hidden border`}>
         <MapGL
         ref={mapRef}
         initialViewState={initialViewState}
@@ -396,7 +397,7 @@ export function CentersMap({ centers }: CentersMapProps) {
   } catch (err) {
     console.error("[CentersMap] Render error:", err)
     return (
-      <div className="flex items-center justify-center h-[750px] bg-muted rounded-lg">
+      <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
         <div className="text-center">
           <p className="text-lg font-semibold text-red-500 mb-2">Map Rendering Error</p>
           <p className="text-sm text-muted-foreground">

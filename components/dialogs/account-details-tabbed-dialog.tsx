@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { CentersMap } from "@/components/maps/centers-map"
 import {
   Tabs,
   TabsContent,
@@ -169,24 +170,27 @@ export function AccountDetailsDialog({
                     <Info className="h-4 w-4" />
                     Company Overview
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <InfoRow
-                      icon={Building2}
-                      label="Account Type"
-                      value={account.account_hq_company_type}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 gap-3 mt-3">
-                    <InfoRow
-                      icon={Building2}
-                      label="About"
-                      value={account.account_about}
-                    />
-                    <InfoRow
-                      icon={Package}
-                      label="Key Offerings"
-                      value={account.account_hq_key_offerings}
-                    />
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+                    <div className="grid grid-cols-1 gap-3">
+                      <InfoRow
+                        icon={Building2}
+                        label="Account Type"
+                        value={account.account_hq_company_type}
+                      />
+                      <InfoRow
+                        icon={Building2}
+                        label="About"
+                        value={account.account_about}
+                      />
+                      <InfoRow
+                        icon={Package}
+                        label="Key Offerings"
+                        value={account.account_hq_key_offerings}
+                      />
+                    </div>
+                    <div className="w-full">
+                      <CentersMap centers={accountCenters} heightClass="h-[320px] lg:h-[420px]" />
+                    </div>
                   </div>
                 </div>
               )}
