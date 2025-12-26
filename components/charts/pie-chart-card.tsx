@@ -80,13 +80,19 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
                 cy="50%"
                 outerRadius={90}
                 innerRadius={55}
-                label={({ percent }) => {
+                label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
                   const percentage = Math.round(percent * 100)
-                  return percentage >= 5 ? (
-                    <tspan fill="white" fontWeight="bold" fontSize="12">
+                  if (percentage < 5) return null
+
+                  const radius = innerRadius + (outerRadius - innerRadius) * 0.5
+                  const x = cx + radius * Math.cos(-midAngle * Math.PI / 180)
+                  const y = cy + radius * Math.sin(-midAngle * Math.PI / 180)
+
+                  return (
+                    <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="middle" fontSize="12" fontWeight="bold">
                       {percentage}%
-                    </tspan>
-                  ) : ''
+                    </text>
+                  )
                 }}
                 labelLine={false}
               >
