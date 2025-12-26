@@ -79,9 +79,10 @@ export function FiltersSidebar({
         size="icon"
         onClick={() => setIsCollapsed(!isCollapsed)}
         className={cn(
-          "absolute right-2 top-3 z-10 h-8 w-8 transition-all duration-300 ease-in-out",
+          "absolute right-3 z-10 h-8 w-8 transition-all duration-300 ease-in-out",
           "hover:bg-accent rounded-md",
-          "flex items-center justify-center"
+          "flex items-center justify-center",
+          isCollapsed ? "top-3" : "top-[14px]"
         )}
         title={isCollapsed ? "Expand filters" : "Collapse filters"}
       >
@@ -97,30 +98,16 @@ export function FiltersSidebar({
         </span>
       </Button>
 
-      {/* Collapsed State - Only Hamburger Icon */}
-      {isCollapsed && (
-        <div className="flex flex-col items-center pt-16 space-y-4">
-          <div className="flex flex-col items-center gap-2">
-            <Filter className="h-5 w-5 text-muted-foreground" />
-            {getTotalActiveFilters() > 0 && (
-              <Badge variant="secondary" className="w-6 h-6 p-0 flex items-center justify-center text-xs">
-                {getTotalActiveFilters()}
-              </Badge>
-            )}
-          </div>
-        </div>
-      )}
+
 
       {/* Expanded State */}
       {!isCollapsed && (
         <div className="p-3 space-y-3">
           {/* Filter Actions */}
           <div className="flex flex-col gap-2 mb-3 pb-3 border-b border-sidebar-border">
-            <div className="flex items-center justify-between pr-8">
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-semibold text-foreground">Filters</span>
-              </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-semibold text-foreground">Filters</span>
             </div>
             <div className="flex flex-col gap-2">
               <SavedFiltersManager
