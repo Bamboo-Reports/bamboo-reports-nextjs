@@ -25,6 +25,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
+  const [isMapReady, setIsMapReady] = useState(false)
   const mapRef = React.useRef<any>(null)
   const containerRef = React.useRef<HTMLDivElement | null>(null)
 
@@ -34,6 +35,12 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     console.log("[CentersMap] Centers count:", centers?.length)
     console.log("[CentersMap] Mapbox token exists:", !!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN)
   }, [centers])
+
+  // Fallback to ensure the map shows even if onLoad is delayed
+  useEffect(() => {
+    const fallback = setTimeout(() => setIsMapReady(true), 700)
+    return () => clearTimeout(fallback)
+  }, [])
 
   // Force map to recalc size when container changes to avoid clipped bottom
   useEffect(() => {
@@ -234,9 +241,12 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         ref={containerRef}
         className={`relative w-full ${heightClass} rounded-lg overflow-hidden outline-none`}
       >
+        {!isMapReady && (
+          <div className="absolute inset-0 bg-muted/70 animate-pulse pointer-events-none" />
+        )}
         <MapGL
         ref={mapRef}
-        style={{ width: "100%", height: "100%" }}
+        style={{ width: "100%", height: "100%", opacity: isMapReady ? 1 : 0, transition: "opacity 150ms ease-out" }}
         initialViewState={initialViewState}
         mapStyle="mapbox://styles/abhishekfx/cltyaz9ek00nx01p783ygdi9z"
         mapboxAccessToken={mapboxToken}
@@ -245,6 +255,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
           // Force a resize calculation after map loads to ensure it fills container
           setTimeout(() => {
             e.target.resize()
+            setIsMapReady(true)
           }, 200)
         }}
         interactiveLayerIds={["centers-circles"]}
