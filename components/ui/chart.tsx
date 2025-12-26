@@ -297,16 +297,17 @@ const ChartLegendContent = React.forwardRef<
               <div
                 key={item.value}
                 className={cn(
-                  "flex max-w-[180px] items-start gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
+                  "flex max-w-[180px] items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
                 )}
               >
                 {itemConfig?.icon && !hideIcon ? (
                   <itemConfig.icon />
                 ) : (
                   <div
-                    className="h-2 w-2 shrink-0 rounded-[2px]"
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
                     style={{
                       backgroundColor: item.color,
+                      boxShadow: `0 0 8px ${item.color}80`,
                     }}
                   />
                 )}

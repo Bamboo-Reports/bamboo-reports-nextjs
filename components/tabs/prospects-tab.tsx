@@ -156,10 +156,14 @@ export function ProspectsTab({
             <PieChartCard
               title="Department Split"
               data={prospectChartData.departmentData}
+              countLabel="Total Prospects"
+              showBigPercentage
             />
             <PieChartCard
               title="Level Split"
               data={prospectChartData.levelData}
+              countLabel="Total Prospects"
+              showBigPercentage
             />
           </div>
         </div>
