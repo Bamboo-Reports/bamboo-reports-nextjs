@@ -82,6 +82,7 @@ export function AccountsTab({
   }
 
   const sortedAccounts = React.useMemo(() => {
+    if (accounts.length === 0) return []
     if (!sort.direction) return accounts
 
     const compare = (a: string | undefined | null, b: string | undefined | null) =>

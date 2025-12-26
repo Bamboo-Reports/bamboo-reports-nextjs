@@ -34,6 +34,7 @@ import { LoadingState } from "@/components/states/loading-state"
 import { ErrorState } from "@/components/states/error-state"
 import { Header } from "@/components/layout/header"
 import { FiltersSidebar } from "@/components/filters/filters-sidebar"
+import { SummaryCardsSkeleton, FiltersSidebarSkeleton } from "@/components/ui/skeleton"
 import { SummaryCards } from "@/components/dashboard/summary-cards"
 import { AccountsTab, CentersTab } from "@/components/tabs"
 import { ProspectsTab } from "@/components/tabs/prospects-tab"
@@ -136,6 +137,7 @@ function DashboardContent() {
   const [accountsView, setAccountsView] = useState<"chart" | "data">("chart")
   const [centersView, setCentersView] = useState<"chart" | "data" | "map">("chart")
   const [prospectsView, setProspectsView] = useState<"chart" | "data">("chart")
+  const [initialLoad, setInitialLoad] = useState(true)
   const [, startFilterTransition] = useTransition()
   const deferredFilters = useDeferredValue(filters)
 
@@ -256,6 +258,8 @@ function DashboardContent() {
       setConnectionStatus(
         `Successfully loaded: ${accountsData.length} accounts, ${centersData.length} centers, ${functionsData.length} functions, ${servicesData.length} services, ${prospectsData.length} prospects`
       )
+
+      setTimeout(() => setInitialLoad(false), 500)
     } catch (err) {
       console.error("Error loading data:", err)
       const errorMessage = err instanceof Error ? err.message : "Failed to load data from database"
@@ -1037,39 +1041,47 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       <Header onRefresh={loadData} />
 
       {dataLoaded && (
         <div className="flex h-[calc(100vh-88px)]">
-          <FiltersSidebar
-            filters={filters}
-            pendingFilters={pendingFilters}
-            availableOptions={availableOptions}
-            isApplying={isApplying}
-            revenueRange={revenueRange}
-            accountNames={accountNames}
-            setPendingFilters={setPendingFilters}
-            resetFilters={resetFilters}
-            handleExportAll={handleExportAll}
-            handleMinRevenueChange={handleMinRevenueChange}
-            handleMaxRevenueChange={handleMaxRevenueChange}
-            getTotalActiveFilters={getTotalActiveFilters}
-            handleLoadSavedFilters={handleLoadSavedFilters}
-            formatRevenueInMillions={formatRevenueInMillions}
-          />
+          {initialLoad ? (
+            <FiltersSidebarSkeleton />
+          ) : (
+            <FiltersSidebar
+              filters={filters}
+              pendingFilters={pendingFilters}
+              availableOptions={availableOptions}
+              isApplying={isApplying}
+              revenueRange={revenueRange}
+              accountNames={accountNames}
+              setPendingFilters={setPendingFilters}
+              resetFilters={resetFilters}
+              handleExportAll={handleExportAll}
+              handleMinRevenueChange={handleMinRevenueChange}
+              handleMaxRevenueChange={handleMaxRevenueChange}
+              getTotalActiveFilters={getTotalActiveFilters}
+              handleLoadSavedFilters={handleLoadSavedFilters}
+              formatRevenueInMillions={formatRevenueInMillions}
+            />
+          )}
 
           {/* Right Side - Data View (70%) */}
           <div className="flex-1 overflow-y-auto bg-background">
-            <div className="p-6">
-              <SummaryCards
-                filteredAccountsCount={filteredData.filteredAccounts.length}
-                totalAccountsCount={accounts.length}
-                filteredCentersCount={filteredData.filteredCenters.length}
-                totalCentersCount={centers.length}
-                filteredProspectsCount={filteredData.filteredProspects.length}
-                totalProspectsCount={prospects.length}
-              />
+            <div className="p-6 pb-8">
+              {initialLoad ? (
+                <SummaryCardsSkeleton />
+              ) : (
+                <SummaryCards
+                  filteredAccountsCount={filteredData.filteredAccounts.length}
+                  totalAccountsCount={accounts.length}
+                  filteredCentersCount={filteredData.filteredCenters.length}
+                  totalCentersCount={centers.length}
+                  filteredProspectsCount={filteredData.filteredProspects.length}
+                  totalProspectsCount={prospects.length}
+                />
+              )}
 
               {/* Data Tables */}
               <Tabs defaultValue="accounts" className="space-y-4">
