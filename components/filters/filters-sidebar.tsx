@@ -75,7 +75,13 @@ export function FiltersSidebar({
     )}>
       {/* Collapsed State */}
       {isCollapsed && (
-        <div className="flex flex-col items-center pt-16 space-y-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsCollapsed(false)}
+          className="flex flex-col items-center w-full h-full hover:bg-accent rounded-none transition-colors duration-200"
+          title="Expand filters"
+        >
           <div className="flex flex-col items-center gap-2">
             <Filter className="h-5 w-5 text-muted-foreground" />
             {getTotalActiveFilters() > 0 && (
@@ -84,7 +90,7 @@ export function FiltersSidebar({
               </Badge>
             )}
           </div>
-        </div>
+        </Button>
       )}
 
       {/* Expanded State */}
