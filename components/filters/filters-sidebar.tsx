@@ -70,25 +70,9 @@ export function FiltersSidebar({
 
   return (
     <div className={cn(
-      "border-r bg-sidebar overflow-y-auto overflow-x-hidden transition-all duration-300 relative",
+      "border-r bg-sidebar overflow-y-auto overflow-x-hidden transition-all duration-300 relative flex flex-col",
       isCollapsed ? "w-16" : "w-[384px] shrink-0"
     )}>
-      {/* Collapse/Expand Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className={cn(
-          "absolute top-3 z-10 h-6 border bg-background shadow-md hover:bg-accent flex items-center justify-center transition-all duration-300",
-          isCollapsed
-            ? "w-6 left-1/2 -translate-x-1/2 rounded-full"
-            : "w-9 left-3 rounded-full"
-        )}
-        title={isCollapsed ? "Expand filters" : "Collapse filters"}
-      >
-        {isCollapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
-      </Button>
-
       {/* Collapsed State */}
       {isCollapsed && (
         <div className="flex flex-col items-center pt-16 space-y-4">
@@ -105,22 +89,31 @@ export function FiltersSidebar({
 
       {/* Expanded State */}
       {!isCollapsed && (
-        <div className="p-3 space-y-3">
-          {/* Filter Actions */}
-          <div className="flex flex-col gap-2 mb-3 pb-3 border-b border-sidebar-border">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-semibold text-foreground">Filters</span>
+        <div className="flex flex-col h-full">
+          {/* Filter Header with Toggle */}
+          <div className="p-3 pb-3 border-b border-sidebar-border space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-semibold text-foreground">Filters</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="h-7 w-7 hover:bg-accent rounded-md"
+                title="Collapse sidebar"
+              >
+                <PanelLeftClose className="h-4 w-4" />
+              </Button>
             </div>
-            <div className="flex flex-col gap-2">
-              <SavedFiltersManager
-                currentFilters={filters}
-                onLoadFilters={handleLoadSavedFilters}
-                totalActiveFilters={getTotalActiveFilters()}
-                onReset={resetFilters}
-                onExport={handleExportAll}
-              />
-            </div>
+            <SavedFiltersManager
+              currentFilters={filters}
+              onLoadFilters={handleLoadSavedFilters}
+              totalActiveFilters={getTotalActiveFilters()}
+              onReset={resetFilters}
+              onExport={handleExportAll}
+            />
           </div>
 
           {/* Accordion Filters */}
