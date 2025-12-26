@@ -167,7 +167,7 @@ export function ProspectsTab({
 
        {/* Data Table */}
        {prospectsView === "data" && (
-         <Card className="flex flex-col h-[calc(100vh-340px)]">
+         <Card className="flex flex-col h-[calc(100vh-360px)]">
            <CardHeader className="shrink-0">
              <CardTitle>Prospects Data</CardTitle>
            </CardHeader>

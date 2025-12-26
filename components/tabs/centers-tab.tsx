@@ -193,14 +193,14 @@ export function CentersTab({
        {centersView === "map" && (
          <div className="mb-6">
            <MapErrorBoundary>
-             <CentersMap centers={centers} heightClass="h-[calc(100vh-380px)]" />
+             <CentersMap centers={centers} heightClass="h-[calc(100vh-340px)]" />
            </MapErrorBoundary>
          </div>
        )}
 
        {/* Data Table */}
        {centersView === "data" && (
-         <Card className="flex flex-col h-[calc(100vh-340px)]">
+         <Card className="flex flex-col h-[calc(100vh-360px)]">
            <CardHeader className="shrink-0">
              <CardTitle>Centers Data</CardTitle>
            </CardHeader>

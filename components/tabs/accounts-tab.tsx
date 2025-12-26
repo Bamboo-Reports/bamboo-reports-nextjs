@@ -183,7 +183,7 @@ export function AccountsTab({
 
       {/* Data Table */}
       {accountsView === "data" && (
-        <Card className="flex flex-col h-[calc(100vh-340px)]">
+        <Card className="flex flex-col h-[calc(100vh-360px)]">
           <CardHeader className="shrink-0">
             <CardTitle>Accounts Data</CardTitle>
           </CardHeader>
