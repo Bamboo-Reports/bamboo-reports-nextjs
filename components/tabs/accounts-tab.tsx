@@ -61,15 +61,6 @@ export function AccountsTab({
     setIsDialogOpen(true)
   }
 
-  // Show empty state when no accounts
-  if (accounts.length === 0) {
-    return (
-      <TabsContent value="accounts">
-        <EmptyState type="no-results" />
-      </TabsContent>
-    )
-  }
-
   const handleSort = (key: typeof sort.key) => {
     setSort((prev) => {
       if (prev.key !== key || prev.direction === null) {
@@ -126,6 +117,14 @@ export function AccountsTab({
       )}
     </button>
   )
+
+  if (accounts.length === 0) {
+    return (
+      <TabsContent value="accounts">
+        <EmptyState type="no-results" />
+      </TabsContent>
+    )
+  }
 
   return (
     <TabsContent value="accounts">
@@ -188,89 +187,87 @@ export function AccountsTab({
           <CardHeader>
             <CardTitle>Accounts Data</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-auto max-h-[60vh]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>
-                      <SortButton label="Account Name" sortKey="name" />
-                    </TableHead>
-                    <TableHead>
-                      <SortButton label="Location" sortKey="location" />
-                    </TableHead>
-                    <TableHead>
-                      <SortButton label="Industry" sortKey="industry" />
-                    </TableHead>
-                    <TableHead>
-                      <SortButton label="Revenue Range" sortKey="revenue" />
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {getPaginatedData(sortedAccounts, currentPage, itemsPerPage).map(
-                    (account, index) => (
-                      <AccountRow
-                        key={`${account.account_global_legal_name}-${index}`}
-                        account={account}
-                        onClick={() => handleAccountClick(account)}
-                      />
-                    )
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-                {accounts.length > 0 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-4">
-                      <p className="text-sm text-muted-foreground">
-                        Showing{" "}
-                        {getPageInfo(currentPage, accounts.length, itemsPerPage).startItem} to{" "}
-                        {getPageInfo(currentPage, accounts.length, itemsPerPage).endItem} of{" "}
-                        {accounts.length} results
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => exportToExcel(sortedAccounts, "accounts-export", "Accounts")}
-                        className="flex items-center gap-2"
-                      >
-                    <Download className="h-4 w-4" />
-                    Export Accounts
-                  </Button>
-                </div>
-                {getTotalPages(accounts.length, itemsPerPage) > 1 && (
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </Button>
-                    <span className="text-sm text-muted-foreground">
-                      Page {currentPage} of {getTotalPages(accounts.length, itemsPerPage)}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((prev) =>
-                          Math.min(prev + 1, getTotalPages(accounts.length, itemsPerPage))
-                        )
-                      }
-                      disabled={
-                        currentPage === getTotalPages(accounts.length, itemsPerPage)
-                      }
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          </CardContent>
+           <CardContent className="p-0">
+             <div className="overflow-auto max-h-[calc(100vh-380px)]">
+               <Table>
+                 <TableHeader>
+                   <TableRow>
+                     <TableHead>
+                       <SortButton label="Account Name" sortKey="name" />
+                     </TableHead>
+                     <TableHead>
+                       <SortButton label="Location" sortKey="location" />
+                     </TableHead>
+                     <TableHead>
+                       <SortButton label="Industry" sortKey="industry" />
+                     </TableHead>
+                     <TableHead>
+                       <SortButton label="Revenue Range" sortKey="revenue" />
+                     </TableHead>
+                   </TableRow>
+                 </TableHeader>
+                 <TableBody>
+                   {getPaginatedData(sortedAccounts, currentPage, itemsPerPage).map(
+                     (account, index) => (
+                       <AccountRow
+                         key={`${account.account_global_legal_name}-${index}`}
+                         account={account}
+                         onClick={() => handleAccountClick(account)}
+                       />
+                     )
+                   )}
+                 </TableBody>
+               </Table>
+             </div>
+                 {accounts.length > 0 && (
+                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border-t">
+                     <div className="flex flex-wrap items-center gap-3">
+                       <p className="text-sm text-muted-foreground">
+                         {getPageInfo(currentPage, accounts.length, itemsPerPage).startItem}–{getPageInfo(currentPage, accounts.length, itemsPerPage).endItem} of{" "}
+                         {accounts.length}
+                       </p>
+                       <Button
+                         variant="outline"
+                         size="sm"
+                         onClick={() => exportToExcel(sortedAccounts, "accounts-export", "Accounts")}
+                         className="flex items-center gap-2"
+                       >
+                     <Download className="h-4 w-4" />
+                     Export
+                   </Button>
+                 </div>
+                 {getTotalPages(accounts.length, itemsPerPage) > 1 && (
+                   <div className="flex items-center gap-2">
+                     <Button
+                       variant="outline"
+                       size="sm"
+                       onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                       disabled={currentPage === 1}
+                     >
+                       Previous
+                     </Button>
+                     <span className="text-sm text-muted-foreground min-w-[60px] text-center">
+                       {currentPage}/{getTotalPages(accounts.length, itemsPerPage)}
+                     </span>
+                     <Button
+                       variant="outline"
+                       size="sm"
+                       onClick={() =>
+                         setCurrentPage((prev) =>
+                           Math.min(prev + 1, getTotalPages(accounts.length, itemsPerPage))
+                         )
+                       }
+                       disabled={
+                         currentPage === getTotalPages(accounts.length, itemsPerPage)
+                       }
+                     >
+                       Next
+                     </Button>
+                   </div>
+                 )}
+               </div>
+             )}
+           </CardContent>
         </Card>
       )}
 
