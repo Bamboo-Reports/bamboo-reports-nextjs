@@ -1037,11 +1037,11 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       <Header onRefresh={loadData} />
 
       {dataLoaded && (
-        <div className="flex h-[calc(100vh-88px)]">
+        <div className="flex flex-1 overflow-hidden">
           <FiltersSidebar
             filters={filters}
             pendingFilters={pendingFilters}
@@ -1060,9 +1060,10 @@ function DashboardContent() {
           />
 
           {/* Right Side - Data View (70%) */}
-          <div className="flex-1 overflow-y-auto bg-background">
-            <div className="p-6">
-              <SummaryCards
+          <div className="flex-1 bg-background overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-6 pb-8">
+                <SummaryCards
                 filteredAccountsCount={filteredData.filteredAccounts.length}
                 totalAccountsCount={accounts.length}
                 filteredCentersCount={filteredData.filteredCenters.length}
@@ -1115,6 +1116,7 @@ function DashboardContent() {
                   itemsPerPage={itemsPerPage}
                 />
               </Tabs>
+            </div>
             </div>
           </div>
         </div>
