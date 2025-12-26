@@ -25,6 +25,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
   const mapRef = React.useRef<any>(null)
   const containerRef = React.useRef<HTMLDivElement | null>(null)
 
@@ -232,7 +233,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     return (
       <div
         ref={containerRef}
-        className={`relative w-full ${heightClass} rounded-lg overflow-hidden outline-none`}
+        className={`relative w-full ${heightClass} rounded-lg overflow-hidden outline-none transition-opacity duration-500 ${isLoaded ? "opacity-100" : "opacity-0"}`}
       >
         <MapGL
         ref={mapRef}
@@ -245,6 +246,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
           // Force a resize calculation after map loads to ensure it fills container
           setTimeout(() => {
             e.target.resize()
+            setIsLoaded(true)
           }, 200)
         }}
         interactiveLayerIds={["centers-circles"]}
