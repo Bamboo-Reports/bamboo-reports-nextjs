@@ -119,7 +119,7 @@ export function ProspectsTab({
   }
 
   return (
-    <TabsContent value="prospects">
+    <TabsContent value="prospects" className="flex h-full flex-1 flex-col min-h-0">
       {/* Header with View Toggle */}
       <div className="flex items-center gap-2 mb-4">
         <PieChartIcon className="h-5 w-5 text-[hsl(var(--chart-1))]" />
@@ -167,12 +167,12 @@ export function ProspectsTab({
 
       {/* Data Table */}
       {prospectsView === "data" && (
-        <Card>
+        <Card className="flex flex-1 flex-col">
           <CardHeader>
             <CardTitle>Prospects Data</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-auto max-h-[60vh]">
+          <CardContent className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-auto rounded-lg border bg-card/40">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -204,21 +204,19 @@ export function ProspectsTab({
                 </TableBody>
               </Table>
             </div>
-                {prospects.length > 0 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-4">
-                      <p className="text-sm text-muted-foreground">
-                        Showing{" "}
-                        {getPageInfo(currentPage, prospects.length, itemsPerPage).startItem} to{" "}
-                        {getPageInfo(currentPage, prospects.length, itemsPerPage).endItem} of{" "}
-                        {prospects.length} results
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => exportToExcel(sortedProspects, "prospects-export", "Prospects")}
-                        className="flex items-center gap-2"
-                      >
+            {prospects.length > 0 && (
+              <div className="mt-4 flex items-center justify-between gap-4 rounded-lg bg-card/60 p-3">
+                <div className="flex items-center gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {getPageInfo(currentPage, prospects.length, itemsPerPage).startItem} to{" "}
+                    {getPageInfo(currentPage, prospects.length, itemsPerPage).endItem} of {prospects.length} results
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportToExcel(sortedProspects, "prospects-export", "Prospects")}
+                    className="flex items-center gap-2"
+                  >
                     <Download className="h-4 w-4" />
                     Export Prospects
                   </Button>
@@ -244,9 +242,7 @@ export function ProspectsTab({
                           Math.min(prev + 1, getTotalPages(prospects.length, itemsPerPage))
                         )
                       }
-                      disabled={
-                        currentPage === getTotalPages(prospects.length, itemsPerPage)
-                      }
+                      disabled={currentPage === getTotalPages(prospects.length, itemsPerPage)}
                     >
                       Next
                     </Button>

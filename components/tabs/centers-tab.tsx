@@ -46,6 +46,7 @@ export function CentersTab({
 }: CentersTabProps) {
   const [selectedCenter, setSelectedCenter] = useState<Center | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const mapHeightClass = "h-full min-h-[420px]"
   const [sort, setSort] = useState<{
     key: "account" | "name" | "type" | "employees"
     direction: "asc" | "desc" | null
@@ -119,7 +120,7 @@ export function CentersTab({
   // Show empty state when no centers
   if (centers.length === 0) {
     return (
-      <TabsContent value="centers">
+      <TabsContent value="centers" className="flex h-full flex-1 flex-col min-h-0">
         <EmptyState type="no-results" />
       </TabsContent>
     )
@@ -191,21 +192,21 @@ export function CentersTab({
 
       {/* Map Section */}
       {centersView === "map" && (
-        <div className="mb-6">
+        <div className="flex-1 min-h-0">
           <MapErrorBoundary>
-            <CentersMap centers={centers} />
+            <CentersMap centers={centers} heightClass={mapHeightClass} />
           </MapErrorBoundary>
         </div>
       )}
 
       {/* Data Table */}
       {centersView === "data" && (
-        <Card>
+        <Card className="flex flex-1 flex-col">
           <CardHeader>
             <CardTitle>Centers Data</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-auto max-h-[60vh]">
+          <CardContent className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-auto rounded-lg border bg-card/40">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -236,21 +237,19 @@ export function CentersTab({
                 </TableBody>
               </Table>
             </div>
-                {centers.length > 0 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-4">
-                      <p className="text-sm text-muted-foreground">
-                        Showing{" "}
-                        {getPageInfo(currentPage, centers.length, itemsPerPage).startItem} to{" "}
-                        {getPageInfo(currentPage, centers.length, itemsPerPage).endItem} of{" "}
-                        {centers.length} results
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => exportToExcel(sortedCenters, "centers-export", "Centers")}
-                        className="flex items-center gap-2"
-                      >
+            {centers.length > 0 && (
+              <div className="mt-4 flex items-center justify-between gap-4 rounded-lg bg-card/60 p-3">
+                <div className="flex items-center gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {getPageInfo(currentPage, centers.length, itemsPerPage).startItem} to{" "}
+                    {getPageInfo(currentPage, centers.length, itemsPerPage).endItem} of {centers.length} results
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportToExcel(sortedCenters, "centers-export", "Centers")}
+                    className="flex items-center gap-2"
+                  >
                     <Download className="h-4 w-4" />
                     Export Centers
                   </Button>
@@ -276,9 +275,7 @@ export function CentersTab({
                           Math.min(prev + 1, getTotalPages(centers.length, itemsPerPage))
                         )
                       }
-                      disabled={
-                        currentPage === getTotalPages(centers.length, itemsPerPage)
-                      }
+                      disabled={currentPage === getTotalPages(centers.length, itemsPerPage)}
                     >
                       Next
                     </Button>
