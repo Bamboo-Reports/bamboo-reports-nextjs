@@ -80,7 +80,11 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
                 cy="50%"
                 outerRadius={90}
                 innerRadius={55}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                label={({ percent }) => {
+                  const percentage = Math.round(percent * 100)
+                  return percentage >= 5 ? `${percentage}%` : ''
+                }}
+                labelLine={false}
               >
                 {safeData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
