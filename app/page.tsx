@@ -33,7 +33,6 @@ import { getAllData, testConnection, getDatabaseStatus, clearCache } from "./act
 import { LoadingState } from "@/components/states/loading-state"
 import { ErrorState } from "@/components/states/error-state"
 import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
 import { FiltersSidebar } from "@/components/filters/filters-sidebar"
 import { SummaryCards } from "@/components/dashboard/summary-cards"
 import { AccountsTab, CentersTab } from "@/components/tabs"
@@ -1063,7 +1062,7 @@ function DashboardContent() {
           {/* Right Side - Data View (70%) */}
           <div className="flex-1 bg-background overflow-hidden flex flex-col">
             <div className="flex-1 overflow-y-auto">
-              <div className="p-8">
+              <div className="p-6 pb-8">
                 <SummaryCards
                 filteredAccountsCount={filteredData.filteredAccounts.length}
                 totalAccountsCount={accounts.length}
@@ -1122,7 +1121,6 @@ function DashboardContent() {
           </div>
         </div>
       )}
-      <Footer />
     </div>
   )
 }
