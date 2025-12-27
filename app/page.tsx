@@ -47,10 +47,8 @@ import {
   copyToClipboard,
 } from "@/lib/utils/helpers"
 import {
-  enhancedFilterMatch,
-  enhancedKeywordMatch,
-  toFilterValues,
-  extractFilterValues,
+  createValueMatcher,
+  createKeywordMatcher,
 } from "@/lib/utils/filter-helpers"
 import {
   calculateChartData,
@@ -330,16 +328,34 @@ function DashboardContent() {
       return numValue >= range[0] && numValue <= range[1]
     }
 
-    const validAccounts = new Set<Account>()
-    const validCenters = new Set<Center>()
-    const validFunctions = new Set<Function>()
-    const validServices = new Set<Service>()
-    const validProspects = new Set<Prospect>()
+    const matchAccountCountry = createValueMatcher(activeFilters.accountCountries)
+    const matchAccountRegion = createValueMatcher(activeFilters.accountRegions)
+    const matchAccountIndustry = createValueMatcher(activeFilters.accountIndustries)
+    const matchAccountSubIndustry = createValueMatcher(activeFilters.accountSubIndustries)
+    const matchAccountPrimaryCategory = createValueMatcher(activeFilters.accountPrimaryCategories)
+    const matchAccountPrimaryNature = createValueMatcher(activeFilters.accountPrimaryNatures)
+    const matchAccountNasscom = createValueMatcher(activeFilters.accountNasscomStatuses)
+    const matchAccountEmployeesRange = createValueMatcher(activeFilters.accountEmployeesRanges)
+    const matchAccountCenterEmployees = createValueMatcher(activeFilters.accountCenterEmployees)
+    const matchAccountName = createKeywordMatcher(activeFilters.accountNameKeywords)
 
-    const validAccountNames = new Set<string>()
-    const validCenterKeys = new Set<string>()
+    const matchCenterType = createValueMatcher(activeFilters.centerTypes)
+    const matchCenterFocus = createValueMatcher(activeFilters.centerFocus)
+    const matchCenterCity = createValueMatcher(activeFilters.centerCities)
+    const matchCenterState = createValueMatcher(activeFilters.centerStates)
+    const matchCenterCountry = createValueMatcher(activeFilters.centerCountries)
+    const matchCenterEmployees = createValueMatcher(activeFilters.centerEmployees)
+    const matchCenterStatus = createValueMatcher(activeFilters.centerStatuses)
 
-    const hasAccountFilters = activeFilters.accountCountries.length > 0 ||
+    const matchFunctionType = createValueMatcher(activeFilters.functionTypes)
+
+    const matchProspectDepartment = createValueMatcher(activeFilters.prospectDepartments)
+    const matchProspectLevel = createValueMatcher(activeFilters.prospectLevels)
+    const matchProspectCity = createValueMatcher(activeFilters.prospectCities)
+    const matchProspectTitle = createKeywordMatcher(activeFilters.prospectTitleKeywords)
+
+    const hasAccountFilters =
+      activeFilters.accountCountries.length > 0 ||
       activeFilters.accountRegions.length > 0 ||
       activeFilters.accountIndustries.length > 0 ||
       activeFilters.accountSubIndustries.length > 0 ||
@@ -359,112 +375,124 @@ function DashboardContent() {
       activeFilters.prospectCities.length > 0 ||
       activeFilters.prospectTitleKeywords.length > 0
 
-    for (const account of accounts) {
-      const matchesAccount =
-        enhancedFilterMatch(activeFilters.accountCountries, account.account_hq_country) &&
-        enhancedFilterMatch(activeFilters.accountRegions, account.account_hq_region) &&
-        enhancedFilterMatch(activeFilters.accountIndustries, account.account_hq_industry) &&
-        enhancedFilterMatch(activeFilters.accountSubIndustries, account.account_hq_sub_industry) &&
-        enhancedFilterMatch(activeFilters.accountPrimaryCategories, account.account_primary_category) &&
-        enhancedFilterMatch(activeFilters.accountPrimaryNatures, account.account_primary_nature) &&
-        enhancedFilterMatch(activeFilters.accountNasscomStatuses, account.account_nasscom_status) &&
-        enhancedFilterMatch(activeFilters.accountEmployeesRanges, account.account_hq_employee_range) &&
-        enhancedFilterMatch(activeFilters.accountCenterEmployees, account.account_center_employees_range || "") &&
-        rangeFilterMatch(activeFilters.accountRevenueRange, account.account_hq_revenue, activeFilters.includeNullRevenue) &&
-        enhancedKeywordMatch(activeFilters.accountNameKeywords, account.account_global_legal_name)
+    const hasFunctionFilters = activeFilters.functionTypes.length > 0
 
-      if (matchesAccount) {
-        validAccounts.add(account)
-        validAccountNames.add(account.account_global_legal_name)
+    let filteredAccounts: Account[] = []
+    let filteredCenters: Center[] = []
+    let filteredFunctions: Function[] = []
+    let filteredProspects: Prospect[] = []
+
+    let accountNameSet = new Set<string>()
+    let centerKeySet = new Set<string>()
+
+    for (const account of accounts) {
+      if (!matchAccountCountry(account.account_hq_country)) continue
+      if (!matchAccountRegion(account.account_hq_region)) continue
+      if (!matchAccountIndustry(account.account_hq_industry)) continue
+      if (!matchAccountSubIndustry(account.account_hq_sub_industry)) continue
+      if (!matchAccountPrimaryCategory(account.account_primary_category)) continue
+      if (!matchAccountPrimaryNature(account.account_primary_nature)) continue
+      if (!matchAccountNasscom(account.account_nasscom_status)) continue
+      if (!matchAccountEmployeesRange(account.account_hq_employee_range)) continue
+      if (!matchAccountCenterEmployees(account.account_center_employees_range || "")) continue
+      if (!rangeFilterMatch(activeFilters.accountRevenueRange, account.account_hq_revenue, activeFilters.includeNullRevenue)) {
+        continue
       }
+      if (!matchAccountName(account.account_global_legal_name)) continue
+
+      filteredAccounts.push(account)
+      accountNameSet.add(account.account_global_legal_name)
     }
 
     for (const center of centers) {
-      const accountMatch = !hasAccountFilters || validAccountNames.has(center.account_global_legal_name)
-      if (!accountMatch) continue
+      if (hasAccountFilters && !accountNameSet.has(center.account_global_legal_name)) continue
+      if (!matchCenterType(center.center_type)) continue
+      if (!matchCenterFocus(center.center_focus)) continue
+      if (!matchCenterCity(center.center_city)) continue
+      if (!matchCenterState(center.center_state)) continue
+      if (!matchCenterCountry(center.center_country)) continue
+      if (!matchCenterEmployees(center.center_employees_range)) continue
+      if (!matchCenterStatus(center.center_status)) continue
 
-      const centerMatch =
-        enhancedFilterMatch(activeFilters.centerTypes, center.center_type) &&
-        enhancedFilterMatch(activeFilters.centerFocus, center.center_focus) &&
-        enhancedFilterMatch(activeFilters.centerCities, center.center_city) &&
-        enhancedFilterMatch(activeFilters.centerStates, center.center_state) &&
-        enhancedFilterMatch(activeFilters.centerCountries, center.center_country) &&
-        enhancedFilterMatch(activeFilters.centerEmployees, center.center_employees_range) &&
-        enhancedFilterMatch(activeFilters.centerStatuses, center.center_status)
-
-      if (centerMatch) {
-        validCenters.add(center)
-        validCenterKeys.add(center.cn_unique_key)
-      }
+      filteredCenters.push(center)
+      centerKeySet.add(center.cn_unique_key)
     }
 
+    const functionCenterKeySet = new Set<string>()
     for (const func of functions) {
-      if (!validCenterKeys.has(func.cn_unique_key)) continue
-      if (enhancedFilterMatch(activeFilters.functionTypes, func.function_name)) {
-        validFunctions.add(func)
-      } else if (activeFilters.functionTypes.length === 0) {
-        validFunctions.add(func)
+      if (!centerKeySet.has(func.cn_unique_key)) continue
+      if (!hasFunctionFilters || matchFunctionType(func.function_name)) {
+        filteredFunctions.push(func)
+        if (hasFunctionFilters) {
+          functionCenterKeySet.add(func.cn_unique_key)
+        }
       }
     }
 
-    const centerKeysWithMatchingFunctions = activeFilters.functionTypes.length > 0
-      ? new Set(Array.from(validFunctions).map(f => f.cn_unique_key))
-      : validCenterKeys
-
-    for (const service of services) {
-      if (centerKeysWithMatchingFunctions.has(service.cn_unique_key)) {
-        validServices.add(service)
-      }
+    if (hasFunctionFilters) {
+      filteredCenters = filteredCenters.filter((center) => functionCenterKeySet.has(center.cn_unique_key))
+      centerKeySet = functionCenterKeySet
     }
 
     for (const prospect of prospects) {
-      const accountMatch = !hasAccountFilters || validAccountNames.has(prospect.account_global_legal_name)
-      if (!accountMatch) continue
+      if (hasAccountFilters && !accountNameSet.has(prospect.account_global_legal_name)) continue
+      const matchesProspect =
+        matchProspectDepartment(prospect.prospect_department) &&
+        matchProspectLevel(prospect.prospect_level) &&
+        matchProspectCity(prospect.prospect_city) &&
+        matchProspectTitle(prospect.prospect_title)
 
-      const prospectMatch =
-        enhancedFilterMatch(activeFilters.prospectDepartments, prospect.prospect_department) &&
-        enhancedFilterMatch(activeFilters.prospectLevels, prospect.prospect_level) &&
-        enhancedFilterMatch(activeFilters.prospectCities, prospect.prospect_city) &&
-        enhancedKeywordMatch(activeFilters.prospectTitleKeywords, prospect.prospect_title)
-
-      if (prospectMatch) {
-        validProspects.add(prospect)
-      } else if (!hasProspectFilters) {
-        validProspects.add(prospect)
+      if (matchesProspect || !hasProspectFilters) {
+        filteredProspects.push(prospect)
       }
     }
 
-    let finalAccountNames = validAccountNames
     if (hasProspectFilters) {
-      finalAccountNames = new Set(Array.from(validProspects).map(p => p.account_global_legal_name))
+      const accountNamesWithProspects = new Set<string>()
+      for (const prospect of filteredProspects) {
+        accountNamesWithProspects.add(prospect.account_global_legal_name)
+      }
+
+      filteredAccounts = filteredAccounts.filter((account) =>
+        accountNamesWithProspects.has(account.account_global_legal_name)
+      )
+      accountNameSet = accountNamesWithProspects
+
+      filteredCenters = filteredCenters.filter((center) => accountNameSet.has(center.account_global_legal_name))
+      centerKeySet = new Set<string>()
+      for (const center of filteredCenters) {
+        centerKeySet.add(center.cn_unique_key)
+      }
     }
 
-    let finalCenterKeysAfterProspect = centerKeysWithMatchingFunctions
-    if (hasAccountFilters) {
-      finalCenterKeysAfterProspect = new Set(Array.from(validCenters).filter(c => finalAccountNames.has(c.account_global_legal_name)).map(c => c.cn_unique_key))
+    const filteredServices: Service[] = []
+    for (const service of services) {
+      if (centerKeySet.has(service.cn_unique_key)) {
+        filteredServices.push(service)
+      }
     }
 
-    const finalFilteredAccounts = Array.from(validAccounts).filter(a => finalAccountNames.has(a.account_global_legal_name))
-    const finalFilteredCenters = Array.from(validCenters).filter(c => finalCenterKeysAfterProspect.has(c.cn_unique_key))
-    const finalFilteredFunctions = Array.from(validFunctions).filter(f => finalCenterKeysAfterProspect.has(f.cn_unique_key))
-    const finalFilteredServices = Array.from(validServices).filter(s => finalCenterKeysAfterProspect.has(s.cn_unique_key))
-    const finalFilteredProspects = Array.from(validProspects).filter(p => finalAccountNames.has(p.account_global_legal_name))
+    const finalAccountNameSet = new Set<string>()
+    for (const center of filteredCenters) {
+      finalAccountNameSet.add(center.account_global_legal_name)
+    }
+
+    const finalFilteredAccounts = filteredAccounts.filter((account) =>
+      finalAccountNameSet.has(account.account_global_legal_name)
+    )
+    const finalFilteredFunctions = filteredFunctions.filter((func) => centerKeySet.has(func.cn_unique_key))
+    const finalFilteredProspects = filteredProspects.filter((prospect) =>
+      finalAccountNameSet.has(prospect.account_global_legal_name)
+    )
 
     return {
       filteredAccounts: finalFilteredAccounts,
-      filteredCenters: finalFilteredCenters,
+      filteredCenters: filteredCenters,
       filteredFunctions: finalFilteredFunctions,
-      filteredServices: finalFilteredServices,
+      filteredServices: filteredServices,
       filteredProspects: finalFilteredProspects,
     }
-  }, [
-    accounts,
-    centers,
-    functions,
-    services,
-    prospects,
-    deferredFilters,
-  ])
+  }, [accounts, centers, functions, services, prospects, deferredFilters])
 
   // Calculate chart data for accounts
   const accountChartData = useMemo(() => {
@@ -523,6 +551,16 @@ function DashboardContent() {
       includeNullRevenue: true,
     }
 
+    const matchCountry = createValueMatcher(tempFilters.accountCountries)
+    const matchRegion = createValueMatcher(tempFilters.accountRegions)
+    const matchIndustry = createValueMatcher(tempFilters.accountIndustries)
+    const matchSubIndustry = createValueMatcher(tempFilters.accountSubIndustries)
+    const matchPrimaryCategory = createValueMatcher(tempFilters.accountPrimaryCategories)
+    const matchPrimaryNature = createValueMatcher(tempFilters.accountPrimaryNatures)
+    const matchNasscom = createValueMatcher(tempFilters.accountNasscomStatuses)
+    const matchEmployeesRange = createValueMatcher(tempFilters.accountEmployeesRanges)
+    const matchCenterEmployees = createValueMatcher(tempFilters.accountCenterEmployees)
+
     const searchTermLower = tempFilters.searchTerm.trim().toLowerCase()
 
     const tempFilteredAccounts = accounts.filter((account) => {
@@ -531,15 +569,15 @@ function DashboardContent() {
         account.account_global_legal_name.toLowerCase().includes(searchTermLower)
 
       return (
-        enhancedFilterMatch(tempFilters.accountCountries, account.account_hq_country) &&
-        enhancedFilterMatch(tempFilters.accountRegions, account.account_hq_region) &&
-        enhancedFilterMatch(tempFilters.accountIndustries, account.account_hq_industry) &&
-        enhancedFilterMatch(tempFilters.accountSubIndustries, account.account_hq_sub_industry) &&
-        enhancedFilterMatch(tempFilters.accountPrimaryCategories, account.account_primary_category) &&
-        enhancedFilterMatch(tempFilters.accountPrimaryNatures, account.account_primary_nature) &&
-        enhancedFilterMatch(tempFilters.accountNasscomStatuses, account.account_nasscom_status) &&
-        enhancedFilterMatch(tempFilters.accountEmployeesRanges, account.account_hq_employee_range) &&
-        enhancedFilterMatch(tempFilters.accountCenterEmployees, account.account_center_employees_range || "") &&
+        matchCountry(account.account_hq_country) &&
+        matchRegion(account.account_hq_region) &&
+        matchIndustry(account.account_hq_industry) &&
+        matchSubIndustry(account.account_hq_sub_industry) &&
+        matchPrimaryCategory(account.account_primary_category) &&
+        matchPrimaryNature(account.account_primary_nature) &&
+        matchNasscom(account.account_nasscom_status) &&
+        matchEmployeesRange(account.account_hq_employee_range) &&
+        matchCenterEmployees(account.account_center_employees_range || "") &&
         matchesSearch
       )
     })
@@ -632,6 +670,29 @@ function DashboardContent() {
       }
     }
 
+    const matchAccountCountry = createValueMatcher(activeFilters.accountCountries)
+    const matchAccountRegion = createValueMatcher(activeFilters.accountRegions)
+    const matchAccountIndustry = createValueMatcher(activeFilters.accountIndustries)
+    const matchAccountSubIndustry = createValueMatcher(activeFilters.accountSubIndustries)
+    const matchAccountPrimaryCategory = createValueMatcher(activeFilters.accountPrimaryCategories)
+    const matchAccountPrimaryNature = createValueMatcher(activeFilters.accountPrimaryNatures)
+    const matchAccountNasscom = createValueMatcher(activeFilters.accountNasscomStatuses)
+    const matchAccountEmployeesRange = createValueMatcher(activeFilters.accountEmployeesRanges)
+    const matchAccountCenterEmployees = createValueMatcher(activeFilters.accountCenterEmployees)
+    const matchAccountName = createKeywordMatcher(activeFilters.accountNameKeywords)
+
+    const matchCenterType = createValueMatcher(activeFilters.centerTypes)
+    const matchCenterFocus = createValueMatcher(activeFilters.centerFocus)
+    const matchCenterCity = createValueMatcher(activeFilters.centerCities)
+    const matchCenterState = createValueMatcher(activeFilters.centerStates)
+    const matchCenterCountry = createValueMatcher(activeFilters.centerCountries)
+    const matchCenterEmployees = createValueMatcher(activeFilters.centerEmployees)
+    const matchCenterStatus = createValueMatcher(activeFilters.centerStatuses)
+
+    const matchProspectDepartment = createValueMatcher(activeFilters.prospectDepartments)
+    const matchProspectLevel = createValueMatcher(activeFilters.prospectLevels)
+    const matchProspectCity = createValueMatcher(activeFilters.prospectCities)
+
     const accountCounts = {
       countries: new Map<string, number>(),
       regions: new Map<string, number>(),
@@ -654,7 +715,7 @@ function DashboardContent() {
 
       if (!matchesSearch) return
 
-      const matchesAccountName = enhancedKeywordMatch(activeFilters.accountNameKeywords, account.account_global_legal_name)
+      const matchesAccountName = matchAccountName(account.account_global_legal_name)
 
       if (!matchesAccountName) return
 
@@ -675,15 +736,15 @@ function DashboardContent() {
       const empRange = account.account_hq_employee_range
       const centerEmp = account.account_center_employees_range || ""
 
-      const matchesCountry = enhancedFilterMatch(activeFilters.accountCountries, country)
-      const matchesRegion = enhancedFilterMatch(activeFilters.accountRegions, region)
-      const matchesIndustry = enhancedFilterMatch(activeFilters.accountIndustries, industry)
-      const matchesSubIndustry = enhancedFilterMatch(activeFilters.accountSubIndustries, subIndustry)
-      const matchesCategory = enhancedFilterMatch(activeFilters.accountPrimaryCategories, category)
-      const matchesNature = enhancedFilterMatch(activeFilters.accountPrimaryNatures, nature)
-      const matchesNasscom = enhancedFilterMatch(activeFilters.accountNasscomStatuses, nasscom)
-      const matchesEmpRange = enhancedFilterMatch(activeFilters.accountEmployeesRanges, empRange)
-      const matchesCenterEmp = enhancedFilterMatch(activeFilters.accountCenterEmployees, centerEmp)
+      const matchesCountry = matchAccountCountry(country)
+      const matchesRegion = matchAccountRegion(region)
+      const matchesIndustry = matchAccountIndustry(industry)
+      const matchesSubIndustry = matchAccountSubIndustry(subIndustry)
+      const matchesCategory = matchAccountPrimaryCategory(category)
+      const matchesNature = matchAccountPrimaryNature(nature)
+      const matchesNasscom = matchAccountNasscom(nasscom)
+      const matchesEmpRange = matchAccountEmployeesRange(empRange)
+      const matchesCenterEmp = matchAccountCenterEmployees(centerEmp)
 
       if (
         matchesRegion &&
@@ -832,13 +893,13 @@ function DashboardContent() {
       const employees = center.center_employees_range
       const status = center.center_status
 
-      const matchesType = enhancedFilterMatch(activeFilters.centerTypes, type)
-      const matchesFocus = enhancedFilterMatch(activeFilters.centerFocus, focus)
-      const matchesCity = enhancedFilterMatch(activeFilters.centerCities, city)
-      const matchesState = enhancedFilterMatch(activeFilters.centerStates, state)
-      const matchesCountry = enhancedFilterMatch(activeFilters.centerCountries, country)
-      const matchesEmployees = enhancedFilterMatch(activeFilters.centerEmployees, employees)
-      const matchesStatus = enhancedFilterMatch(activeFilters.centerStatuses, status)
+      const matchesType = matchCenterType(type)
+      const matchesFocus = matchCenterFocus(focus)
+      const matchesCity = matchCenterCity(city)
+      const matchesState = matchCenterState(state)
+      const matchesCountry = matchCenterCountry(country)
+      const matchesEmployees = matchCenterEmployees(employees)
+      const matchesStatus = matchCenterStatus(status)
 
       if (matchesFocus && matchesCity && matchesState && matchesCountry && matchesEmployees && matchesStatus) {
         centerCounts.types.set(type, (centerCounts.types.get(type) || 0) + 1)
@@ -897,9 +958,9 @@ function DashboardContent() {
       const level = prospect.prospect_level
       const city = prospect.prospect_city
 
-      const matchesDepartment = enhancedFilterMatch(activeFilters.prospectDepartments, department)
-      const matchesLevel = enhancedFilterMatch(activeFilters.prospectLevels, level)
-      const matchesCity = enhancedFilterMatch(activeFilters.prospectCities, city)
+      const matchesDepartment = matchProspectDepartment(department)
+      const matchesLevel = matchProspectLevel(level)
+      const matchesCity = matchProspectCity(city)
 
       if (matchesLevel && matchesCity) {
         prospectCounts.departments.set(department, (prospectCounts.departments.get(department) || 0) + 1)

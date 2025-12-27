@@ -54,6 +54,52 @@ const getCompiledKeywordFilter = (filterArray: FilterValue[]): CompiledKeywordFi
   return compiled
 }
 
+export function createValueMatcher(filterArray: FilterValue[]) {
+  if (filterArray.length === 0) {
+    return () => true
+  }
+
+  const { includeSet, excludeSet } = getCompiledValueFilter(filterArray)
+
+  return (value: string | null | undefined): boolean => {
+    if (value == null) {
+      return includeSet.size === 0
+    }
+
+    if (excludeSet.size > 0 && excludeSet.has(value)) {
+      return false
+    }
+
+    if (includeSet.size > 0) {
+      return includeSet.has(value)
+    }
+
+    return true
+  }
+}
+
+export function createKeywordMatcher(filterArray: FilterValue[]) {
+  if (filterArray.length === 0) {
+    return () => true
+  }
+
+  const { includeKeywords, excludeKeywords } = getCompiledKeywordFilter(filterArray)
+
+  return (value: string | null | undefined): boolean => {
+    const lowerValue = (value ?? "").toLowerCase()
+
+    if (excludeKeywords.length > 0 && excludeKeywords.some((keyword) => lowerValue.includes(keyword))) {
+      return false
+    }
+
+    if (includeKeywords.length > 0) {
+      return includeKeywords.some((keyword) => lowerValue.includes(keyword))
+    }
+
+    return true
+  }
+}
+
 /**
  * Enhanced filter matching with include/exclude support
  * - If only include values: item must match at least one include value (OR logic)
