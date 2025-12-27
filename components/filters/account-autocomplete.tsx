@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { X, Plus, Minus, Search } from "lucide-react"
+import { X, Plus, Minus } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { FilterValue } from "@/lib/types"
 
@@ -226,7 +226,6 @@ export function AccountAutocomplete({
       {/* Autocomplete Input */}
       <div className="relative">
         <div className="relative">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             ref={inputRef}
             type="text"
@@ -240,7 +239,6 @@ export function AccountAutocomplete({
               if (inputValue.trim()) setIsOpen(true)
             }}
             placeholder={placeholder}
-            className="pl-8"
           />
         </div>
 
