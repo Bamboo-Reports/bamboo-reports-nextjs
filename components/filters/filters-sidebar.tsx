@@ -480,9 +480,6 @@ export function FiltersSidebar({
                     </div>
                     <div className="space-y-2 pt-4 mt-4 border-t border-border">
                       <Label className="text-xs font-medium">Title Keywords</Label>
-                      <p className="text-xs text-muted-foreground mb-2">
-                        Add keywords to search in job titles (press Enter to add)
-                      </p>
                       <TitleKeywordInput
                         keywords={pendingFilters.prospectTitleKeywords}
                         onChange={(keywords) => setPendingFilters((prev) => ({ ...prev, prospectTitleKeywords: keywords }))}
