@@ -306,13 +306,6 @@ function DashboardContent() {
 
   const isUpdatingOptions = useRef(false)
 
-  // Extract unique account names for autocomplete - memoized for performance
-  const accountNames = useMemo(() => {
-    return Array.from(
-      new Set(accounts.map((account) => account.account_global_legal_name).filter(Boolean))
-    )
-  }, [accounts])
-
   // Main filtering logic - memoized with stable dependencies
   const filteredData = useMemo(() => {
     const activeFilters = deferredFilters
@@ -1048,7 +1041,6 @@ function DashboardContent() {
             availableOptions={availableOptions}
             isApplying={isApplying}
             revenueRange={revenueRange}
-            accountNames={accountNames}
             setPendingFilters={setPendingFilters}
             resetFilters={resetFilters}
             handleExportAll={handleExportAll}

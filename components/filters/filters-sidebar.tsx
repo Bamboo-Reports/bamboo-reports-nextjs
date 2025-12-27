@@ -32,7 +32,6 @@ interface FiltersSidebarProps {
   availableOptions: AvailableOptions
   isApplying: boolean
   revenueRange: { min: number; max: number }
-  accountNames: string[]
 
   // Callback functions
   setPendingFilters: React.Dispatch<React.SetStateAction<Filters>>
@@ -53,7 +52,6 @@ export function FiltersSidebar({
   availableOptions,
   isApplying,
   revenueRange,
-  accountNames,
   setPendingFilters,
   resetFilters,
   handleExportAll,
@@ -101,7 +99,6 @@ export function FiltersSidebar({
                   <div className="space-y-2 pb-4 border-b border-border">
                     <Label className="text-xs font-medium">Search Account Name</Label>
                     <AccountAutocomplete
-                      accountNames={accountNames}
                       selectedAccounts={pendingFilters.accountNameKeywords}
                       onChange={(keywords) => setPendingFilters((prev) => ({ ...prev, accountNameKeywords: keywords }))}
                       placeholder="Type to search account names..."

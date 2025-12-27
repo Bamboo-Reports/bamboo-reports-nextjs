@@ -106,6 +106,43 @@ export async function getAccounts() {
   }
 }
 
+/**
+ * Search account names with server-side filtering
+ * Uses trigram index for fast ILIKE searches
+ */
+export async function searchAccountNames(query: string, limit: number = 50) {
+  try {
+    if (!sql) {
+      throw new Error("Database connection not initialized")
+    }
+
+    const trimmedQuery = query.trim()
+    if (!trimmedQuery) {
+      return { success: true, data: [] as string[] }
+    }
+
+    const results = await fetchWithRetry<{ account_global_legal_name: string }[]>(
+      () => sql`
+        SELECT DISTINCT account_global_legal_name
+        FROM accounts
+        WHERE account_global_legal_name ILIKE ${`%${trimmedQuery}%`}
+        ORDER BY
+          CASE WHEN account_global_legal_name ILIKE ${`${trimmedQuery}%`} THEN 0 ELSE 1 END,
+          account_global_legal_name
+        LIMIT ${limit}
+      `
+    )
+
+    return {
+      success: true,
+      data: results.map((r) => r.account_global_legal_name)
+    }
+  } catch (error) {
+    console.error("Error searching account names:", error)
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error", data: [] as string[] }
+  }
+}
+
 export async function getCenters() {
   try {
     if (!sql) {

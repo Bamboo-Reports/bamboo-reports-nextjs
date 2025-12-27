@@ -1,85 +1,74 @@
 "use client"
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
+import React, { useState, useEffect, useRef, useCallback } from "react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { X, Plus, Minus, Search } from "lucide-react"
+import { X, Plus, Minus, Search, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { FilterValue } from "@/lib/types"
+import { searchAccountNames } from "@/app/actions"
 
 interface AccountAutocompleteProps {
-  accountNames: string[]
   selectedAccounts: FilterValue[]
   onChange: (accounts: FilterValue[]) => void
   placeholder?: string
 }
 
 export function AccountAutocomplete({
-  accountNames,
   selectedAccounts,
   onChange,
   placeholder = "Type to search account names...",
 }: AccountAutocompleteProps) {
   const [inputValue, setInputValue] = useState("")
-  const [debouncedValue, setDebouncedValue] = useState("")
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Debounce input value for performance
+  // Debounced server-side search
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedValue(inputValue)
+    const trimmedValue = inputValue.trim()
+
+    if (!trimmedValue) {
+      setSuggestions([])
+      setIsOpen(false)
+      return
+    }
+
+    const timer = setTimeout(async () => {
+      setIsLoading(true)
+      try {
+        const result = await searchAccountNames(trimmedValue, 50)
+        if (result.success) {
+          // Filter out already selected accounts
+          const alreadySelected = new Set(selectedAccounts.map(s => s.value.toLowerCase()))
+          const filtered = result.data.filter(
+            (name: string) => !alreadySelected.has(name.toLowerCase())
+          )
+          setSuggestions(filtered)
+          setIsOpen(true)
+        }
+      } catch (error) {
+        console.error("Error searching accounts:", error)
+        setSuggestions([])
+      } finally {
+        setIsLoading(false)
+      }
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [inputValue])
-
-  // Get unique, sorted account names (memoized for performance)
-  const uniqueAccountNames = useMemo(() => {
-    const unique = Array.from(new Set(accountNames.filter(Boolean)))
-    return unique.sort((a, b) => a.localeCompare(b))
-  }, [accountNames])
-
-  // Filter suggestions based on input with smart matching
-  const suggestions = useMemo(() => {
-    if (!debouncedValue.trim()) return []
-
-    const searchTerm = debouncedValue.toLowerCase().trim()
-    const alreadySelected = new Set(selectedAccounts.map(s => s.value.toLowerCase()))
-
-    // First, get accounts that start with the search term (highest priority)
-    const startsWithMatches = uniqueAccountNames.filter(
-      name =>
-        name.toLowerCase().startsWith(searchTerm) &&
-        !alreadySelected.has(name.toLowerCase())
-    )
-
-    // Then, get accounts that contain the search term (lower priority)
-    const containsMatches = uniqueAccountNames.filter(
-      name => {
-        const lowerName = name.toLowerCase()
-        return (
-          lowerName.includes(searchTerm) &&
-          !lowerName.startsWith(searchTerm) &&
-          !alreadySelected.has(lowerName)
-        )
-      }
-    )
-
-    // Combine and limit to 50 results for performance
-    return [...startsWithMatches, ...containsMatches].slice(0, 50)
-  }, [debouncedValue, uniqueAccountNames, selectedAccounts])
+  }, [inputValue, selectedAccounts])
 
   // Handle account selection
   const handleSelectAccount = useCallback((accountName: string, mode: 'include' | 'exclude' = 'include') => {
     const newAccount: FilterValue = { value: accountName, mode }
     onChange([...selectedAccounts, newAccount])
     setInputValue("")
-    setDebouncedValue("")
+    setSuggestions([])
     setIsOpen(false)
     setHighlightedIndex(0)
     inputRef.current?.focus()
@@ -226,18 +215,21 @@ export function AccountAutocomplete({
       {/* Autocomplete Input */}
       <div className="relative">
         <div className="relative">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          {isLoading ? (
+            <Loader2 className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground animate-spin" />
+          ) : (
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          )}
           <Input
             ref={inputRef}
             type="text"
             value={inputValue}
             onChange={(e) => {
               setInputValue(e.target.value)
-              setIsOpen(true)
             }}
             onKeyDown={handleKeyDown}
             onFocus={() => {
-              if (inputValue.trim()) setIsOpen(true)
+              if (suggestions.length > 0) setIsOpen(true)
             }}
             placeholder={placeholder}
             className="pl-8"
@@ -265,7 +257,7 @@ export function AccountAutocomplete({
                     onMouseEnter={() => setHighlightedIndex(index)}
                   >
                     <span className="flex-1">
-                      {highlightMatch(suggestion, debouncedValue)}
+                      {highlightMatch(suggestion, inputValue)}
                     </span>
                     <div className="flex gap-1 ml-2">
                       <Button
@@ -308,17 +300,15 @@ export function AccountAutocomplete({
         )}
 
         {/* No results message */}
-        {isOpen && debouncedValue.trim() && suggestions.length === 0 && (
+        {isOpen && inputValue.trim() && !isLoading && suggestions.length === 0 && (
           <div
             ref={dropdownRef}
             className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-lg p-3 text-sm text-muted-foreground"
           >
-            No accounts found matching &quot;{debouncedValue}&quot;
+            No accounts found matching &quot;{inputValue}&quot;
           </div>
         )}
       </div>
-
-
     </div>
   )
 }
