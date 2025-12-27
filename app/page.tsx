@@ -523,23 +523,24 @@ function DashboardContent() {
       includeNullRevenue: true,
     }
 
-    const arrayFilterMatch = (filterArray: string[], value: string) => {
-      return filterArray.length === 0 || filterArray.includes(value)
-    }
+    const searchTermLower = tempFilters.searchTerm.trim().toLowerCase()
 
     const tempFilteredAccounts = accounts.filter((account) => {
+      const matchesSearch =
+        searchTermLower === "" ||
+        account.account_global_legal_name.toLowerCase().includes(searchTermLower)
+
       return (
-        arrayFilterMatch(tempFilters.accountCountries, account.account_hq_country) &&
-        arrayFilterMatch(tempFilters.accountRegions, account.account_hq_region) &&
-        arrayFilterMatch(tempFilters.accountIndustries, account.account_hq_industry) &&
-        arrayFilterMatch(tempFilters.accountSubIndustries, account.account_hq_sub_industry) &&
-        arrayFilterMatch(tempFilters.accountPrimaryCategories, account.account_primary_category) &&
-        arrayFilterMatch(tempFilters.accountPrimaryNatures, account.account_primary_nature) &&
-        arrayFilterMatch(tempFilters.accountNasscomStatuses, account.account_nasscom_status) &&
-        arrayFilterMatch(tempFilters.accountEmployeesRanges, account.account_hq_employee_range) &&
-        arrayFilterMatch(tempFilters.accountCenterEmployees, account.account_center_employees_range || "") &&
-        (tempFilters.searchTerm === "" ||
-          account.account_global_legal_name.toLowerCase().includes(tempFilters.searchTerm.toLowerCase()))
+        enhancedFilterMatch(tempFilters.accountCountries, account.account_hq_country) &&
+        enhancedFilterMatch(tempFilters.accountRegions, account.account_hq_region) &&
+        enhancedFilterMatch(tempFilters.accountIndustries, account.account_hq_industry) &&
+        enhancedFilterMatch(tempFilters.accountSubIndustries, account.account_hq_sub_industry) &&
+        enhancedFilterMatch(tempFilters.accountPrimaryCategories, account.account_primary_category) &&
+        enhancedFilterMatch(tempFilters.accountPrimaryNatures, account.account_primary_nature) &&
+        enhancedFilterMatch(tempFilters.accountNasscomStatuses, account.account_nasscom_status) &&
+        enhancedFilterMatch(tempFilters.accountEmployeesRanges, account.account_hq_employee_range) &&
+        enhancedFilterMatch(tempFilters.accountCenterEmployees, account.account_center_employees_range || "") &&
+        matchesSearch
       )
     })
 
@@ -601,6 +602,7 @@ function DashboardContent() {
     accountNameKeywords: deferredFilters.accountNameKeywords,
     accountRevenueRange: deferredFilters.accountRevenueRange,
     includeNullRevenue: deferredFilters.includeNullRevenue,
+    searchTerm: deferredFilters.searchTerm,
   }), [deferredFilters])
 
   const availableOptions = useMemo((): AvailableOptions => {
@@ -644,10 +646,11 @@ function DashboardContent() {
 
     const validAccountNames = new Set<string>()
 
+    const searchTermLower = (activeFilters.searchTerm || "").trim().toLowerCase()
+
     accounts.forEach((account) => {
       const matchesSearch =
-        !activeFilters.searchTerm ||
-        account.account_global_legal_name.toLowerCase().includes(activeFilters.searchTerm.toLowerCase())
+        searchTermLower === "" || account.account_global_legal_name.toLowerCase().includes(searchTermLower)
 
       if (!matchesSearch) return
 
