@@ -79,7 +79,6 @@ EnhancedSelectBadge.displayName = "EnhancedSelectBadge"
 // Memoized Command Item
 const EnhancedSelectItem = React.memo(({
   value,
-  count,
   disabled,
   isSelected,
   filterValue,
@@ -88,7 +87,6 @@ const EnhancedSelectItem = React.memo(({
   onSelectExclude
 }: {
   value: string
-  count?: number
   disabled: boolean
   isSelected: boolean
   filterValue?: FilterValue
@@ -113,11 +111,6 @@ const EnhancedSelectItem = React.memo(({
     >
       <div className="flex items-center justify-between flex-1">
         <span className="flex-1">{value}</span>
-        {count !== undefined && (
-          <span className="text-xs text-muted-foreground ml-2 font-medium">
-            ({count})
-          </span>
-        )}
         <div className="flex gap-1 ml-2">
           <Button
             variant="ghost"
@@ -219,8 +212,7 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
   const renderOptions = React.useMemo(() => {
     return options.map((option) => {
       const value = typeof option === "string" ? option : option.value
-      const count = typeof option === "object" ? option.count : undefined
-      const disabled = typeof option === "object" ? option.disabled : false
+      const disabled = typeof option === "object" ? (option.disabled ?? false) : false
       const filterValue = selected.find((s) => s.value === value)
       const isSelected = !!filterValue
 
@@ -228,7 +220,6 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
         <EnhancedSelectItem
           key={value}
           value={value}
-          count={count}
           disabled={disabled}
           isSelected={isSelected}
           filterValue={filterValue}

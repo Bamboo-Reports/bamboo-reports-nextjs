@@ -38,13 +38,11 @@ SelectBadge.displayName = "SelectBadge"
 // Memoized Command Item for better performance
 const SelectItem = React.memo(({
   value,
-  count,
   disabled,
   isSelected,
   onSelect
 }: {
   value: string
-  count?: number
   disabled: boolean
   isSelected: boolean
   onSelect: () => void
@@ -71,11 +69,6 @@ const SelectItem = React.memo(({
         )}
       />
       <span className="flex-1">{value}</span>
-      {count !== undefined && (
-        <span className="text-xs text-muted-foreground ml-2 font-medium">
-          ({count})
-        </span>
-      )}
     </div>
   </CommandItem>
 ))
@@ -118,14 +111,12 @@ export const MultiSelect = React.memo(function MultiSelect({
   const renderOptions = React.useMemo(() => {
     return options.map((option) => {
       const value = typeof option === "string" ? option : option.value
-      const count = typeof option === "object" ? option.count : undefined
       const disabled = typeof option === "object" ? (option.disabled ?? false) : false
 
       return (
         <SelectItem
           key={value}
           value={value}
-          count={count}
           disabled={disabled}
           isSelected={selected.includes(value)}
           onSelect={() => handleSelect(value)}
