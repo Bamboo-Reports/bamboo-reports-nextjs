@@ -2,9 +2,9 @@
 
 import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TabsContent } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, Download, PieChartIcon, Table as TableIcon } from "lucide-react"
 import { ProspectRow } from "@/components/tables/prospect-row"
@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/states/empty-state"
 import { ProspectDetailsDialog } from "@/components/dialogs/prospect-details-dialog"
 import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
 import { exportToExcel } from "@/lib/utils/export-helpers"
+import { ViewSwitcher } from "@/components/ui/view-switcher"
 import type { Prospect } from "@/lib/types"
 
 interface ProspectsTabProps {
@@ -127,26 +128,15 @@ export function ProspectsTab({
         <Badge variant="secondary" className="ml-2">
           {prospects.length} Prospects
         </Badge>
-        <div className="ml-auto flex items-center gap-2">
-          <Button
-            variant={prospectsView === "chart" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setProspectsView("chart")}
-            className="flex items-center gap-2"
-          >
-            <PieChartIcon className="h-4 w-4" />
-            Charts
-          </Button>
-          <Button
-            variant={prospectsView === "data" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setProspectsView("data")}
-            className="flex items-center gap-2"
-          >
-            <TableIcon className="h-4 w-4" />
-            Data
-          </Button>
-        </div>
+        <ViewSwitcher
+          value={prospectsView}
+          onValueChange={(value) => setProspectsView(value as "chart" | "data")}
+          options={[
+            { value: "chart", label: "Charts", icon: <PieChartIcon className="h-4 w-4" /> },
+            { value: "data", label: "Data", icon: <TableIcon className="h-4 w-4" /> },
+          ]}
+          className="ml-auto"
+        />
       </div>
 
       {/* Charts Section */}

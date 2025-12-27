@@ -2,9 +2,9 @@
 
 import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TabsContent } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, Download, PieChartIcon, Table as TableIcon, MapIcon } from "lucide-react"
 import { CenterRow } from "@/components/tables"
@@ -15,6 +15,7 @@ import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helper
 import { exportToExcel } from "@/lib/utils/export-helpers"
 import { CentersMap } from "@/components/maps/centers-map"
 import { MapErrorBoundary } from "@/components/maps/map-error-boundary"
+import { ViewSwitcher } from "@/components/ui/view-switcher"
 import type { Center, Function, Service } from "@/lib/types"
 
 interface CentersTabProps {
@@ -134,35 +135,16 @@ export function CentersTab({
         <Badge variant="secondary" className="ml-2">
           {centers.length} Centers
         </Badge>
-        <div className="ml-auto flex items-center gap-2">
-          <Button
-            variant={centersView === "chart" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setCentersView("chart")}
-            className="flex items-center gap-2"
-          >
-            <PieChartIcon className="h-4 w-4" />
-            Charts
-          </Button>
-          <Button
-            variant={centersView === "map" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setCentersView("map")}
-            className="flex items-center gap-2"
-          >
-            <MapIcon className="h-4 w-4" />
-            Map
-          </Button>
-          <Button
-            variant={centersView === "data" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setCentersView("data")}
-            className="flex items-center gap-2"
-          >
-            <TableIcon className="h-4 w-4" />
-            Data
-          </Button>
-        </div>
+        <ViewSwitcher
+          value={centersView}
+          onValueChange={(value) => setCentersView(value as "chart" | "data" | "map")}
+          options={[
+            { value: "chart", label: "Charts", icon: <PieChartIcon className="h-4 w-4" /> },
+            { value: "map", label: "Map", icon: <MapIcon className="h-4 w-4" /> },
+            { value: "data", label: "Data", icon: <TableIcon className="h-4 w-4" /> },
+          ]}
+          className="ml-auto"
+        />
       </div>
 
       {/* Charts Section */}

@@ -2,15 +2,16 @@
 
 import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TabsContent } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, Download, PieChartIcon, Table as TableIcon } from "lucide-react"
 import { AccountRow } from "@/components/tables"
 import { PieChartCard } from "@/components/charts/pie-chart-card"
 import { EmptyState } from "@/components/states/empty-state"
 import { AccountDetailsDialog } from "@/components/dialogs/account-details-tabbed-dialog"
+import { ViewSwitcher } from "@/components/ui/view-switcher"
 import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
 import { exportToExcel } from "@/lib/utils/export-helpers"
 import type { Account, Center, Prospect, Service, Function } from "@/lib/types"
@@ -135,26 +136,15 @@ export function AccountsTab({
         <Badge variant="secondary" className="ml-2">
           {accounts.length} Accounts
         </Badge>
-        <div className="ml-auto flex items-center gap-2">
-          <Button
-            variant={accountsView === "chart" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setAccountsView("chart")}
-            className="flex items-center gap-2"
-          >
-            <PieChartIcon className="h-4 w-4" />
-            Charts
-          </Button>
-          <Button
-            variant={accountsView === "data" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setAccountsView("data")}
-            className="flex items-center gap-2"
-          >
-            <TableIcon className="h-4 w-4" />
-            Data
-          </Button>
-        </div>
+        <ViewSwitcher
+          value={accountsView}
+          onValueChange={(value) => setAccountsView(value as "chart" | "data")}
+          options={[
+            { value: "chart", label: "Charts", icon: <PieChartIcon className="h-4 w-4" /> },
+            { value: "data", label: "Data", icon: <TableIcon className="h-4 w-4" /> },
+          ]}
+          className="ml-auto"
+        />
       </div>
 
       {/* Charts Section */}
