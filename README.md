@@ -1,6 +1,6 @@
 # Bamboo Reports (BR2)
 
-A modern Business Intelligence Dashboard built with Next.js 14 and React 19 for ResearchaNXT. Provides intelligence-driven insights for managing accounts, centers, services, and prospects with advanced filtering, data visualization, and export capabilities.
+A modern Business Intelligence Dashboard built with Next.js 14 and React 19 for ResearchNXT. Provides intelligence-driven insights for managing accounts, centers, services, and prospects with advanced filtering, data visualization, and export capabilities.
 
 [![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com)
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
@@ -377,7 +377,7 @@ The codebase follows a modular component structure:
 
 ## License
 
-This project is proprietary software owned by ResearchaNXT.
+This project is proprietary software owned by ResearchNXT.
 
 ---
 
