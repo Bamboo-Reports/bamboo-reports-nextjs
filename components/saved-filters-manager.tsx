@@ -441,7 +441,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 mr-1 transition-all"
+                    className="h-7 w-7 text-foreground hover:text-destructive hover:bg-destructive/10 mr-1 transition-all"
                     onClick={(e) => {
                       e.stopPropagation()
                       handleDeleteFilter(filter)

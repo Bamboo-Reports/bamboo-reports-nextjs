@@ -2,9 +2,9 @@
 
 import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TabsContent } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, Download, PieChartIcon, Table as TableIcon } from "lucide-react"
 import { ProspectRow } from "@/components/tables/prospect-row"
@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/states/empty-state"
 import { ProspectDetailsDialog } from "@/components/dialogs/prospect-details-dialog"
 import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
 import { exportToExcel } from "@/lib/utils/export-helpers"
+import { ViewSwitcher } from "@/components/ui/view-switcher"
 import type { Prospect } from "@/lib/types"
 
 interface ProspectsTabProps {
@@ -127,31 +128,32 @@ export function ProspectsTab({
         <Badge variant="secondary" className="ml-2">
           {prospects.length} Prospects
         </Badge>
-        <div className="ml-auto flex items-center gap-2">
-          <Button
-            variant={prospectsView === "chart" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setProspectsView("chart")}
-            className="flex items-center gap-2"
-          >
-            <PieChartIcon className="h-4 w-4" />
-            Charts
-          </Button>
-          <Button
-            variant={prospectsView === "data" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setProspectsView("data")}
-            className="flex items-center gap-2"
-          >
-            <TableIcon className="h-4 w-4" />
-            Data
-          </Button>
-        </div>
+        <ViewSwitcher
+          value={prospectsView}
+          onValueChange={(value) => setProspectsView(value as "chart" | "data")}
+          options={[
+            {
+              value: "chart",
+              label: <span className="text-[hsl(var(--chart-1))]">Charts</span>,
+              icon: (
+                <PieChartIcon className="h-4 w-4 text-[hsl(var(--chart-1))]" />
+              ),
+            },
+            {
+              value: "data",
+              label: <span className="text-[hsl(var(--chart-2))]">Data</span>,
+              icon: (
+                <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />
+              ),
+            },
+          ]}
+          className="ml-auto"
+        />
       </div>
 
       {/* Charts Section */}
       {prospectsView === "chart" && (
-        <div className="mb-6">
+        <div className="mb-6 animate-fade-in">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <PieChartCard
               title="Department Split"
@@ -171,7 +173,7 @@ export function ProspectsTab({
 
        {/* Data Table */}
        {prospectsView === "data" && (
-         <Card className="flex flex-col h-[calc(100vh-360px)] border shadow-sm">
+         <Card className="flex flex-col h-[calc(100vh-360px)] border shadow-sm animate-fade-in">
            <CardHeader className="shrink-0 px-6 py-4">
              <CardTitle className="text-lg">Prospects Data</CardTitle>
            </CardHeader>

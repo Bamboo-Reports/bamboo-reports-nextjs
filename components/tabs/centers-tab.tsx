@@ -2,9 +2,9 @@
 
 import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TabsContent } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, Download, PieChartIcon, Table as TableIcon, MapIcon } from "lucide-react"
 import { CenterRow } from "@/components/tables"
@@ -15,6 +15,7 @@ import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helper
 import { exportToExcel } from "@/lib/utils/export-helpers"
 import { CentersMap } from "@/components/maps/centers-map"
 import { MapErrorBoundary } from "@/components/maps/map-error-boundary"
+import { ViewSwitcher } from "@/components/ui/view-switcher"
 import type { Center, Function, Service } from "@/lib/types"
 
 interface CentersTabProps {
@@ -134,40 +135,39 @@ export function CentersTab({
         <Badge variant="secondary" className="ml-2">
           {centers.length} Centers
         </Badge>
-        <div className="ml-auto flex items-center gap-2">
-          <Button
-            variant={centersView === "chart" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setCentersView("chart")}
-            className="flex items-center gap-2"
-          >
-            <PieChartIcon className="h-4 w-4" />
-            Charts
-          </Button>
-          <Button
-            variant={centersView === "map" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setCentersView("map")}
-            className="flex items-center gap-2"
-          >
-            <MapIcon className="h-4 w-4" />
-            Map
-          </Button>
-          <Button
-            variant={centersView === "data" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setCentersView("data")}
-            className="flex items-center gap-2"
-          >
-            <TableIcon className="h-4 w-4" />
-            Data
-          </Button>
-        </div>
+        <ViewSwitcher
+          value={centersView}
+          onValueChange={(value) => setCentersView(value as "chart" | "data" | "map")}
+          options={[
+            {
+              value: "chart",
+              label: <span className="text-[hsl(var(--chart-1))]">Charts</span>,
+              icon: (
+                <PieChartIcon className="h-4 w-4 text-[hsl(var(--chart-1))]" />
+              ),
+            },
+            {
+              value: "map",
+              label: <span className="text-[hsl(var(--chart-4))]">Map</span>,
+              icon: (
+                <MapIcon className="h-4 w-4 text-[hsl(var(--chart-4))]" />
+              ),
+            },
+            {
+              value: "data",
+              label: <span className="text-[hsl(var(--chart-2))]">Data</span>,
+              icon: (
+                <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />
+              ),
+            },
+          ]}
+          className="ml-auto"
+        />
       </div>
 
       {/* Charts Section */}
       {centersView === "chart" && (
-        <div className="mb-6">
+        <div className="mb-6 animate-fade-in">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <PieChartCard
               title="Center Type Distribution"
@@ -197,9 +197,9 @@ export function CentersTab({
         </div>
       )}
 
-       {/* Map Section */}
+      {/* Map Section */}
        {centersView === "map" && (
-         <Card className="flex flex-col h-[calc(100vh-360px)] border shadow-sm">
+         <Card className="flex flex-col h-[calc(100vh-360px)] border shadow-sm animate-fade-in">
            <CardHeader className="shrink-0 px-6 py-4">
              <CardTitle className="text-lg">Centers Map</CardTitle>
            </CardHeader>
@@ -213,7 +213,7 @@ export function CentersTab({
 
        {/* Data Table */}
        {centersView === "data" && (
-         <Card className="flex flex-col h-[calc(100vh-360px)] border shadow-sm">
+         <Card className="flex flex-col h-[calc(100vh-360px)] border shadow-sm animate-fade-in">
            <CardHeader className="shrink-0 px-6 py-4">
              <CardTitle className="text-lg">Centers Data</CardTitle>
            </CardHeader>
