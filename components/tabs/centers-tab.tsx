@@ -143,21 +143,21 @@ export function CentersTab({
               value: "chart",
               label: <span className="text-[hsl(var(--chart-1))]">Charts</span>,
               icon: (
-                <PieChartIcon className="h-4 w-4 text-[hsl(var(--chart-1))] drop-shadow-[0_0_8px_hsla(var(--chart-1),0.55)]" />
+                <PieChartIcon className="h-4 w-4 text-[hsl(var(--chart-1))]" />
               ),
             },
             {
               value: "map",
               label: <span className="text-[hsl(var(--chart-4))]">Map</span>,
               icon: (
-                <MapIcon className="h-4 w-4 text-[hsl(var(--chart-4))] drop-shadow-[0_0_8px_hsla(var(--chart-4),0.55)]" />
+                <MapIcon className="h-4 w-4 text-[hsl(var(--chart-4))]" />
               ),
             },
             {
               value: "data",
               label: <span className="text-[hsl(var(--chart-2))]">Data</span>,
               icon: (
-                <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))] drop-shadow-[0_0_8px_hsla(var(--chart-2),0.55)]" />
+                <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />
               ),
             },
           ]}
