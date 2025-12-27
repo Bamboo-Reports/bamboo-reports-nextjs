@@ -161,7 +161,7 @@ export function AccountsTab({
 
       {/* Charts Section */}
       {accountsView === "chart" && (
-        <div className="mb-6">
+        <div className="mb-6 animate-fade-in">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <PieChartCard
               title="Region Split"
@@ -193,7 +193,7 @@ export function AccountsTab({
 
       {/* Data Table */}
       {accountsView === "data" && (
-        <Card className="flex flex-col h-[calc(100vh-360px)] border shadow-sm">
+        <Card className="flex flex-col h-[calc(100vh-360px)] border shadow-sm animate-fade-in">
           <CardHeader className="shrink-0 px-6 py-4">
             <CardTitle className="text-lg">Accounts Data</CardTitle>
           </CardHeader>
