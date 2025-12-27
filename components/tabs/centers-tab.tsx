@@ -139,9 +139,27 @@ export function CentersTab({
           value={centersView}
           onValueChange={(value) => setCentersView(value as "chart" | "data" | "map")}
           options={[
-            { value: "chart", label: "Charts", icon: <PieChartIcon className="h-4 w-4" /> },
-            { value: "map", label: "Map", icon: <MapIcon className="h-4 w-4" /> },
-            { value: "data", label: "Data", icon: <TableIcon className="h-4 w-4" /> },
+            {
+              value: "chart",
+              label: <span className="text-[hsl(var(--chart-2))]">Charts</span>,
+              icon: (
+                <PieChartIcon className="h-4 w-4 text-[hsl(var(--chart-2))] drop-shadow-[0_0_8px_hsla(var(--chart-2),0.55)]" />
+              ),
+            },
+            {
+              value: "map",
+              label: <span className="text-[hsl(var(--chart-3))]">Map</span>,
+              icon: (
+                <MapIcon className="h-4 w-4 text-[hsl(var(--chart-3))] drop-shadow-[0_0_8px_hsla(var(--chart-3),0.55)]" />
+              ),
+            },
+            {
+              value: "data",
+              label: <span className="text-[hsl(var(--chart-4))]">Data</span>,
+              icon: (
+                <TableIcon className="h-4 w-4 text-[hsl(var(--chart-4))] drop-shadow-[0_0_8px_hsla(var(--chart-4),0.55)]" />
+              ),
+            },
           ]}
           className="ml-auto"
         />

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 
 type SwitcherOption<V extends string> = {
   value: V
-  label: string
+  label: React.ReactNode
   icon?: React.ReactNode
 }
 

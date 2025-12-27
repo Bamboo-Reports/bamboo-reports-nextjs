@@ -140,8 +140,20 @@ export function AccountsTab({
           value={accountsView}
           onValueChange={(value) => setAccountsView(value as "chart" | "data")}
           options={[
-            { value: "chart", label: "Charts", icon: <PieChartIcon className="h-4 w-4" /> },
-            { value: "data", label: "Data", icon: <TableIcon className="h-4 w-4" /> },
+            {
+              value: "chart",
+              label: <span className="text-[hsl(var(--chart-1))]">Charts</span>,
+              icon: (
+                <PieChartIcon className="h-4 w-4 text-[hsl(var(--chart-1))] drop-shadow-[0_0_8px_rgba(59,130,246,0.55)]" />
+              ),
+            },
+            {
+              value: "data",
+              label: <span className="text-[hsl(var(--chart-2))]">Data</span>,
+              icon: (
+                <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))] drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+              ),
+            },
           ]}
           className="ml-auto"
         />
