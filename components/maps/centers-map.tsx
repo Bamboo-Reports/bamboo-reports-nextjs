@@ -180,7 +180,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     [effectiveMaxCount, midCountStop]
   )
   const haloRadiusExpression = useMemo(
-    () => ["*", coreRadiusExpression, 2],
+    () => ["*", coreRadiusExpression, 1.8],
     [coreRadiusExpression]
   )
 
@@ -329,15 +329,15 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         </div>
 
         <Source id="centers" type="geojson" data={geojsonData}>
-          {/* Outer halo layer - softer, lighter, and rendered below core for clean overlap */}
+          {/* Outer halo layer - crisp, flat, and rendered below core for clean overlap */}
           <Layer
             id="centers-halo"
             type="circle"
             paint={{
               "circle-radius": haloRadiusExpression,
               "circle-color": "#ffbf57",
-              "circle-opacity": 0.4,
-              "circle-blur": 1.2,
+              "circle-opacity": 0.25,
+              "circle-blur": 0,
             }}
           />
           
