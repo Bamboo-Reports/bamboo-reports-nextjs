@@ -41,10 +41,10 @@ export function ProspectsTab({
   const [selectedProspect, setSelectedProspect] = useState<Prospect | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [sort, setSort] = useState<{
-    key: "first" | "last" | "title" | "account"
+    key: "name" | "location" | "title" | "department"
     direction: "asc" | "desc" | null
   }>({
-    key: "first",
+    key: "name",
     direction: null,
   })
 
@@ -72,14 +72,17 @@ export function ProspectsTab({
 
     const getValue = (prospect: Prospect) => {
       switch (sort.key) {
-        case "last":
-          return prospect.prospect_last_name
+        case "name":
+          return (
+            prospect.prospect_full_name ||
+            [prospect.prospect_first_name, prospect.prospect_last_name].filter(Boolean).join(" ")
+          )
+        case "location":
+          return [prospect.prospect_city, prospect.prospect_country].filter(Boolean).join(", ")
         case "title":
           return prospect.prospect_title
-        case "account":
-          return prospect.account_global_legal_name
         default:
-          return prospect.prospect_first_name
+          return prospect.prospect_department
       }
     }
 
@@ -184,16 +187,16 @@ export function ProspectsTab({
                     <TableRow>
                       <TableHead className="w-16"></TableHead>
                       <TableHead>
-                        <SortButton label="First Name" sortKey="first" />
+                        <SortButton label="Name" sortKey="name" />
                       </TableHead>
                       <TableHead>
-                        <SortButton label="Last Name" sortKey="last" />
+                        <SortButton label="Location" sortKey="location" />
                       </TableHead>
                       <TableHead>
-                        <SortButton label="Job Title" sortKey="title" />
+                        <SortButton label="Prospect Title" sortKey="title" />
                       </TableHead>
                       <TableHead>
-                        <SortButton label="Account Name" sortKey="account" />
+                        <SortButton label="Prospect Department" sortKey="department" />
                       </TableHead>
                     </TableRow>
                   </TableHeader>

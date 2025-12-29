@@ -21,10 +21,12 @@ export const CenterRow = memo(({ center, onClick }: CenterRowProps) => (
           size="sm"
           theme="auto"
         />
-        <span>{center.account_global_legal_name}</span>
+        <span>{center.center_name}</span>
       </div>
     </TableCell>
-    <TableCell>{center.center_name}</TableCell>
+    <TableCell>
+      {[center.center_city, center.center_country].filter(Boolean).join(", ") || "N/A"}
+    </TableCell>
     <TableCell>{center.center_type}</TableCell>
     <TableCell>{center.center_employees_range}</TableCell>
   </TableRow>

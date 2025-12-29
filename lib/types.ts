@@ -75,6 +75,7 @@ export interface Service {
 export interface Prospect {
   account_global_legal_name: string
   center_name: string | null
+  prospect_full_name?: string | null
   prospect_first_name: string | null
   prospect_last_name: string | null
   prospect_title: string | null
