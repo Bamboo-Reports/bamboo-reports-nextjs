@@ -158,26 +158,23 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     }
   }, [cityData])
 
-  // Get max count for scaling circles
-  const maxCount = useMemo(() => {
-    return Math.max(...cityData.map((city) => city.count), 1)
-  }, [cityData])
-  // Ensure stops used in map styles are strictly increasing even for single-point datasets
-  const effectiveMaxCount = useMemo(() => Math.max(maxCount, 2), [maxCount])
-  const midCountStop = useMemo(() => (effectiveMaxCount > 2 ? effectiveMaxCount / 2 : 1.5), [effectiveMaxCount])
   const coreRadiusExpression = useMemo(
     () => [
       "interpolate",
       ["linear"],
       ["get", "count"],
       1,
+      2,
+      2,
+      4,
+      4,
       6,
-      midCountStop,
+      6,
       12,
-      effectiveMaxCount,
+      12,
       24,
     ],
-    [effectiveMaxCount, midCountStop]
+    []
   )
   const haloRadiusExpression = useMemo(
     () => ["*", coreRadiusExpression, 1.8],
