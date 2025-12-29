@@ -39,7 +39,7 @@ export const ProspectGridCard = memo(({ prospect, onClick }: ProspectGridCardPro
         </div>
         <div className="space-y-2 text-sm">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-muted-foreground">Title</span>
+            <span className="text-muted-foreground">Job Title</span>
             <span className="font-medium text-foreground text-right">
               {prospect.prospect_title || "-"}
             </span>
