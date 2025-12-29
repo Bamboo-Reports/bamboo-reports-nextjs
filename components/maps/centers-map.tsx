@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState, useEffect } from "react"
+import React, { useMemo, useState, useEffect, useCallback } from "react"
 import { Map as MapGL, Source, Layer, NavigationControl, FullscreenControl } from "react-map-gl/mapbox"
 import type { Center } from "@/lib/types"
 import "mapbox-gl/dist/mapbox-gl.css"
@@ -20,12 +20,50 @@ interface CityCluster {
   headcount: number
 }
 
+interface CityFeatureProperties {
+  city: string
+  country: string
+  count: number
+  accountsCount: number
+  headcount: number
+}
+
+interface CityFeature {
+  type: "Feature"
+  properties: CityFeatureProperties
+  geometry: {
+    type: "Point"
+    coordinates: [number, number]
+  }
+}
+
+interface CityFeatureCollection {
+  type: "FeatureCollection"
+  features: CityFeature[]
+}
+
+const CORE_RADIUS_BASE = 1.4
+const HALO_RADIUS_SCALE = 1.5
+const OVERLAP_PADDING = 0.5
+const CORE_RADIUS_STOPS: Array<{ count: number; radius: number }> = [
+  { count: 1, radius: 1 },
+  { count: 2, radius: 1.7 },
+  { count: 3, radius: 2.5 },
+  { count: 4, radius: 3.3 },
+  { count: 6, radius: 4.8 },
+  { count: 8, radius: 6.4 },
+  { count: 10, radius: 8.2 },
+  { count: 12, radius: 10.5 },
+  { count: 15, radius: 15 },
+]
+
 export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapProps) {
   const [hoveredCity, setHoveredCity] = useState<string | null>(null)
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
   const [isMapReady, setIsMapReady] = useState(false)
+  const [visibleGeojsonData, setVisibleGeojsonData] = useState<CityFeatureCollection | null>(null)
   const mapRef = React.useRef<any>(null)
   const containerRef = React.useRef<HTMLDivElement | null>(null)
 
@@ -137,7 +175,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
 
   // Convert city data to GeoJSON
   // Sort by count descending so larger circles render first (at bottom)
-  const geojsonData = useMemo(() => {
+  const geojsonData = useMemo<CityFeatureCollection>(() => {
     const sortedCities = [...cityData].sort((a, b) => b.count - a.count)
     return {
       type: "FeatureCollection" as const,
@@ -152,19 +190,84 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         },
         geometry: {
           type: "Point" as const,
-          coordinates: [city.lng, city.lat],
+          coordinates: [city.lng, city.lat] as [number, number],
         },
       })),
     }
   }, [cityData])
 
-  // Get max count for scaling circles
-  const maxCount = useMemo(() => {
-    return Math.max(...cityData.map((city) => city.count), 1)
-  }, [cityData])
-  // Ensure stops used in map styles are strictly increasing even for single-point datasets
-  const effectiveMaxCount = useMemo(() => Math.max(maxCount, 2), [maxCount])
-  const midCountStop = useMemo(() => (effectiveMaxCount > 2 ? effectiveMaxCount / 2 : 1.5), [effectiveMaxCount])
+  const getCoreRadiusForCount = useCallback((count: number) => {
+    if (CORE_RADIUS_STOPS.length === 0) return 0
+    if (count <= CORE_RADIUS_STOPS[0].count) return CORE_RADIUS_STOPS[0].radius
+
+    for (let i = 0; i < CORE_RADIUS_STOPS.length - 1; i += 1) {
+      const current = CORE_RADIUS_STOPS[i]
+      const next = CORE_RADIUS_STOPS[i + 1]
+      if (count <= next.count) {
+        const t = (count - current.count) / (next.count - current.count)
+        const eased = CORE_RADIUS_BASE === 1 ? t : Math.pow(t, CORE_RADIUS_BASE)
+        return current.radius + (next.radius - current.radius) * eased
+      }
+    }
+
+    return CORE_RADIUS_STOPS[CORE_RADIUS_STOPS.length - 1].radius
+  }, [])
+
+  const updateVisibleGeojsonData = useCallback(() => {
+    const mapInstance = mapRef.current?.getMap?.() ?? mapRef.current
+    if (!mapInstance?.project || geojsonData.features.length === 0) {
+      setVisibleGeojsonData(geojsonData)
+      return
+    }
+
+    const keptFeatures: CityFeature[] = []
+    const keptCenters: Array<{ x: number; y: number; radius: number }> = []
+
+    for (const feature of geojsonData.features) {
+      const [lng, lat] = feature.geometry.coordinates
+      const projected = mapInstance.project([lng, lat])
+      const coreRadius = getCoreRadiusForCount(feature.properties.count)
+      const haloRadius = coreRadius * HALO_RADIUS_SCALE + OVERLAP_PADDING
+
+      let overlaps = false
+      for (const kept of keptCenters) {
+        const dx = projected.x - kept.x
+        const dy = projected.y - kept.y
+        const minDistance = haloRadius + kept.radius
+        if (dx * dx + dy * dy < minDistance * minDistance) {
+          overlaps = true
+          break
+        }
+      }
+
+      if (!overlaps) {
+        keptFeatures.push(feature)
+        keptCenters.push({ x: projected.x, y: projected.y, radius: haloRadius })
+      }
+    }
+
+    setVisibleGeojsonData({
+      type: "FeatureCollection",
+      features: keptFeatures,
+    })
+  }, [geojsonData, getCoreRadiusForCount])
+
+  useEffect(() => {
+    if (!isMapReady) return
+    updateVisibleGeojsonData()
+  }, [isMapReady, updateVisibleGeojsonData])
+
+  const coreRadiusExpression = useMemo(
+    () => {
+      const stopValues = CORE_RADIUS_STOPS.flatMap((stop) => [stop.count, stop.radius])
+      return ["interpolate", ["exponential", CORE_RADIUS_BASE], ["get", "count"], ...stopValues]
+    },
+    []
+  )
+  const haloRadiusExpression = useMemo(
+    () => ["*", coreRadiusExpression, HALO_RADIUS_SCALE],
+    [coreRadiusExpression]
+  )
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
@@ -258,6 +361,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
             setIsMapReady(true)
           }, 200)
         }}
+        onMove={updateVisibleGeojsonData}
         interactiveLayerIds={["centers-circles"]}
         onMouseMove={(e) => {
           const features = e.features
@@ -310,66 +414,28 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
           </button>
         </div>
 
-        <Source id="centers" type="geojson" data={geojsonData}>
-          {/* Outer halo layer - larger and more transparent (20% bigger) */}
+        <Source id="centers" type="geojson" data={visibleGeojsonData ?? geojsonData}>
+          {/* Outer halo layer - crisp, flat, and rendered below core for clean overlap */}
           <Layer
             id="centers-halo"
             type="circle"
             paint={{
-              "circle-radius": [
-                "interpolate",
-                ["linear"],
-                ["get", "count"],
-                1,
-                7.2, // 20% bigger than inner (6 * 1.2)
-                effectiveMaxCount,
-                30, // 20% bigger than inner (25 * 1.2)
-              ],
-              "circle-color": [
-                "interpolate",
-                ["linear"],
-                ["get", "count"],
-                1,
-                "#f97316", // Orange color matching your Tableau screenshot
-                midCountStop,
-                "#ea580c",
-                effectiveMaxCount,
-                "#c2410c",
-              ],
-              "circle-opacity": 0.15, // Very transparent halo
-              "circle-blur": 0.5, // Soft edges
+              "circle-radius": haloRadiusExpression,
+              "circle-color": "#ffbf57",
+              "circle-opacity": 0.25,
+              "circle-blur": 0,
             }}
           />
           
-          {/* Inner circle layer - smaller and more visible */}
+          {/* Inner core layer - crisp, fully opaque anchor */}
           <Layer
             id="centers-circles"
             type="circle"
             paint={{
-              "circle-radius": [
-                "interpolate",
-                ["linear"],
-                ["get", "count"],
-                1,
-                6, // Smaller base size
-                effectiveMaxCount,
-                25, // Smaller max size
-              ],
-              "circle-color": [
-                "interpolate",
-                ["linear"],
-                ["get", "count"],
-                1,
-                "#fb923c", // Lighter orange for small clusters
-                midCountStop,
-                "#f97316", // Medium orange
-                effectiveMaxCount,
-                "#ea580c", // Darker orange for large clusters
-              ],
-              "circle-opacity": 0.6, // Semi-transparent
-              "circle-stroke-width": 1,
-              "circle-stroke-color": "#ffffff",
-              "circle-stroke-opacity": 0.5,
+              "circle-radius": coreRadiusExpression,
+              "circle-color": "#ff6800",
+              "circle-opacity": 1,
+              "circle-blur": 0,
             }}
           />
         </Source>
