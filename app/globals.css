@@ -149,6 +149,7 @@
 
   /* Smooth scrolling */
   html {
+    font-size: 92%;
     scroll-behavior: smooth;
   }
 
