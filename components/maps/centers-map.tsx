@@ -164,20 +164,18 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
       ["linear"],
       ["get", "count"],
       1,
-      2,
-      2,
+      1,
       4,
       4,
-      6,
-      6,
-      12,
-      12,
-      24,
+      9,
+      9,
+      15,
+      15,
     ],
     []
   )
   const haloRadiusExpression = useMemo(
-    () => ["*", coreRadiusExpression, 1.8],
+    () => ["*", coreRadiusExpression, 1.5],
     [coreRadiusExpression]
   )
 
