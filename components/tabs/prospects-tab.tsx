@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge"
 import { TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, Download, PieChartIcon, Table as TableIcon } from "lucide-react"
+import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, Download, PieChartIcon, Table as TableIcon, LayoutGrid } from "lucide-react"
 import { ProspectRow } from "@/components/tables/prospect-row"
+import { ProspectGridCard } from "@/components/cards/prospect-grid-card"
 import { PieChartCard } from "@/components/charts/pie-chart-card"
 import { EmptyState } from "@/components/states/empty-state"
 import { ProspectDetailsDialog } from "@/components/dialogs/prospect-details-dialog"
@@ -47,6 +48,7 @@ export function ProspectsTab({
     key: "name",
     direction: null,
   })
+  const [dataLayout, setDataLayout] = useState<"table" | "grid">("table")
 
   const handleProspectClick = (prospect: Prospect) => {
     setSelectedProspect(prospect)
@@ -178,46 +180,82 @@ export function ProspectsTab({
        {prospectsView === "data" && (
          <Card className="flex flex-col h-[calc(100vh-360px)] border shadow-sm animate-fade-in">
            <CardHeader className="shrink-0 px-6 py-4">
-             <CardTitle className="text-lg">Prospects Data</CardTitle>
+             <div className="flex flex-wrap items-center gap-3">
+               <CardTitle className="text-lg">Prospects Data</CardTitle>
+               <ViewSwitcher
+                 value={dataLayout}
+                 onValueChange={(value) => setDataLayout(value as "table" | "grid")}
+                 options={[
+                   {
+                     value: "table",
+                     label: <span className="text-[hsl(var(--chart-2))]">Table</span>,
+                     icon: (
+                       <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />
+                     ),
+                   },
+                   {
+                     value: "grid",
+                     label: <span className="text-[hsl(var(--chart-3))]">Grid</span>,
+                     icon: (
+                       <LayoutGrid className="h-4 w-4 text-[hsl(var(--chart-3))]" />
+                     ),
+                   },
+                 ]}
+               />
+             </div>
            </CardHeader>
             <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
               <div className="flex-1 overflow-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-16"></TableHead>
-                      <TableHead>
-                        <SortButton label="Name" sortKey="name" />
-                      </TableHead>
-                      <TableHead>
-                        <SortButton label="Location" sortKey="location" />
-                      </TableHead>
-                      <TableHead>
-                        <SortButton label="Prospect Title" sortKey="title" />
-                      </TableHead>
-                      <TableHead>
-                        <SortButton label="Prospect Department" sortKey="department" />
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                {dataLayout === "table" ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-16"></TableHead>
+                        <TableHead>
+                          <SortButton label="Name" sortKey="name" />
+                        </TableHead>
+                        <TableHead>
+                          <SortButton label="Location" sortKey="location" />
+                        </TableHead>
+                        <TableHead>
+                          <SortButton label="Prospect Title" sortKey="title" />
+                        </TableHead>
+                        <TableHead>
+                          <SortButton label="Prospect Department" sortKey="department" />
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getPaginatedData(sortedProspects, currentPage, itemsPerPage).map(
+                        (prospect, index) => (
+                          <ProspectRow
+                            key={`${prospect.prospect_email}-${index}`}
+                            prospect={prospect}
+                            onClick={() => handleProspectClick(prospect)}
+                          />
+                        )
+                      )}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
                     {getPaginatedData(sortedProspects, currentPage, itemsPerPage).map(
                       (prospect, index) => (
-                        <ProspectRow
-                        key={`${prospect.prospect_email}-${index}`}
+                        <ProspectGridCard
+                          key={`${prospect.prospect_email}-${index}`}
                           prospect={prospect}
                           onClick={() => handleProspectClick(prospect)}
                         />
                       )
                     )}
-                  </TableBody>
-                </Table>
+                  </div>
+                )}
               </div>
                   {prospects.length > 0 && (
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-4 border-t shrink-0 bg-muted/20">
                       <div className="flex flex-wrap items-center gap-3">
                         <p className="text-sm text-muted-foreground">
-                          {getPageInfo(currentPage, prospects.length, itemsPerPage).startItem}–{getPageInfo(currentPage, prospects.length, itemsPerPage).endItem} of{" "}
+                          {getPageInfo(currentPage, prospects.length, itemsPerPage).startItem}-{getPageInfo(currentPage, prospects.length, itemsPerPage).endItem} of{" "}
                           {prospects.length}
                         </p>
                         <Button

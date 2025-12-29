@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge"
 import { TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, Download, PieChartIcon, Table as TableIcon, MapIcon } from "lucide-react"
+import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, Download, PieChartIcon, Table as TableIcon, MapIcon, LayoutGrid } from "lucide-react"
 import { CenterRow } from "@/components/tables"
+import { CenterGridCard } from "@/components/cards/center-grid-card"
 import { PieChartCard } from "@/components/charts/pie-chart-card"
 import { EmptyState } from "@/components/states/empty-state"
 import { CenterDetailsDialog } from "@/components/dialogs/center-details-dialog"
@@ -54,6 +55,7 @@ export function CentersTab({
     key: "name",
     direction: null,
   })
+  const [dataLayout, setDataLayout] = useState<"table" | "grid">("table")
 
   const handleCenterClick = (center: Center) => {
     setSelectedCenter(center)
@@ -217,45 +219,81 @@ export function CentersTab({
        {centersView === "data" && (
          <Card className="flex flex-col h-[calc(100vh-360px)] border shadow-sm animate-fade-in">
            <CardHeader className="shrink-0 px-6 py-4">
-             <CardTitle className="text-lg">Centers Data</CardTitle>
+             <div className="flex flex-wrap items-center gap-3">
+               <CardTitle className="text-lg">Centers Data</CardTitle>
+               <ViewSwitcher
+                 value={dataLayout}
+                 onValueChange={(value) => setDataLayout(value as "table" | "grid")}
+                 options={[
+                   {
+                     value: "table",
+                     label: <span className="text-[hsl(var(--chart-2))]">Table</span>,
+                     icon: (
+                       <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />
+                     ),
+                   },
+                   {
+                     value: "grid",
+                     label: <span className="text-[hsl(var(--chart-3))]">Grid</span>,
+                     icon: (
+                       <LayoutGrid className="h-4 w-4 text-[hsl(var(--chart-3))]" />
+                     ),
+                   },
+                 ]}
+               />
+             </div>
            </CardHeader>
             <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
               <div className="flex-1 overflow-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>
-                        <SortButton label="Center Name" sortKey="name" />
-                      </TableHead>
-                      <TableHead>
-                        <SortButton label="Location" sortKey="location" />
-                      </TableHead>
-                      <TableHead>
-                        <SortButton label="Center Type" sortKey="type" />
-                      </TableHead>
-                      <TableHead>
-                        <SortButton label="Employee Range" sortKey="employees" />
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                {dataLayout === "table" ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>
+                          <SortButton label="Center Name" sortKey="name" />
+                        </TableHead>
+                        <TableHead>
+                          <SortButton label="Location" sortKey="location" />
+                        </TableHead>
+                        <TableHead>
+                          <SortButton label="Center Type" sortKey="type" />
+                        </TableHead>
+                        <TableHead>
+                          <SortButton label="Employee Range" sortKey="employees" />
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getPaginatedData(sortedCenters, currentPage, itemsPerPage).map(
+                        (center, index) => (
+                          <CenterRow
+                            key={`${center.cn_unique_key}-${index}`}
+                            center={center}
+                            onClick={() => handleCenterClick(center)}
+                          />
+                        )
+                      )}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
                     {getPaginatedData(sortedCenters, currentPage, itemsPerPage).map(
                       (center, index) => (
-                        <CenterRow
+                        <CenterGridCard
                           key={`${center.cn_unique_key}-${index}`}
                           center={center}
                           onClick={() => handleCenterClick(center)}
                         />
                       )
                     )}
-                  </TableBody>
-                </Table>
+                  </div>
+                )}
               </div>
                   {centers.length > 0 && (
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-4 border-t shrink-0 bg-muted/20">
                       <div className="flex flex-wrap items-center gap-3">
                         <p className="text-sm text-muted-foreground">
-                          {getPageInfo(currentPage, centers.length, itemsPerPage).startItem}–{getPageInfo(currentPage, centers.length, itemsPerPage).endItem} of{" "}
+                          {getPageInfo(currentPage, centers.length, itemsPerPage).startItem}-{getPageInfo(currentPage, centers.length, itemsPerPage).endItem} of{" "}
                           {centers.length}
                         </p>
                         <Button
