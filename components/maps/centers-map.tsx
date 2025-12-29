@@ -165,6 +165,24 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
   // Ensure stops used in map styles are strictly increasing even for single-point datasets
   const effectiveMaxCount = useMemo(() => Math.max(maxCount, 2), [maxCount])
   const midCountStop = useMemo(() => (effectiveMaxCount > 2 ? effectiveMaxCount / 2 : 1.5), [effectiveMaxCount])
+  const coreRadiusExpression = useMemo(
+    () => [
+      "interpolate",
+      ["linear"],
+      ["get", "count"],
+      1,
+      6,
+      midCountStop,
+      12,
+      effectiveMaxCount,
+      24,
+    ],
+    [effectiveMaxCount, midCountStop]
+  )
+  const haloRadiusExpression = useMemo(
+    () => ["*", coreRadiusExpression, 2],
+    [coreRadiusExpression]
+  )
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
@@ -311,65 +329,27 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         </div>
 
         <Source id="centers" type="geojson" data={geojsonData}>
-          {/* Outer halo layer - larger and more transparent (20% bigger) */}
+          {/* Outer halo layer - softer, lighter, and rendered below core for clean overlap */}
           <Layer
             id="centers-halo"
             type="circle"
             paint={{
-              "circle-radius": [
-                "interpolate",
-                ["linear"],
-                ["get", "count"],
-                1,
-                7.2, // 20% bigger than inner (6 * 1.2)
-                effectiveMaxCount,
-                30, // 20% bigger than inner (25 * 1.2)
-              ],
-              "circle-color": [
-                "interpolate",
-                ["linear"],
-                ["get", "count"],
-                1,
-                "#f97316", // Orange color matching your Tableau screenshot
-                midCountStop,
-                "#ea580c",
-                effectiveMaxCount,
-                "#c2410c",
-              ],
-              "circle-opacity": 0.15, // Very transparent halo
-              "circle-blur": 0.5, // Soft edges
+              "circle-radius": haloRadiusExpression,
+              "circle-color": "#fbbf24",
+              "circle-opacity": 0.35,
+              "circle-blur": 1.2,
             }}
           />
           
-          {/* Inner circle layer - smaller and more visible */}
+          {/* Inner core layer - crisp, fully opaque anchor */}
           <Layer
             id="centers-circles"
             type="circle"
             paint={{
-              "circle-radius": [
-                "interpolate",
-                ["linear"],
-                ["get", "count"],
-                1,
-                6, // Smaller base size
-                effectiveMaxCount,
-                25, // Smaller max size
-              ],
-              "circle-color": [
-                "interpolate",
-                ["linear"],
-                ["get", "count"],
-                1,
-                "#fb923c", // Lighter orange for small clusters
-                midCountStop,
-                "#f97316", // Medium orange
-                effectiveMaxCount,
-                "#ea580c", // Darker orange for large clusters
-              ],
-              "circle-opacity": 0.6, // Semi-transparent
-              "circle-stroke-width": 1,
-              "circle-stroke-color": "#ffffff",
-              "circle-stroke-opacity": 0.5,
+              "circle-radius": coreRadiusExpression,
+              "circle-color": "#f97316",
+              "circle-opacity": 1,
+              "circle-blur": 0,
             }}
           />
         </Source>
