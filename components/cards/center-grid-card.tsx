@@ -1,0 +1,72 @@
+import { memo } from "react"
+import { ArrowUpRight } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { CompanyLogo } from "@/components/ui/company-logo"
+import type { Center } from "@/lib/types"
+
+interface CenterGridCardProps {
+  center: Center
+  onClick: () => void
+}
+
+export const CenterGridCard = memo(({ center, onClick }: CenterGridCardProps) => {
+  const centerName = center.center_name || "Center"
+  const location = [center.center_city, center.center_country].filter(Boolean).join(", ")
+  const accountName = center.account_global_legal_name || "Account"
+
+  return (
+    <Card className="h-full">
+      <CardContent className="p-4 flex flex-col gap-4">
+        <div className="flex items-start gap-3">
+          <CompanyLogo
+            domain={center.center_account_website}
+            companyName={accountName}
+            size="md"
+            theme="auto"
+          />
+          <div className="min-w-0">
+            <h3 className="text-base font-semibold text-foreground leading-snug break-words">
+              {centerName}
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              {location || center.center_country || "-"}
+            </p>
+          </div>
+        </div>
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-muted-foreground">Account</span>
+            <span className="font-medium text-foreground text-right">
+              {accountName}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-muted-foreground">Center Type</span>
+            <span className="font-medium text-foreground text-right">
+              {center.center_type || "-"}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-muted-foreground">Employees</span>
+            <span className="font-medium text-foreground text-right">
+              {center.center_employees_range || "-"}
+            </span>
+          </div>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onClick}
+          className="w-full justify-between bg-foreground text-background border-foreground hover:bg-foreground/90 hover:text-background"
+        >
+          View Details
+          <ArrowUpRight className="h-4 w-4" />
+        </Button>
+      </CardContent>
+    </Card>
+  )
+})
+
+CenterGridCard.displayName = "CenterGridCard"
