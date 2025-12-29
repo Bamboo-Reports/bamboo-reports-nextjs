@@ -131,7 +131,7 @@ function DashboardContent() {
   const [itemsPerPage] = useState(50)
   const [isApplying, setIsApplying] = useState(false)
   const [searchInput, setSearchInput] = useState("")
-  const [accountsView, setAccountsView] = useState<"chart" | "data" | "grid">("chart")
+  const [accountsView, setAccountsView] = useState<"chart" | "data">("chart")
   const [centersView, setCentersView] = useState<"chart" | "data" | "map">("chart")
   const [prospectsView, setProspectsView] = useState<"chart" | "data">("chart")
   const [, startFilterTransition] = useTransition()

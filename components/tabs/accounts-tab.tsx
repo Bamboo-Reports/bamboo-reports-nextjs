@@ -37,8 +37,8 @@ interface AccountsTabProps {
     revenueRangeData: Array<{ name: string; value: number; fill?: string }>
     employeesRangeData: Array<{ name: string; value: number; fill?: string }>
   }
-  accountsView: "chart" | "data" | "grid"
-  setAccountsView: (view: "chart" | "data" | "grid") => void
+  accountsView: "chart" | "data"
+  setAccountsView: (view: "chart" | "data") => void
   currentPage: number
   setCurrentPage: (page: number | ((prev: number) => number)) => void
   itemsPerPage: number
@@ -65,6 +65,7 @@ export function AccountsTab({
     key: "name",
     direction: null,
   })
+  const [dataLayout, setDataLayout] = useState<"table" | "grid">("table")
 
   const handleAccountClick = (account: Account) => {
     setSelectedAccount(account)
@@ -147,7 +148,7 @@ export function AccountsTab({
         </Badge>
         <ViewSwitcher
           value={accountsView}
-          onValueChange={(value) => setAccountsView(value as "chart" | "data" | "grid")}
+          onValueChange={(value) => setAccountsView(value as "chart" | "data")}
           options={[
             {
               value: "chart",
@@ -158,16 +159,9 @@ export function AccountsTab({
             },
             {
               value: "data",
-              label: <span className="text-[hsl(var(--chart-2))]">Table</span>,
+              label: <span className="text-[hsl(var(--chart-2))]">Data</span>,
               icon: (
                 <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />
-              ),
-            },
-            {
-              value: "grid",
-              label: <span className="text-[hsl(var(--chart-3))]">Grid</span>,
-              icon: (
-                <LayoutGrid className="h-4 w-4 text-[hsl(var(--chart-3))]" />
               ),
             },
           ]}
@@ -207,117 +201,79 @@ export function AccountsTab({
         </div>
       )}
 
-      {/* Data Table */}
+      {/* Data View */}
       {accountsView === "data" && (
         <Card className="flex flex-col h-[calc(100vh-360px)] border shadow-sm animate-fade-in">
           <CardHeader className="shrink-0 px-6 py-4">
-            <CardTitle className="text-lg">Accounts Data</CardTitle>
-          </CardHeader>
-           <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
-             <div className="flex-1 overflow-auto">
-               <Table>
-                 <TableHeader>
-                   <TableRow>
-                     <TableHead>
-                       <SortButton label="Account Name" sortKey="name" />
-                     </TableHead>
-                     <TableHead>
-                       <SortButton label="Location" sortKey="location" />
-                     </TableHead>
-                     <TableHead>
-                       <SortButton label="Industry" sortKey="industry" />
-                     </TableHead>
-                     <TableHead>
-                       <SortButton label="Revenue Range" sortKey="revenue" />
-                     </TableHead>
-                   </TableRow>
-                 </TableHeader>
-                 <TableBody>
-                   {getPaginatedData(sortedAccounts, currentPage, itemsPerPage).map(
-                     (account, index) => (
-                       <AccountRow
-                         key={`${account.account_global_legal_name}-${index}`}
-                         account={account}
-                         onClick={() => handleAccountClick(account)}
-                       />
-                     )
-                   )}
-                 </TableBody>
-               </Table>
-             </div>
-                  {accounts.length > 0 && (
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-4 border-t shrink-0 bg-muted/20">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <p className="text-sm text-muted-foreground">
-                          {getPageInfo(currentPage, accounts.length, itemsPerPage).startItem}-{getPageInfo(currentPage, accounts.length, itemsPerPage).endItem} of{" "}
-                          {accounts.length}
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => exportToExcel(sortedAccounts, "accounts-export", "Accounts")}
-                          className="flex items-center gap-2 h-8"
-                        >
-                      <Download className="h-4 w-4" />
-                      Export
-                    </Button>
-                  </div>
-                  {getTotalPages(accounts.length, itemsPerPage) > 1 && (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="h-8"
-                      >
-                        Previous
-                      </Button>
-                      <span className="text-sm text-muted-foreground min-w-[60px] text-center">
-                        {currentPage}/{getTotalPages(accounts.length, itemsPerPage)}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentPage((prev) =>
-                            Math.min(prev + 1, getTotalPages(accounts.length, itemsPerPage))
-                          )
-                        }
-                        disabled={
-                          currentPage === getTotalPages(accounts.length, itemsPerPage)
-                        }
-                        className="h-8"
-                      >
-                        Next
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardContent>
-         </Card>
-       )}
-
-      {/* Data Grid */}
-      {accountsView === "grid" && (
-        <Card className="flex flex-col h-[calc(100vh-360px)] border shadow-sm animate-fade-in">
-          <CardHeader className="shrink-0 px-6 py-4">
-            <CardTitle className="text-lg">Accounts Grid</CardTitle>
+            <div className="flex flex-wrap items-center gap-3">
+              <CardTitle className="text-lg">Accounts Data</CardTitle>
+              <ViewSwitcher
+                value={dataLayout}
+                onValueChange={(value) => setDataLayout(value as "table" | "grid")}
+                options={[
+                  {
+                    value: "table",
+                    label: <span className="text-[hsl(var(--chart-2))]">Table</span>,
+                    icon: (
+                      <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />
+                    ),
+                  },
+                  {
+                    value: "grid",
+                    label: <span className="text-[hsl(var(--chart-3))]">Grid</span>,
+                    icon: (
+                      <LayoutGrid className="h-4 w-4 text-[hsl(var(--chart-3))]" />
+                    ),
+                  },
+                ]}
+              />
+            </div>
           </CardHeader>
           <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
             <div className="flex-1 overflow-auto">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-6">
-                {getPaginatedData(sortedAccounts, currentPage, itemsPerPage).map(
-                  (account, index) => (
-                    <AccountGridCard
-                      key={`${account.account_global_legal_name}-${index}`}
-                      account={account}
-                      onClick={() => handleAccountClick(account)}
-                    />
-                  )
-                )}
-              </div>
+              {dataLayout === "table" ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>
+                        <SortButton label="Account Name" sortKey="name" />
+                      </TableHead>
+                      <TableHead>
+                        <SortButton label="Location" sortKey="location" />
+                      </TableHead>
+                      <TableHead>
+                        <SortButton label="Industry" sortKey="industry" />
+                      </TableHead>
+                      <TableHead>
+                        <SortButton label="Revenue Range" sortKey="revenue" />
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {getPaginatedData(sortedAccounts, currentPage, itemsPerPage).map(
+                      (account, index) => (
+                        <AccountRow
+                          key={`${account.account_global_legal_name}-${index}`}
+                          account={account}
+                          onClick={() => handleAccountClick(account)}
+                        />
+                      )
+                    )}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-6">
+                  {getPaginatedData(sortedAccounts, currentPage, itemsPerPage).map(
+                    (account, index) => (
+                      <AccountGridCard
+                        key={`${account.account_global_legal_name}-${index}`}
+                        account={account}
+                        onClick={() => handleAccountClick(account)}
+                      />
+                    )
+                  )}
+                </div>
+              )}
             </div>
             {accounts.length > 0 && (
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-4 border-t shrink-0 bg-muted/20">
