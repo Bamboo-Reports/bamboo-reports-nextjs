@@ -48,10 +48,10 @@ export function CentersTab({
   const [selectedCenter, setSelectedCenter] = useState<Center | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [sort, setSort] = useState<{
-    key: "account" | "name" | "type" | "employees"
+    key: "name" | "location" | "type" | "employees"
     direction: "asc" | "desc" | null
   }>({
-    key: "account",
+    key: "name",
     direction: null,
   })
 
@@ -81,12 +81,14 @@ export function CentersTab({
       switch (sort.key) {
         case "name":
           return center.center_name
+        case "location":
+          return [center.center_city, center.center_country].filter(Boolean).join(", ")
         case "type":
           return center.center_type
         case "employees":
           return center.center_employees_range
         default:
-          return center.account_global_legal_name
+          return ""
       }
     }
 
@@ -223,10 +225,10 @@ export function CentersTab({
                   <TableHeader>
                     <TableRow>
                       <TableHead>
-                        <SortButton label="Account Name" sortKey="account" />
+                        <SortButton label="Center Name" sortKey="name" />
                       </TableHead>
                       <TableHead>
-                        <SortButton label="Center Name" sortKey="name" />
+                        <SortButton label="Location" sortKey="location" />
                       </TableHead>
                       <TableHead>
                         <SortButton label="Center Type" sortKey="type" />
