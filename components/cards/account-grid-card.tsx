@@ -54,7 +54,7 @@ export const AccountGridCard = memo(({ account, onClick }: AccountGridCardProps)
           variant="outline"
           size="sm"
           onClick={onClick}
-          className="w-full justify-between"
+          className="w-full justify-between bg-foreground text-background border-foreground hover:bg-foreground/90 hover:text-background"
         >
           View Details
           <ArrowUpRight className="h-4 w-4" />
