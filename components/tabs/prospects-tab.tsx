@@ -218,10 +218,10 @@ export function ProspectsTab({
                           <SortButton label="Location" sortKey="location" />
                         </TableHead>
                         <TableHead>
-                          <SortButton label="Prospect Title" sortKey="title" />
+                          <SortButton label="Job Title" sortKey="title" />
                         </TableHead>
                         <TableHead>
-                          <SortButton label="Prospect Department" sortKey="department" />
+                          <SortButton label="Department" sortKey="department" />
                         </TableHead>
                       </TableRow>
                     </TableHeader>

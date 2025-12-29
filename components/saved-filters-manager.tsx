@@ -240,10 +240,10 @@ const SavedFilterCard = memo(({
             {renderFilterValues(filter.filters.centerEmployees, "Center Employees")}
             {renderFilterValues(filter.filters.centerStatuses, "Center Status")}
             {renderFilterValues(filter.filters.functionTypes, "Function")}
-            {renderFilterValues(filter.filters.prospectDepartments, "Prospect Dept")}
+            {renderFilterValues(filter.filters.prospectDepartments, "Department")}
             {renderFilterValues(filter.filters.prospectLevels, "Prospect Level")}
             {renderFilterValues(filter.filters.prospectCities, "Prospect City")}
-            {renderFilterValues(filter.filters.prospectTitleKeywords, "Prospect Title")}
+            {renderFilterValues(filter.filters.prospectTitleKeywords, "Job Title")}
             {revenueFilterActive && (
               <FilterBadge
                 filterKey="Revenue"
