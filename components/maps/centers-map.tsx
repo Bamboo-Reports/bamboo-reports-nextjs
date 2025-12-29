@@ -335,8 +335,8 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
             type="circle"
             paint={{
               "circle-radius": haloRadiusExpression,
-              "circle-color": "#fbbf24",
-              "circle-opacity": 0.35,
+              "circle-color": "#ffbf57",
+              "circle-opacity": 0.4,
               "circle-blur": 1.2,
             }}
           />
@@ -347,7 +347,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
             type="circle"
             paint={{
               "circle-radius": coreRadiusExpression,
-              "circle-color": "#f97316",
+              "circle-color": "#ff6800",
               "circle-opacity": 1,
               "circle-blur": 0,
             }}
