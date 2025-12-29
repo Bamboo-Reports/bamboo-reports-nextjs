@@ -161,7 +161,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
   const coreRadiusExpression = useMemo(
     () => [
       "interpolate",
-      ["linear"],
+      ["exponential", 1.4],
       ["get", "count"],
       1,
       1,
