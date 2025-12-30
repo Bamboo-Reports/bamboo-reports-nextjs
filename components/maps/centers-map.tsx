@@ -158,18 +158,28 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     const avgLat = cityData.reduce((sum, city) => sum + city.lat, 0) / cityData.length
     const avgLng = cityData.reduce((sum, city) => sum + city.lng, 0) / cityData.length
 
+    // Dynamically adjust zoom based on number of centers
+    let zoom = 4
+    if (cityData.length === 1) {
+      zoom = 8
+    } else if (cityData.length <= 3) {
+      zoom = 6
+    } else if (cityData.length <= 10) {
+      zoom = 5
+    }
+
     return {
       latitude: avgLat,
       longitude: avgLng,
-      zoom: 4,
+      zoom,
     }
   }, [cityData])
 
   const getCoreRadiusForCount = useCallback((count: number) => {
     const minCount = 1
     const maxCount = Math.max(...cityData.map(c => c.count), 1)
-    const minRadius = 1
-    const maxRadius = 15
+    const minRadius = 4
+    const maxRadius = 20
 
     if (maxCount === minCount) return minRadius
 
