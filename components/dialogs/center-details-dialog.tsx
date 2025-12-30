@@ -103,6 +103,13 @@ export function CenterDetailsDialog({
     )
   }
 
+  const isPresent = (value: string | number | null | undefined) => {
+    if (value === null || value === undefined) return false
+    if (typeof value === "number") return true
+    const trimmed = value.trim()
+    return trimmed !== "" && trimmed !== "-"
+  }
+
   const ServiceSection = ({
     icon: Icon,
     title,
@@ -126,6 +133,10 @@ export function CenterDetailsDialog({
       </div>
     )
   }
+
+  const hasBusinessInfo =
+    isPresent(center.center_business_segment) ||
+    isPresent(center.center_business_sub_segment)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -224,24 +235,26 @@ export function CenterDetailsDialog({
           </div>
 
           {/* Business Information Section */}
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
-              <Briefcase className="h-4 w-4" />
-              Business Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <InfoRow
-                icon={Briefcase}
-                label="Business Segment"
-                value={center.center_business_segment}
-              />
-              <InfoRow
-                icon={Briefcase}
-                label="Business Sub-Segment"
-                value={center.center_business_sub_segment}
-              />
+          {hasBusinessInfo && (
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+                <Briefcase className="h-4 w-4" />
+                Business Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <InfoRow
+                  icon={Briefcase}
+                  label="Business Segment"
+                  value={center.center_business_segment}
+                />
+                <InfoRow
+                  icon={Briefcase}
+                  label="Business Sub-Segment"
+                  value={center.center_business_sub_segment}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Services Section */}
           {centerServices && (
