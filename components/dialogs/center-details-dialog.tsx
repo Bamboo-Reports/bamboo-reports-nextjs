@@ -80,7 +80,7 @@ export function CenterDetailsDialog({
     if (displayValue === "") return null
 
     return (
-      <div className="flex items-start gap-3 p-3 rounded-lg bg-background/40 backdrop-blur-sm border border-border/50 hover:border-border transition-colors">
+      <div className="flex items-start gap-3 p-3 rounded-lg bg-background/40 backdrop-blur-sm border border-border/50 hover:border-border transition-colors dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-md dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
         <div className="mt-0.5">
           <Icon className="h-4 w-4 text-muted-foreground" />
         </div>
@@ -122,7 +122,7 @@ export function CenterDetailsDialog({
     if (!content || content.trim() === "" || content === "-") return null
 
     return (
-      <div className="p-4 rounded-lg bg-background/40 backdrop-blur-sm border border-border/50">
+      <div className="p-4 rounded-lg bg-background/40 backdrop-blur-sm border border-border/50 dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-md dark:shadow-[0_10px_32px_rgba(0,0,0,0.35)]">
         <div className="flex items-center gap-2 mb-3">
           <Icon className="h-5 w-5 text-primary" />
           <h4 className="font-semibold text-sm">{title}</h4>
