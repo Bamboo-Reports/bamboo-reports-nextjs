@@ -59,7 +59,7 @@ export const CenterGridCard = memo(({ center, onClick }: CenterGridCardProps) =>
           variant="outline"
           size="sm"
           onClick={onClick}
-          className="w-full justify-between bg-foreground text-background border-foreground hover:bg-foreground/90 hover:text-background"
+          className="w-full justify-between bg-foreground text-background border-foreground hover:bg-foreground/90 hover:text-background dark:bg-white dark:text-slate-900 dark:border-white dark:hover:bg-white/90"
         >
           View Details
           <ArrowUpRight className="h-4 w-4" />
