@@ -421,6 +421,32 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
               "circle-blur": 0,
             }}
           />
+
+          {/* Count labels - only show if circle is large enough */}
+          <Layer
+            id="centers-labels"
+            type="symbol"
+            layout={{
+              "text-field": ["concat", ["get", "count"]],
+              "text-size": 10,
+              "text-anchor": "center",
+              "text-offset": [0, 0],
+              "text-allow-overlap": true,
+            }}
+            paint={{
+              "text-color": "#ffffff",
+              "text-halo-color": "#ff6800",
+              "text-halo-width": 1,
+            }}
+            filter={[
+              "case",
+              ["<=", ["get", "count"], 9], [">=", ["get", "radius"], 4],
+              ["<=", ["get", "count"], 99], [">=", ["get", "radius"], 6],
+              ["<=", ["get", "count"], 999], [">=", ["get", "radius"], 9],
+              [">=", ["get", "radius"], 12],
+              false
+            ]}
+          />
         </Source>
 
         {/* Enhanced Tooltip */}
