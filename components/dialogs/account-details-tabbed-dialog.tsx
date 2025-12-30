@@ -88,7 +88,7 @@ export function AccountDetailsDialog({
     if (displayValue.trim() === "") return null
 
     return (
-      <div className="flex items-start gap-3 p-3 rounded-lg bg-background/40 backdrop-blur-sm border border-border/50 hover:border-border transition-colors">
+      <div className="flex items-start gap-3 p-3 rounded-lg bg-background/40 backdrop-blur-sm border border-border/50 hover:border-border transition-colors dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-md dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
         <div className="mt-0.5">
           <Icon className="h-4 w-4 text-muted-foreground" />
         </div>
@@ -342,7 +342,7 @@ export function AccountDetailsDialog({
                   {accountCenters.map((center, index) => (
                     <div
                       key={`${center.cn_unique_key}-${index}`}
-                      className="p-4 rounded-lg bg-background/40 backdrop-blur-sm border border-border/50 hover:border-border hover:bg-background/60 transition-all cursor-pointer"
+                      className="p-4 rounded-lg bg-background/40 backdrop-blur-sm border border-border/50 hover:border-border hover:bg-background/60 transition-all cursor-pointer dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 dark:backdrop-blur-md dark:shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
                       onClick={() => handleCenterClick(center)}
                     >
                       <div className="flex items-start gap-3">
@@ -393,7 +393,7 @@ export function AccountDetailsDialog({
                   {accountProspects.map((prospect, index) => (
                     <div
                       key={`${prospect.prospect_first_name}-${prospect.prospect_last_name}-${index}`}
-                      className="p-4 rounded-lg bg-background/40 backdrop-blur-sm border border-border/50 hover:border-border hover:bg-background/60 transition-all cursor-pointer"
+                      className="p-4 rounded-lg bg-background/40 backdrop-blur-sm border border-border/50 hover:border-border hover:bg-background/60 transition-all cursor-pointer dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 dark:backdrop-blur-md dark:shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
                       onClick={() => handleProspectClick(prospect)}
                     >
                       <div className="flex items-start gap-3">
