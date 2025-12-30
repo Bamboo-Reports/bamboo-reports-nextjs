@@ -27,7 +27,7 @@ export function ProspectDetailsDialog({
     if (!value) return null
 
     return (
-      <div className="flex items-start gap-3 p-3 rounded-lg bg-background/40 backdrop-blur-sm border border-border/50 hover:border-border transition-colors">
+      <div className="flex items-start gap-3 p-3 rounded-lg bg-background/40 backdrop-blur-sm border border-border/50 hover:border-border transition-colors dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-md dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
         <div className="mt-0.5">
           <Icon className="h-4 w-4 text-muted-foreground" />
         </div>
