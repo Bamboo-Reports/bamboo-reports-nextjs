@@ -29,7 +29,7 @@ import {
 } from "lucide-react"
 import { MultiSelect } from "@/components/multi-select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { getAllData, testConnection, getDatabaseStatus, clearCache } from "./actions"
+import { getAllData, testConnection, getDatabaseStatus, clearCache } from "../actions"
 import { LoadingState } from "@/components/states/loading-state"
 import { ErrorState } from "@/components/states/error-state"
 import { Header } from "@/components/layout/header"
