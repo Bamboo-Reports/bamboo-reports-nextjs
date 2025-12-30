@@ -2,6 +2,7 @@ import React from "react"
 import { Button } from "@/components/ui/button"
 import { RefreshCw } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { UserProfile } from "@/components/user-profile"
 
 interface HeaderProps {
   onRefresh: () => void
@@ -26,6 +27,7 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps) {
               <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-300" />
             </Button>
             <ThemeToggle />
+            <UserProfile />
           </div>
         </div>
       </div>
