@@ -66,6 +66,11 @@ export function ProspectsTab({
     setCurrentPage(1)
   }
 
+  const handleSortReset = () => {
+    setSort((prev) => ({ ...prev, direction: null }))
+    setCurrentPage(1)
+  }
+
   const sortedProspects = React.useMemo(() => {
     if (!sort.direction) return prospects
 
@@ -238,16 +243,34 @@ export function ProspectsTab({
                     </TableBody>
                   </Table>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                    {getPaginatedData(sortedProspects, currentPage, itemsPerPage).map(
-                      (prospect, index) => (
-                        <ProspectGridCard
-                          key={`${prospect.prospect_email}-${index}`}
-                          prospect={prospect}
-                          onClick={() => handleProspectClick(prospect)}
-                        />
-                      )
-                    )}
+                  <div className="flex flex-col">
+                    <div className="flex flex-wrap items-center gap-2 px-6 py-3 border-b bg-muted/20">
+                      <span className="text-xs font-medium text-muted-foreground">Sort</span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSortReset}
+                        className="h-7 px-2"
+                      >
+                        Default
+                      </Button>
+                      <SortButton label="Name" sortKey="name" />
+                      <SortButton label="Location" sortKey="location" />
+                      <SortButton label="Job Title" sortKey="title" />
+                      <SortButton label="Department" sortKey="department" />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+                      {getPaginatedData(sortedProspects, currentPage, itemsPerPage).map(
+                        (prospect, index) => (
+                          <ProspectGridCard
+                            key={`${prospect.prospect_email}-${index}`}
+                            prospect={prospect}
+                            onClick={() => handleProspectClick(prospect)}
+                          />
+                        )
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

@@ -83,6 +83,11 @@ export function AccountsTab({
     setCurrentPage(1)
   }
 
+  const handleSortReset = () => {
+    setSort((prev) => ({ ...prev, direction: null }))
+    setCurrentPage(1)
+  }
+
   const sortedAccounts = React.useMemo(() => {
     if (!sort.direction) return accounts
 
@@ -262,16 +267,34 @@ export function AccountsTab({
                   </TableBody>
                 </Table>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                  {getPaginatedData(sortedAccounts, currentPage, itemsPerPage).map(
-                    (account, index) => (
-                      <AccountGridCard
-                        key={`${account.account_global_legal_name}-${index}`}
-                        account={account}
-                        onClick={() => handleAccountClick(account)}
-                      />
-                    )
-                  )}
+                <div className="flex flex-col">
+                  <div className="flex flex-wrap items-center gap-2 px-6 py-3 border-b bg-muted/20">
+                    <span className="text-xs font-medium text-muted-foreground">Sort</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSortReset}
+                      className="h-7 px-2"
+                    >
+                      Default
+                    </Button>
+                    <SortButton label="Account Name" sortKey="name" />
+                    <SortButton label="Location" sortKey="location" />
+                    <SortButton label="Industry" sortKey="industry" />
+                    <SortButton label="Revenue Range" sortKey="revenue" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+                    {getPaginatedData(sortedAccounts, currentPage, itemsPerPage).map(
+                      (account, index) => (
+                        <AccountGridCard
+                          key={`${account.account_global_legal_name}-${index}`}
+                          account={account}
+                          onClick={() => handleAccountClick(account)}
+                        />
+                      )
+                    )}
+                  </div>
                 </div>
               )}
             </div>

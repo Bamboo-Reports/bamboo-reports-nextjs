@@ -73,6 +73,11 @@ export function CentersTab({
     setCurrentPage(1)
   }
 
+  const handleSortReset = () => {
+    setSort((prev) => ({ ...prev, direction: null }))
+    setCurrentPage(1)
+  }
+
   const sortedCenters = React.useMemo(() => {
     if (!sort.direction) return centers
 
@@ -276,16 +281,34 @@ export function CentersTab({
                     </TableBody>
                   </Table>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                    {getPaginatedData(sortedCenters, currentPage, itemsPerPage).map(
-                      (center, index) => (
-                        <CenterGridCard
-                          key={`${center.cn_unique_key}-${index}`}
-                          center={center}
-                          onClick={() => handleCenterClick(center)}
-                        />
-                      )
-                    )}
+                  <div className="flex flex-col">
+                    <div className="flex flex-wrap items-center gap-2 px-6 py-3 border-b bg-muted/20">
+                      <span className="text-xs font-medium text-muted-foreground">Sort</span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSortReset}
+                        className="h-7 px-2"
+                      >
+                        Default
+                      </Button>
+                      <SortButton label="Center Name" sortKey="name" />
+                      <SortButton label="Location" sortKey="location" />
+                      <SortButton label="Center Type" sortKey="type" />
+                      <SortButton label="Employee Range" sortKey="employees" />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+                      {getPaginatedData(sortedCenters, currentPage, itemsPerPage).map(
+                        (center, index) => (
+                          <CenterGridCard
+                            key={`${center.cn_unique_key}-${index}`}
+                            center={center}
+                            onClick={() => handleCenterClick(center)}
+                          />
+                        )
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
