@@ -27,6 +27,9 @@ interface CityFeatureProperties {
   accountsCount: number
   headcount: number
   radius: number
+  label: string
+  labelSize: number
+  showLabel: boolean
 }
 
 interface CityFeature {
@@ -178,29 +181,51 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     return minRadius + normalized * (maxRadius - minRadius)
   }, [cityData])
 
+  const getLabelConfig = useCallback((count: number, radius: number) => {
+    const label = count.toString()
+    const minFontSize = 8
+    const maxFontSize = 12
+    const targetFontSize = Math.min(maxFontSize, Math.max(minFontSize, radius * 1.1))
+    const approxCharWidth = 0.6
+    const padding = 2
+    const maxTextWidth = radius * 2 - padding * 2
+    const textWidth = label.length * targetFontSize * approxCharWidth
+    const showLabel = textWidth <= maxTextWidth && targetFontSize <= radius * 2 - padding
+
+    return {
+      label,
+      labelSize: targetFontSize,
+      showLabel,
+    }
+  }, [])
+
   // Convert city data to GeoJSON
   // Sort by count descending so larger circles render first (at bottom)
   const geojsonData = useMemo<CityFeatureCollection>(() => {
     const sortedCities = [...cityData].sort((a, b) => b.count - a.count)
     return {
       type: "FeatureCollection" as const,
-      features: sortedCities.map((city) => ({
-        type: "Feature" as const,
-        properties: {
-          city: city.city,
-          country: city.country,
-          count: city.count,
-          accountsCount: city.accounts.size,
-          headcount: city.headcount,
-          radius: getCoreRadiusForCount(city.count),
-        },
-        geometry: {
-          type: "Point" as const,
-          coordinates: [city.lng, city.lat] as [number, number],
-        },
-      })),
+      features: sortedCities.map((city) => {
+        const radius = getCoreRadiusForCount(city.count)
+        return {
+          type: "Feature" as const,
+          properties: {
+            city: city.city,
+            country: city.country,
+            count: city.count,
+            accountsCount: city.accounts.size,
+            headcount: city.headcount,
+            radius,
+            ...getLabelConfig(city.count, radius),
+          },
+          geometry: {
+            type: "Point" as const,
+            coordinates: [city.lng, city.lat] as [number, number],
+          },
+        }
+      }),
     }
-  }, [cityData, getCoreRadiusForCount])
+  }, [cityData, getCoreRadiusForCount, getLabelConfig])
 
   const updateVisibleGeojsonData = useCallback(() => {
     const mapInstance = mapRef.current?.getMap?.() ?? mapRef.current
@@ -419,6 +444,22 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
               "circle-color": "#ff6800",
               "circle-opacity": 1,
               "circle-blur": 0,
+            }}
+          />
+
+          <Layer
+            id="centers-labels"
+            type="symbol"
+            filter={["==", ["get", "showLabel"], true]}
+            layout={{
+              "text-field": ["get", "label"],
+              "text-size": ["get", "labelSize"],
+              "text-font": ["Google Sans Bold", "Arial Unicode MS Bold"],
+              "text-allow-overlap": true,
+              "text-ignore-placement": true,
+            }}
+            paint={{
+              "text-color": "#ffffff",
             }}
           />
         </Source>
