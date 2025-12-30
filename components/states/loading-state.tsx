@@ -15,10 +15,23 @@ export function LoadingState(_: LoadingStateProps) {
           <h2 className="text-xl font-semibold mb-2">Bamboo Reports is loading</h2>
           <p className="text-muted-foreground text-center mb-4">Preparing your dashboard</p>
           <div className="w-full">
-            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-              <div className="h-full w-2/3 bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 animate-pulse" />
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden relative">
+              <div className="absolute inset-y-0 w-1/3 rounded-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 animate-loading-bar" />
             </div>
           </div>
+          <style jsx>{`
+            @keyframes loading-bar {
+              0% {
+                transform: translateX(-110%);
+              }
+              100% {
+                transform: translateX(310%);
+              }
+            }
+            .animate-loading-bar {
+              animation: loading-bar 1.2s ease-in-out infinite;
+            }
+          `}</style>
         </CardContent>
       </Card>
     </div>
