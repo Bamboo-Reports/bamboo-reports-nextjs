@@ -368,10 +368,14 @@ export function AccountDetailsDialog({
                               <Building className="h-3.5 w-3.5" />
                               <span>{center.center_type}</span>
                             </div>
-                            <div className="flex items-center gap-1.5 text-muted-foreground">
-                              <Users className="h-3.5 w-3.5" />
-                              <span>{center.center_employees} employees</span>
-                            </div>
+                            {center.center_employees !== null &&
+                              center.center_employees !== undefined &&
+                              center.center_employees !== 0 && (
+                                <div className="flex items-center gap-1.5 text-muted-foreground">
+                                  <Users className="h-3.5 w-3.5" />
+                                  <span>{center.center_employees} employees</span>
+                                </div>
+                              )}
                           </div>
                         </div>
                       </div>
