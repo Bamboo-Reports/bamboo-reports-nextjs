@@ -26,6 +26,7 @@ interface CityFeatureProperties {
   count: number
   accountsCount: number
   headcount: number
+  radius: number
 }
 
 interface CityFeature {
@@ -42,20 +43,8 @@ interface CityFeatureCollection {
   features: CityFeature[]
 }
 
-const CORE_RADIUS_BASE = 1.4
 const HALO_RADIUS_SCALE = 1.5
 const OVERLAP_PADDING = 0.5
-const CORE_RADIUS_STOPS: Array<{ count: number; radius: number }> = [
-  { count: 1, radius: 1 },
-  { count: 2, radius: 1.7 },
-  { count: 3, radius: 2.5 },
-  { count: 4, radius: 3.3 },
-  { count: 6, radius: 4.8 },
-  { count: 8, radius: 6.4 },
-  { count: 10, radius: 8.2 },
-  { count: 12, radius: 10.5 },
-  { count: 15, radius: 15 },
-]
 
 export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapProps) {
   const [hoveredCity, setHoveredCity] = useState<string | null>(null)
@@ -173,6 +162,22 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     }
   }, [cityData])
 
+  const getCoreRadiusForCount = useCallback((count: number) => {
+    const minCount = 1
+    const maxCount = Math.max(...cityData.map(c => c.count), 1)
+    const minRadius = 1
+    const maxRadius = 15
+
+    if (maxCount === minCount) return minRadius
+
+    const logCount = Math.log10(count)
+    const logMin = Math.log10(minCount)
+    const logMax = Math.log10(maxCount)
+
+    const normalized = (logCount - logMin) / (logMax - logMin)
+    return minRadius + normalized * (maxRadius - minRadius)
+  }, [cityData])
+
   // Convert city data to GeoJSON
   // Sort by count descending so larger circles render first (at bottom)
   const geojsonData = useMemo<CityFeatureCollection>(() => {
@@ -187,6 +192,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
           count: city.count,
           accountsCount: city.accounts.size,
           headcount: city.headcount,
+          radius: getCoreRadiusForCount(city.count),
         },
         geometry: {
           type: "Point" as const,
@@ -194,24 +200,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         },
       })),
     }
-  }, [cityData])
-
-  const getCoreRadiusForCount = useCallback((count: number) => {
-    if (CORE_RADIUS_STOPS.length === 0) return 0
-    if (count <= CORE_RADIUS_STOPS[0].count) return CORE_RADIUS_STOPS[0].radius
-
-    for (let i = 0; i < CORE_RADIUS_STOPS.length - 1; i += 1) {
-      const current = CORE_RADIUS_STOPS[i]
-      const next = CORE_RADIUS_STOPS[i + 1]
-      if (count <= next.count) {
-        const t = (count - current.count) / (next.count - current.count)
-        const eased = CORE_RADIUS_BASE === 1 ? t : Math.pow(t, CORE_RADIUS_BASE)
-        return current.radius + (next.radius - current.radius) * eased
-      }
-    }
-
-    return CORE_RADIUS_STOPS[CORE_RADIUS_STOPS.length - 1].radius
-  }, [])
+  }, [cityData, getCoreRadiusForCount])
 
   const updateVisibleGeojsonData = useCallback(() => {
     const mapInstance = mapRef.current?.getMap?.() ?? mapRef.current
@@ -257,15 +246,9 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     updateVisibleGeojsonData()
   }, [isMapReady, updateVisibleGeojsonData])
 
-  const coreRadiusExpression = useMemo(
-    () => {
-      const stopValues = CORE_RADIUS_STOPS.flatMap((stop) => [stop.count, stop.radius])
-      return ["interpolate", ["exponential", CORE_RADIUS_BASE], ["get", "count"], ...stopValues]
-    },
-    []
-  )
+  const coreRadiusExpression = useMemo(() => ["get", "radius"] as any, [])
   const haloRadiusExpression = useMemo(
-    () => ["*", coreRadiusExpression, HALO_RADIUS_SCALE],
+    () => ["*", coreRadiusExpression, HALO_RADIUS_SCALE] as any,
     [coreRadiusExpression]
   )
 
