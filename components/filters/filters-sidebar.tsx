@@ -66,7 +66,7 @@ export function FiltersSidebar({
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
 
   return (
-    <div className="border-r bg-sidebar overflow-y-auto overflow-x-hidden w-[384px] shrink-0 relative">
+    <div className="border-r border-white/20 dark:border-white/10 bg-sidebar/70 glass-panel overflow-y-auto overflow-x-hidden w-[384px] shrink-0 relative">
       <div className="p-3 space-y-3">
           {/* Filter Actions */}
           <div className="flex flex-col gap-2 mb-3 pb-3 border-b border-sidebar-border">

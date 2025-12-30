@@ -1154,7 +1154,7 @@ function DashboardContent() {
   }
 
   return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
+    <div className="h-screen bg-transparent flex flex-col overflow-hidden">
       <Header onRefresh={loadData} />
 
       {dataLoaded && (
@@ -1177,7 +1177,7 @@ function DashboardContent() {
           />
 
           {/* Right Side - Data View (70%) */}
-          <div className="flex-1 bg-background overflow-hidden flex flex-col">
+          <div className="flex-1 bg-transparent overflow-hidden flex flex-col">
             <div className="flex-1 overflow-y-auto">
               <div className="p-6 pb-[3px]">
                 <SummaryCards

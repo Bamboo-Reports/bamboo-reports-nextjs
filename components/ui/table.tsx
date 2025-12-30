@@ -21,7 +21,7 @@ const TableHeader = React.forwardRef<
   <thead
     ref={ref}
     className={cn(
-      "sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 [&_tr]:border-b",
+      "sticky top-0 z-10 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 border-b border-white/20 dark:border-white/10 [&_tr]:border-b",
       className
     )}
     {...props}
@@ -48,7 +48,7 @@ const TableFooter = React.forwardRef<
   <tfoot
     ref={ref}
     className={cn(
-      "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
+      "border-t bg-background/60 backdrop-blur-md font-medium [&>tr]:last:border-b-0",
       className
     )}
     {...props}
@@ -63,7 +63,7 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted row-enhanced",
+      "border-b transition-colors hover:bg-muted/35 data-[state=selected]:bg-muted/40 row-enhanced",
       className
     )}
     {...props}

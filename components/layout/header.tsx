@@ -9,7 +9,7 @@ interface HeaderProps {
 
 export const Header = React.memo(function Header({ onRefresh }: HeaderProps) {
   return (
-    <div className="bg-background border-b shadow-sm sticky top-0 z-10 backdrop-blur-sm bg-background/95">
+    <div className="sticky top-0 z-10 border-b border-white/20 dark:border-white/10 glass-panel-subtle shadow-sm">
       <div className="max-w-full mx-auto px-6 py-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
