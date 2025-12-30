@@ -5,7 +5,14 @@ import { updateSession } from './lib/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
   // Skip auth for public routes
-  const publicPaths = ['/signin', '/signup', '/loading']
+  const publicPaths = [
+    '/signin',
+    '/signup',
+    '/loading',
+    '/auth/callback',
+    '/forgot-password',
+    '/reset-password',
+  ]
   const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path))
 
   if (isPublicPath) {

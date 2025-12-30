@@ -17,13 +17,16 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    setSuccess(false)
+    setSuccessMessage(null)
+    setAwaitingConfirmation(false)
     setLoading(true)
 
     if (password !== confirmPassword) {
@@ -43,6 +46,9 @@ export default function SignUpPage() {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
       })
 
       if (error) {
@@ -50,15 +56,55 @@ export default function SignUpPage() {
         return
       }
 
-      setSuccess(true)
-      setTimeout(() => {
-        router.push("/loading")
-      }, 2000)
+      if (data.user?.identities?.length === 0) {
+        setError("An account with this email already exists.")
+        return
+      }
+
+      if (data.session) {
+        setSuccessMessage("Account created successfully! Redirecting...")
+        setTimeout(() => {
+          router.push("/loading")
+        }, 2000)
+      } else {
+        setSuccessMessage("Check your email to confirm your account, then sign in.")
+        setAwaitingConfirmation(true)
+      }
     } catch (error) {
       setError("An unexpected error occurred. Please try again.")
       console.error("Sign up error:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleResend = async () => {
+    if (!email) {
+      setError("Enter your email to resend confirmation.")
+      return
+    }
+
+    setError(null)
+    setResendLoading(true)
+
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+      })
+
+      if (error) {
+        setError(error.message)
+        return
+      }
+
+      setSuccessMessage("Confirmation email resent. Check your inbox.")
+    } catch (error) {
+      setError("An unexpected error occurred. Please try again.")
+      console.error("Resend confirmation error:", error)
+    } finally {
+      setResendLoading(false)
     }
   }
 
@@ -81,13 +127,30 @@ export default function SignUpPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            {success && (
+            {successMessage && (
               <Alert className="border-green-500 text-green-500">
                 <CheckCircle className="h-4 w-4" />
-                <AlertDescription>
-                  Account created successfully! Redirecting...
-                </AlertDescription>
+                <AlertDescription>{successMessage}</AlertDescription>
               </Alert>
+            )}
+            {awaitingConfirmation && (
+              <p className="text-sm text-center text-muted-foreground">
+                Already confirmed?{" "}
+                <Link href="/signin" className="text-primary hover:underline">
+                  Sign in
+                </Link>
+              </p>
+            )}
+            {awaitingConfirmation && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleResend}
+                disabled={loading || resendLoading}
+              >
+                {resendLoading ? "Resending..." : "Resend confirmation email"}
+              </Button>
             )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -106,7 +169,7 @@ export default function SignUpPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -119,7 +182,7 @@ export default function SignUpPage() {
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="••••••••"
+                placeholder="Re-enter your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required

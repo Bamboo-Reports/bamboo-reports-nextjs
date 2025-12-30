@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -9,25 +8,24 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, CheckCircle } from "lucide-react"
 
-export default function SignInPage() {
-  const router = useRouter()
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleReset = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setMessage(null)
     setLoading(true)
 
     try {
       const supabase = createClient()
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback`,
       })
 
       if (error) {
@@ -35,11 +33,10 @@ export default function SignInPage() {
         return
       }
 
-      router.push("/dashboard")
-      router.refresh()
+      setMessage("If an account exists, you'll receive a reset link shortly.")
     } catch (error) {
       setError("An unexpected error occurred. Please try again.")
-      console.error("Sign in error:", error)
+      console.error("Password reset request error:", error)
     } finally {
       setLoading(false)
     }
@@ -50,18 +47,24 @@ export default function SignInPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center" style={{ fontFamily: "'Google Sans', 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif" }}>
-            Bamboo Reports
+            Reset your password
           </CardTitle>
           <CardDescription className="text-center">
-            Sign in to access the GCC Explorer dashboard
+            We'll email you a link to set a new password.
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSignIn}>
+        <form onSubmit={handleReset}>
           <CardContent className="space-y-4">
             {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            {message && (
+              <Alert className="border-green-500 text-green-500">
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>{message}</AlertDescription>
               </Alert>
             )}
             <div className="space-y-2">
@@ -76,32 +79,15 @@ export default function SignInPage() {
                 disabled={loading}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-            <div className="flex justify-end">
-              <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                Forgot your password?
-              </Link>
-            </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? "Sending reset link..." : "Send reset link"}
             </Button>
             <p className="text-sm text-center text-muted-foreground">
-              Don't have an account?{" "}
-              <Link href="/signup" className="text-primary hover:underline">
-                Sign up
+              Remembered your password?{" "}
+              <Link href="/signin" className="text-primary hover:underline">
+                Sign in
               </Link>
             </p>
           </CardFooter>
