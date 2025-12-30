@@ -83,6 +83,7 @@ export function AccountsTab({
     setCurrentPage(1)
   }
 
+
   const sortedAccounts = React.useMemo(() => {
     if (!sort.direction) return accounts
 
@@ -262,16 +263,35 @@ export function AccountsTab({
                   </TableBody>
                 </Table>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                  {getPaginatedData(sortedAccounts, currentPage, itemsPerPage).map(
-                    (account, index) => (
-                      <AccountGridCard
-                        key={`${account.account_global_legal_name}-${index}`}
-                        account={account}
-                        onClick={() => handleAccountClick(account)}
-                      />
-                    )
-                  )}
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2 px-6 py-3 border-b bg-muted/20">
+                      <span className="text-xs font-medium text-muted-foreground">Sort</span>
+                      <button
+                        type="button"
+                        onClick={() => handleSort("name")}
+                        className="inline-flex items-center justify-center rounded-md border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground hover:border-accent-foreground/20 shadow-sm transition-colors h-7 w-7"
+                        aria-label="Sort by account name"
+                      >
+                        {sort.key !== "name" || sort.direction === null ? (
+                          <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+                        ) : sort.direction === "asc" ? (
+                          <ArrowUpAZ className="h-3.5 w-3.5 text-muted-foreground" />
+                        ) : (
+                          <ArrowDownAZ className="h-3.5 w-3.5 text-muted-foreground" />
+                        )}
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+                      {getPaginatedData(sortedAccounts, currentPage, itemsPerPage).map(
+                        (account, index) => (
+                        <AccountGridCard
+                          key={`${account.account_global_legal_name}-${index}`}
+                          account={account}
+                          onClick={() => handleAccountClick(account)}
+                        />
+                      )
+                    )}
+                  </div>
                 </div>
               )}
             </div>
