@@ -368,12 +368,11 @@ export function AccountDetailsDialog({
                               <Building className="h-3.5 w-3.5" />
                               <span>{center.center_type}</span>
                             </div>
-                            {center.center_employees !== null &&
-                              center.center_employees !== undefined &&
-                              center.center_employees !== 0 && (
+                            {center.center_employees_range &&
+                              center.center_employees_range.trim() !== "" && (
                                 <div className="flex items-center gap-1.5 text-muted-foreground">
                                   <Users className="h-3.5 w-3.5" />
-                                  <span>{center.center_employees} employees</span>
+                                  <span>{center.center_employees_range} employees</span>
                                 </div>
                               )}
                           </div>
