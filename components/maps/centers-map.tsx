@@ -454,14 +454,12 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
             layout={{
               "text-field": ["get", "label"],
               "text-size": ["get", "labelSize"],
-              "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+              "text-font": ["Google Sans Bold", "Arial Unicode MS Bold"],
               "text-allow-overlap": true,
               "text-ignore-placement": true,
             }}
             paint={{
-              "text-color": "#fffaf2",
-              "text-halo-color": "#8a3c00",
-              "text-halo-width": 1,
+              "text-color": "#ffffff",
             }}
           />
         </Source>
