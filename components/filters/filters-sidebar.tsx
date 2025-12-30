@@ -71,7 +71,7 @@ export function FiltersSidebar({
           {/* Filter Actions */}
           <div className="flex flex-col gap-2 mb-3 pb-3 border-b border-sidebar-border">
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Filter className="h-4 w-4 text-[hsl(var(--chart-4))]" />
               <span className="text-sm font-semibold text-foreground">Filters</span>
             </div>
             <div className="flex flex-col gap-2">

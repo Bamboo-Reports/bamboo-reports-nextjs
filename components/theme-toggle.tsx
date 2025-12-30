@@ -17,7 +17,7 @@ export function ThemeToggle() {
   if (!mounted) {
     return (
       <Button variant="ghost" size="sm" className="h-8 w-8 px-0">
-        <Sun className="h-4 w-4" />
+        <Sun className="h-4 w-4 text-amber-500 dark:text-amber-400" />
       </Button>
     )
   }
@@ -32,9 +32,9 @@ export function ThemeToggle() {
     >
       <div className="relative">
         {theme === 'dark' ? (
-          <Sun className="h-4 w-4 rotate-0 scale-100 transition-all duration-300 group-hover:rotate-90 group-hover:scale-110" />
+          <Sun className="h-4 w-4 text-amber-500 dark:text-amber-400 rotate-0 scale-100 transition-all duration-300 group-hover:rotate-90 group-hover:scale-110" />
         ) : (
-          <Moon className="h-4 w-4 rotate-0 scale-100 transition-all duration-300 group-hover:-rotate-12 group-hover:scale-110" />
+          <Moon className="h-4 w-4 text-sky-500 dark:text-sky-400 rotate-0 scale-100 transition-all duration-300 group-hover:-rotate-12 group-hover:scale-110" />
         )}
       </div>
       <span className="sr-only">Toggle theme</span>

@@ -187,7 +187,7 @@ const SavedFilterCard = memo(({
               size="sm"
               onClick={() => onEdit(filter)}
             >
-              <Edit className="h-4 w-4" />
+              <Edit className="h-4 w-4 text-[hsl(var(--chart-4))]" />
             </Button>
             <Button
               variant="ghost"
@@ -201,12 +201,12 @@ const SavedFilterCard = memo(({
         </div>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
+            <Calendar className="h-3 w-3 text-[hsl(var(--chart-5))]" />
             Created: {new Date(filter.created_at).toLocaleDateString()}
           </div>
           {filter.updated_at !== filter.created_at && (
             <div className="flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
+              <Calendar className="h-3 w-3 text-[hsl(var(--chart-5))]" />
               Updated: {new Date(filter.updated_at).toLocaleDateString()}
             </div>
           )}
@@ -217,7 +217,7 @@ const SavedFilterCard = memo(({
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Filter Details:</span>
             <Button variant="outline" size="sm" onClick={() => onLoad(filter)}>
-              <Filter className="h-4 w-4 mr-2" />
+              <Filter className="h-4 w-4 mr-2 text-[hsl(var(--chart-3))]" />
               Load Filters
             </Button>
           </div>
@@ -411,10 +411,10 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
               className="flex-1 justify-between bg-background hover:bg-accent/50 border-input/50 h-9"
             >
               <div className="flex items-center gap-2 truncate">
-                <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <FolderOpen className="h-4 w-4 shrink-0 text-[hsl(var(--chart-1))]" />
                 <span className="truncate">Saved Filters</span>
               </div>
-              <ChevronDown className="h-3.5 w-3.5 opacity-50 ml-2 shrink-0" />
+              <ChevronDown className="h-3.5 w-3.5 opacity-60 ml-2 shrink-0 text-[hsl(var(--chart-4))]" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-[220px]" align="start">
@@ -462,7 +462,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
                     className="w-full justify-start text-xs h-8 font-normal text-muted-foreground hover:text-foreground"
                     onClick={() => setManageDialogOpen(true)}
                   >
-                    <Settings className="h-3.5 w-3.5 mr-2" />
+                    <Settings className="h-3.5 w-3.5 mr-2 text-[hsl(var(--chart-4))]" />
                     Manage all filters...
                   </Button>
                 </DropdownMenuItem>
@@ -481,7 +481,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
               className="h-9 w-9 rounded-full shrink-0 bg-background hover:bg-primary hover:text-primary-foreground border-input/50 transition-all shadow-sm"
               title="Save current filters"
             >
-              <Save className="h-4 w-4" />
+              <Save className="h-4 w-4 text-[hsl(var(--chart-2))]" />
             </Button>
           </DialogTrigger>
           <DialogContent>

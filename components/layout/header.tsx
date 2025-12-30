@@ -23,7 +23,7 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps) {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={onRefresh} className="h-8 px-3 group" title="Refresh">
-              <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-300" />
+              <RefreshCw className="h-4 w-4 text-[hsl(var(--chart-4))] group-hover:text-[hsl(var(--chart-1))] group-hover:rotate-180 transition-all duration-300" />
             </Button>
             <ThemeToggle />
           </div>
