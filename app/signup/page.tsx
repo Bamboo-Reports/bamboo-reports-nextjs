@@ -13,6 +13,12 @@ import { AlertCircle, CheckCircle } from "lucide-react"
 
 export default function SignUpPage() {
   const router = useRouter()
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [companyName, setCompanyName] = useState("")
+  const [role, setRole] = useState("")
+  const [companySize, setCompanySize] = useState("")
+  const [useCase, setUseCase] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -43,11 +49,23 @@ export default function SignUpPage() {
 
     try {
       const supabase = createClient()
+      const metadata = {
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        company_name: companyName.trim(),
+        role: role.trim(),
+        company_size: companySize.trim(),
+        use_case: useCase.trim(),
+      }
+      const filteredMetadata = Object.fromEntries(
+        Object.entries(metadata).filter(([, value]) => value)
+      )
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: filteredMetadata,
         },
       })
 
@@ -152,6 +170,81 @@ export default function SignUpPage() {
                 {resendLoading ? "Resending..." : "Resend confirmation email"}
               </Button>
             )}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First name</Label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  placeholder="Ada"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                  disabled={loading}
+                  autoComplete="given-name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last name</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  placeholder="Lovelace"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                  disabled={loading}
+                  autoComplete="family-name"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="companyName">Company name</Label>
+              <Input
+                id="companyName"
+                type="text"
+                placeholder="Bamboo Reports"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                required
+                disabled={loading}
+                autoComplete="organization"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Role (optional)</Label>
+              <Input
+                id="role"
+                type="text"
+                placeholder="Analyst, Ops, CTO"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                disabled={loading}
+                autoComplete="organization-title"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="companySize">Company size (optional)</Label>
+              <Input
+                id="companySize"
+                type="text"
+                placeholder="1-10, 11-50, 51-200"
+                value={companySize}
+                onChange={(e) => setCompanySize(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="useCase">Primary use case (optional)</Label>
+              <Input
+                id="useCase"
+                type="text"
+                placeholder="Quarterly reporting, team analytics"
+                value={useCase}
+                onChange={(e) => setUseCase(e.target.value)}
+                disabled={loading}
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
