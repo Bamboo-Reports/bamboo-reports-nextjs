@@ -64,6 +64,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
   const [visibleGeojsonData, setVisibleGeojsonData] = useState<CityFeatureCollection | null>(null)
   const mapRef = React.useRef<any>(null)
   const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const isMovingRef = React.useRef(false)
 
   useEffect(() => {
     setIsClient(true)
@@ -287,6 +288,16 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     updateVisibleGeojsonData()
   }, [isMapReady, updateVisibleGeojsonData])
 
+  const handleMoveStart = useCallback(() => {
+    isMovingRef.current = true
+    setVisibleGeojsonData(geojsonData)
+  }, [geojsonData])
+
+  const handleMoveEnd = useCallback(() => {
+    isMovingRef.current = false
+    updateVisibleGeojsonData()
+  }, [updateVisibleGeojsonData])
+
   const coreRadiusExpression = useMemo(() => ["get", "radius"] as any, [])
   const haloRadiusExpression = useMemo(
     () => ["*", coreRadiusExpression, HALO_RADIUS_SCALE] as any,
@@ -300,11 +311,24 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     const mapInstance = mapRef.current?.getMap?.() ?? mapRef.current
     if (!mapInstance?.setPaintProperty) return
 
+    const targetFrameMs = 1000 / 30
+    let lastUpdate = 0
     let lastScale = -1
     let lastOpacity = -1
+    let animationFrame = 0
     const animatePulse = () => {
       const time = performance.now()
+      if (time - lastUpdate < targetFrameMs) {
+        animationFrame = requestAnimationFrame(animatePulse)
+        return
+      }
+      lastUpdate = time
       if (mapInstance.getLayer?.("centers-pulse")) {
+        if (isMovingRef.current) {
+          animationFrame = requestAnimationFrame(animatePulse)
+          return
+        }
+
         const progress = (time % PULSE_DURATION_MS) / PULSE_DURATION_MS
         const eased = 0.5 - 0.5 * Math.cos(progress * Math.PI * 2)
         const scale = PULSE_SCALE_MIN + (PULSE_SCALE_MAX - PULSE_SCALE_MIN) * eased
@@ -322,13 +346,12 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
           mapInstance.setPaintProperty("centers-pulse", "circle-opacity", opacity)
           lastOpacity = opacity
         }
-
-        mapInstance.triggerRepaint?.()
       }
+      animationFrame = requestAnimationFrame(animatePulse)
     }
 
-    mapInstance.on?.("render", animatePulse)
-    return () => mapInstance.off?.("render", animatePulse)
+    animationFrame = requestAnimationFrame(animatePulse)
+    return () => cancelAnimationFrame(animationFrame)
   }, [isMapReady])
 
   // Handler to recenter the map to India
@@ -421,7 +444,8 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
             setIsMapReady(true)
           }, 200)
         }}
-        onMove={updateVisibleGeojsonData}
+        onMoveStart={handleMoveStart}
+        onMoveEnd={handleMoveEnd}
         interactiveLayerIds={["centers-circles"]}
         onMouseMove={(e) => {
           const features = e.features
