@@ -19,7 +19,6 @@ import {
   Calendar,
   Package,
   Info,
-  CircleCheck,
 } from "lucide-react"
 import { formatRevenueInMillions, parseRevenue } from "@/lib/utils/helpers"
 import type { Account } from "@/lib/types"
@@ -42,7 +41,6 @@ export function AccountDetailsDialog({
   const location = [account.account_hq_city, account.account_hq_country]
     .filter(Boolean)
     .join(", ")
-  const isNasscomVerified = account.account_nasscom_status?.toLowerCase() === "yes"
 
   const InfoRow = ({
     icon: Icon,
@@ -83,15 +81,7 @@ export function AccountDetailsDialog({
               theme="auto"
             />
             <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span>{account.account_global_legal_name}</span>
-                {isNasscomVerified && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[#c23630]/10 px-2 py-0.5 text-[11px] font-semibold text-[#c23630]">
-                    <CircleCheck className="h-3 w-3" aria-hidden="true" />
-                    NASSCOM
-                  </span>
-                )}
-              </div>
+              <div>{account.account_global_legal_name}</div>
               <p className="text-sm font-normal text-muted-foreground mt-1">
                 {location || account.account_hq_region}
               </p>
