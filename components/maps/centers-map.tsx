@@ -433,18 +433,56 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         </div>
 
         <Source id="centers" type="geojson" data={visibleGeojsonData ?? geojsonData}>
-          {/* Outer halo layer - crisp, flat, and rendered below core for clean overlap */}
+          {/* Outer halo layer - pulsing animation effect */}
           <Layer
             id="centers-halo"
             type="circle"
             paint={{
-              "circle-radius": haloRadiusExpression,
+              "circle-radius": [
+                "*",
+                haloRadiusExpression,
+                [
+                  "+",
+                  1,
+                  [
+                    "*",
+                    0.3,
+                    [
+                      "sin",
+                      [
+                        "*",
+                        0.002,
+                        ["time"]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
               "circle-color": "#ffbf57",
-              "circle-opacity": 0.25,
+              "circle-opacity": [
+                "*",
+                0.25,
+                [
+                  "+",
+                  0.5,
+                  [
+                    "*",
+                    0.5,
+                    [
+                      "sin",
+                      [
+                        "*",
+                        0.002,
+                        ["time"]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
               "circle-blur": 0,
             }}
           />
-          
+
           {/* Inner core layer - crisp, fully opaque anchor */}
           <Layer
             id="centers-circles"
