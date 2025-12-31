@@ -15,6 +15,7 @@ export const AccountGridCard = memo(({ account, onClick }: AccountGridCardProps)
     .filter(Boolean)
     .join(", ")
   const accountName = account.account_global_legal_name || "Account"
+  const isNasscomVerified = account.account_nasscom_status?.toLowerCase() === "yes"
 
   return (
     <Card className="h-full">
@@ -30,6 +31,11 @@ export const AccountGridCard = memo(({ account, onClick }: AccountGridCardProps)
             <h3 className="text-base font-semibold text-foreground leading-snug break-words">
               {accountName}
             </h3>
+            {isNasscomVerified && (
+              <div className="mt-2 inline-flex items-center rounded-full bg-[#c23630]/10 px-2 py-0.5 text-[11px] font-semibold text-[#c23630]">
+                Nasscom Verified
+              </div>
+            )}
             <p className="text-sm text-muted-foreground mt-1">
               {location || account.account_hq_country || "-"}
             </p>

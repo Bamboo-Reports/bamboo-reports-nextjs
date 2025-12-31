@@ -12,6 +12,7 @@ export const AccountRow = memo(({ account, onClick }: AccountRowProps) => {
   const location = [account.account_hq_city, account.account_hq_country]
     .filter(Boolean)
     .join(", ")
+  const isNasscomVerified = account.account_nasscom_status?.toLowerCase() === "yes"
 
   return (
     <TableRow
@@ -26,7 +27,14 @@ export const AccountRow = memo(({ account, onClick }: AccountRowProps) => {
             size="sm"
             theme="auto"
           />
-          <span>{account.account_global_legal_name}</span>
+          <div className="min-w-0">
+            <div className="truncate">{account.account_global_legal_name}</div>
+            {isNasscomVerified && (
+              <div className="mt-1 inline-flex items-center rounded-full bg-[#c23630]/10 px-2 py-0.5 text-[11px] font-semibold text-[#c23630]">
+                Nasscom Verified
+              </div>
+            )}
+          </div>
         </div>
       </TableCell>
       <TableCell>{location || account.account_hq_country}</TableCell>
