@@ -300,26 +300,35 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     const mapInstance = mapRef.current?.getMap?.() ?? mapRef.current
     if (!mapInstance?.setPaintProperty) return
 
-    let animationFrame = 0
-    const animatePulse = (time: number) => {
+    let lastScale = -1
+    let lastOpacity = -1
+    const animatePulse = () => {
+      const time = performance.now()
       if (mapInstance.getLayer?.("centers-pulse")) {
         const progress = (time % PULSE_DURATION_MS) / PULSE_DURATION_MS
         const eased = 0.5 - 0.5 * Math.cos(progress * Math.PI * 2)
         const scale = PULSE_SCALE_MIN + (PULSE_SCALE_MAX - PULSE_SCALE_MIN) * eased
         const opacity = PULSE_OPACITY_MAX - (PULSE_OPACITY_MAX - PULSE_OPACITY_MIN) * eased
 
-        mapInstance.setPaintProperty("centers-pulse", "circle-radius", [
-          "+",
-          ["get", "radius"],
-          ["*", ["get", "radius"], scale],
-        ])
-        mapInstance.setPaintProperty("centers-pulse", "circle-opacity", opacity)
+        if (Math.abs(scale - lastScale) > 0.002) {
+          mapInstance.setPaintProperty("centers-pulse", "circle-radius", [
+            "+",
+            ["get", "radius"],
+            ["*", ["get", "radius"], scale],
+          ])
+          lastScale = scale
+        }
+        if (Math.abs(opacity - lastOpacity) > 0.002) {
+          mapInstance.setPaintProperty("centers-pulse", "circle-opacity", opacity)
+          lastOpacity = opacity
+        }
+
+        mapInstance.triggerRepaint?.()
       }
-      animationFrame = requestAnimationFrame(animatePulse)
     }
 
-    animationFrame = requestAnimationFrame(animatePulse)
-    return () => cancelAnimationFrame(animationFrame)
+    mapInstance.on?.("render", animatePulse)
+    return () => mapInstance.off?.("render", animatePulse)
   }, [isMapReady])
 
   // Handler to recenter the map to India
