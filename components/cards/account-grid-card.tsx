@@ -1,5 +1,5 @@
 import { memo } from "react"
-import { ArrowUpRight } from "lucide-react"
+import { ArrowUpRight, CircleCheck } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CompanyLogo } from "@/components/ui/company-logo"
@@ -35,8 +35,9 @@ export const AccountGridCard = memo(({ account, onClick }: AccountGridCardProps)
               {location || account.account_hq_country || "-"}
             </p>
             {isNasscomVerified && (
-              <div className="mt-2 inline-flex items-center rounded-full bg-[#c23630]/10 px-2 py-0.5 text-[11px] font-semibold text-[#c23630]">
-                Nasscom Verified
+              <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-[#c23630]/10 px-2 py-0.5 text-[11px] font-semibold text-[#c23630]">
+                <CircleCheck className="h-3 w-3" aria-hidden="true" />
+                NASSCOM
               </div>
             )}
           </div>

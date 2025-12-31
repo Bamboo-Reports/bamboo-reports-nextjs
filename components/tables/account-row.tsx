@@ -1,4 +1,5 @@
 import { memo } from "react"
+import { CircleCheck } from "lucide-react"
 import { TableRow, TableCell } from "@/components/ui/table"
 import type { Account } from "@/lib/types"
 import { CompanyLogo } from "@/components/ui/company-logo"
@@ -30,8 +31,9 @@ export const AccountRow = memo(({ account, onClick }: AccountRowProps) => {
           <div className="min-w-0">
             <div className="truncate">{account.account_global_legal_name}</div>
             {isNasscomVerified && (
-              <div className="mt-1 inline-flex items-center rounded-full bg-[#c23630]/10 px-2 py-0.5 text-[11px] font-semibold text-[#c23630]">
-                Nasscom Verified
+              <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-[#c23630]/10 px-2 py-0.5 text-[11px] font-semibold text-[#c23630]">
+                <CircleCheck className="h-3 w-3" aria-hidden="true" />
+                NASSCOM
               </div>
             )}
           </div>
