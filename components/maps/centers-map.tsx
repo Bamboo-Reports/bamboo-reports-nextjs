@@ -48,6 +48,12 @@ interface CityFeatureCollection {
 
 const HALO_RADIUS_SCALE = 1.5
 const OVERLAP_PADDING = 0.5
+const PULSE_RADIUS_THRESHOLD = 12
+const PULSE_DURATION_MS = 2000
+const PULSE_SCALE_MIN = 0.3
+const PULSE_SCALE_MAX = 0.75
+const PULSE_OPACITY_MIN = 0.05
+const PULSE_OPACITY_MAX = 0.35
 
 export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapProps) {
   const [hoveredCity, setHoveredCity] = useState<string | null>(null)
@@ -289,6 +295,33 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
+  useEffect(() => {
+    if (!isMapReady) return
+    const mapInstance = mapRef.current?.getMap?.() ?? mapRef.current
+    if (!mapInstance?.setPaintProperty) return
+
+    let animationFrame = 0
+    const animatePulse = (time: number) => {
+      if (mapInstance.getLayer?.("centers-pulse")) {
+        const progress = (time % PULSE_DURATION_MS) / PULSE_DURATION_MS
+        const eased = 0.5 - 0.5 * Math.cos(progress * Math.PI * 2)
+        const scale = PULSE_SCALE_MIN + (PULSE_SCALE_MAX - PULSE_SCALE_MIN) * eased
+        const opacity = PULSE_OPACITY_MAX - (PULSE_OPACITY_MAX - PULSE_OPACITY_MIN) * eased
+
+        mapInstance.setPaintProperty("centers-pulse", "circle-radius", [
+          "+",
+          ["get", "radius"],
+          ["*", ["get", "radius"], scale],
+        ])
+        mapInstance.setPaintProperty("centers-pulse", "circle-opacity", opacity)
+      }
+      animationFrame = requestAnimationFrame(animatePulse)
+    }
+
+    animationFrame = requestAnimationFrame(animatePulse)
+    return () => cancelAnimationFrame(animationFrame)
+  }, [isMapReady])
+
   // Handler to recenter the map to India
   const handleRecenter = () => {
     if (mapRef.current) {
@@ -433,6 +466,23 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         </div>
 
         <Source id="centers" type="geojson" data={visibleGeojsonData ?? geojsonData}>
+          {/* Pulse layer - subtle animation for larger circles */}
+          <Layer
+            id="centers-pulse"
+            type="circle"
+            filter={[">=", ["get", "radius"], PULSE_RADIUS_THRESHOLD]}
+            paint={{
+              "circle-radius": [
+                "+",
+                ["get", "radius"],
+                ["*", ["get", "radius"], PULSE_SCALE_MIN],
+              ],
+              "circle-color": "#ff9b2f",
+              "circle-opacity": PULSE_OPACITY_MAX,
+              "circle-blur": 0.2,
+            }}
+          />
+
           {/* Outer halo layer - crisp, flat, and rendered below core for clean overlap */}
           <Layer
             id="centers-halo"
