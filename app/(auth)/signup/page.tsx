@@ -73,21 +73,27 @@ export default function SignUpPage() {
       return
     }
 
-    const { error: profileError } = await supabase.from("profiles").insert({
-      user_id: userId,
-      first_name: firstName,
-      last_name: lastName,
-      email,
-      phone: phone || null,
-    })
+    if (signUpData.session) {
+      const { error: profileError } = await supabase.from("profiles").insert({
+        user_id: userId,
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone: phone || null,
+      })
 
-    if (profileError) {
-      setError(profileError.message)
-      setIsSubmitting(false)
+      if (profileError) {
+        setError(profileError.message)
+        setIsSubmitting(false)
+        return
+      }
+
+      await supabase.auth.signOut()
+      router.replace("/signin?signup=success")
       return
     }
 
-    router.replace("/")
+    router.replace("/signin?signup=pending")
   }
 
   return (

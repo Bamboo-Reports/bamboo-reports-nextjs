@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,10 +13,12 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 
 export default function SignInPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const signupStatus = searchParams.get("signup")
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient()
@@ -33,7 +35,7 @@ export default function SignInPage() {
     setIsSubmitting(true)
 
     const supabase = getSupabaseBrowserClient()
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
@@ -42,6 +44,29 @@ export default function SignInPage() {
       setError(signInError.message)
       setIsSubmitting(false)
       return
+    }
+
+    const user = signInData.user ?? signInData.session?.user
+    if (user) {
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle()
+
+      if (!profileError && !profileData) {
+        const fallbackFirstName = user.user_metadata?.first_name ?? "User"
+        const fallbackLastName = user.user_metadata?.last_name ?? "Profile"
+        const fallbackPhone = user.user_metadata?.phone ?? null
+
+        await supabase.from("profiles").insert({
+          user_id: user.id,
+          first_name: fallbackFirstName,
+          last_name: fallbackLastName,
+          email: user.email ?? email,
+          phone: fallbackPhone,
+        })
+      }
     }
 
     router.replace("/")
@@ -81,6 +106,20 @@ export default function SignInPage() {
             {error ? (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : null}
+            {signupStatus === "success" ? (
+              <Alert>
+                <AlertDescription>
+                  Account created. Please sign in to continue.
+                </AlertDescription>
+              </Alert>
+            ) : null}
+            {signupStatus === "pending" ? (
+              <Alert>
+                <AlertDescription>
+                  Check your email to confirm your account, then sign in.
+                </AlertDescription>
               </Alert>
             ) : null}
             <Button className="w-full" type="submit" disabled={isSubmitting}>
