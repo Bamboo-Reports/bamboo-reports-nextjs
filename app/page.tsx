@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useCallback, useMemo, useRef, useEffect, useDeferredValue, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -61,8 +62,10 @@ import {
   exportAllData as exportAll,
 } from "@/lib/utils/export-helpers"
 import type { Account, Center, Function, Service, Prospect, Filters, FilterOption, AvailableOptions } from "@/lib/types"
+import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 
 function DashboardContent() {
+  const router = useRouter()
   const [accounts, setAccounts] = useState<Account[]>([])
   const [centers, setCenters] = useState<Center[]>([])
   const [functions, setFunctions] = useState<Function[]>([])
@@ -136,6 +139,8 @@ function DashboardContent() {
   const [prospectsView, setProspectsView] = useState<"chart" | "data">("chart")
   const [, startFilterTransition] = useTransition()
   const deferredFilters = useDeferredValue(filters)
+  const [authReady, setAuthReady] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
 
   // Debounced search handler - optimized for fast response
   const debouncedSearch = useMemo(
@@ -264,10 +269,43 @@ function DashboardContent() {
     }
   }, [checkDatabaseStatus, testDatabaseConnection])
 
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient()
+    let isMounted = true
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!isMounted) return
+      const session = data.session
+      if (!session) {
+        router.replace("/signin")
+        setAuthReady(true)
+        return
+      }
+      setUserId(session.user.id)
+      setAuthReady(true)
+    })
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return
+      if (!session) {
+        setUserId(null)
+        router.replace("/signin")
+        return
+      }
+      setUserId(session.user.id)
+    })
+
+    return () => {
+      isMounted = false
+      authListener.subscription.unsubscribe()
+    }
+  }, [router])
+
   // Load data from database on component mount
   useEffect(() => {
+    if (!authReady || !userId) return
     loadData()
-  }, [loadData])
+  }, [authReady, userId, loadData])
 
   // Auto-apply filters with debouncing for smooth performance
   useEffect(() => {
@@ -1144,6 +1182,10 @@ function DashboardContent() {
 
   const dataLoaded =
     !loading && accounts.length > 0 && centers.length > 0 && services.length > 0 && prospects.length > 0
+
+  if (!authReady || !userId) {
+    return <LoadingState />
+  }
 
   if (loading) {
     return <LoadingState connectionStatus={connectionStatus} dbStatus={dbStatus} />
