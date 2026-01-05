@@ -49,9 +49,6 @@ A modern Business Intelligence Dashboard built with Next.js 14 and React 19. Pro
 - **Multi-sheet Export** - Export all entities or selected tabs
 - **Company Logos** - Automatic logo fetching via Logo.dev API
 
-### Security
-- **HTTP Basic Authentication** - Middleware-based route protection
-
 ---
 
 ## Tech Stack
@@ -165,7 +162,6 @@ bamboo-reports-nextjs/
 ├── public/                       # Static assets
 │   └── logos/                    # Company logos
 │
-├── middleware.ts                 # Auth middleware
 ├── tailwind.config.ts            # Tailwind configuration
 ├── components.json               # Shadcn/UI configuration
 └── package.json                  # Dependencies and scripts
