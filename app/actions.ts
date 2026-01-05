@@ -328,6 +328,7 @@ export async function updateSavedFilter(id: number, name: string, filters: any) 
 
 export async function getAllData() {
   try {
+    console.time("getAllData total")
     console.log("Starting to fetch all data from database...")
 
     // Check if DATABASE_URL is available
@@ -364,13 +365,40 @@ export async function getAllData() {
     }
 
     // Fetch all data in parallel with retry logic
+    console.time("getAllData parallel fetch")
     const [accounts, centers, functions, services, prospects] = await Promise.all([
-      getAccounts(),
-      getCenters(),
-      getFunctions(),
-      getServices(),
-      getProspects(),
+      (async () => {
+        console.time("getAllData accounts")
+        const result = await getAccounts()
+        console.timeEnd("getAllData accounts")
+        return result
+      })(),
+      (async () => {
+        console.time("getAllData centers")
+        const result = await getCenters()
+        console.timeEnd("getAllData centers")
+        return result
+      })(),
+      (async () => {
+        console.time("getAllData functions")
+        const result = await getFunctions()
+        console.timeEnd("getAllData functions")
+        return result
+      })(),
+      (async () => {
+        console.time("getAllData services")
+        const result = await getServices()
+        console.timeEnd("getAllData services")
+        return result
+      })(),
+      (async () => {
+        console.time("getAllData prospects")
+        const result = await getProspects()
+        console.timeEnd("getAllData prospects")
+        return result
+      })(),
     ])
+    console.timeEnd("getAllData parallel fetch")
 
     console.log("Successfully fetched all data:", {
       accounts: accounts.length,
@@ -392,6 +420,7 @@ export async function getAllData() {
     // Cache all data together
     setCachedData(cacheKey, allData)
 
+    console.timeEnd("getAllData total")
     return allData
   } catch (error) {
     console.error("Error fetching all data:", error)

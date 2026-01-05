@@ -183,12 +183,15 @@ function DashboardContent() {
   }, [])
 
   const loadData = useCallback(async () => {
+    console.time("dashboard loadData total")
     try {
       setLoading(true)
       setError(null)
       setConnectionStatus("Checking database configuration...")
 
+      console.time("dashboard checkDatabaseStatus")
       const status = await checkDatabaseStatus()
+      console.timeEnd("dashboard checkDatabaseStatus")
       if (status && !status.hasUrl) {
         setError("Database URL not configured. Please check environment variables.")
         setConnectionStatus("Database URL missing")
@@ -203,14 +206,18 @@ function DashboardContent() {
 
       setConnectionStatus("Testing database connection...")
 
+      console.time("dashboard testDatabaseConnection")
       const connectionOk = await testDatabaseConnection()
+      console.timeEnd("dashboard testDatabaseConnection")
       if (!connectionOk) {
         setError("Database connection test failed. Please check your database configuration.")
         return
       }
 
       setConnectionStatus("Loading data from database...")
+      console.time("dashboard getAllData")
       const data = await getAllData()
+      console.timeEnd("dashboard getAllData")
 
       if (data.error) {
         setError(`Database error: ${data.error}`)
@@ -266,6 +273,7 @@ function DashboardContent() {
       setConnectionStatus("Database connection failed")
     } finally {
       setLoading(false)
+      console.timeEnd("dashboard loadData total")
     }
   }, [checkDatabaseStatus, testDatabaseConnection])
 

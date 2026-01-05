@@ -33,11 +33,11 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Save, FolderOpen, Settings, Trash2, Edit, Calendar, Filter, X, ChevronDown } from "lucide-react"
-import { saveFilterSet, getSavedFilters, deleteSavedFilter, updateSavedFilter } from "@/app/actions"
 import type { Filters, FilterValue } from "@/lib/types"
+import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 
 interface SavedFilter {
-  id: number
+  id: string
   name: string
   filters: Filters
   created_at: string
@@ -272,6 +272,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
   onReset,
   onExport
 }: SavedFiltersManagerProps) {
+  const supabase = getSupabaseBrowserClient()
   const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([])
   const [loading, setLoading] = useState(false)
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
@@ -281,25 +282,60 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
   const [editName, setEditName] = useState("")
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [filterToDelete, setFilterToDelete] = useState<SavedFilter | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [authReady, setAuthReady] = useState(false)
+
+  useEffect(() => {
+    let isMounted = true
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!isMounted) return
+      setUserId(data.session?.user.id ?? null)
+      setAuthReady(true)
+    })
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return
+      setUserId(session?.user.id ?? null)
+    })
+
+    return () => {
+      isMounted = false
+      authListener.subscription.unsubscribe()
+    }
+  }, [supabase])
 
   // Memoize loadSavedFilters to prevent recreation
   const loadSavedFilters = useCallback(async () => {
+    if (!userId) {
+      setSavedFilters([])
+      return
+    }
+
     setLoading(true)
     try {
-      const filters = await getSavedFilters()
-      const normalizedFilters = Array.isArray(filters)
-        ? filters
-          .map((filter: any) => {
-            try {
-              const parsedFilters = typeof filter.filters === "string" ? JSON.parse(filter.filters) : filter.filters
-              if (!parsedFilters) return null
-              return { ...filter, filters: withFilterDefaults(parsedFilters) }
-            } catch (error) {
-              console.error("Failed to parse saved filter:", error)
-              return null
-            }
-          })
-          .filter((item): item is SavedFilter => Boolean(item))
+      const { data, error } = await supabase
+        .from("saved_filters")
+        .select("id, name, filters, created_at, updated_at")
+        .order("created_at", { ascending: false })
+
+      if (error) {
+        throw error
+      }
+
+      const normalizedFilters = Array.isArray(data)
+        ? data
+            .map((filter) => {
+              try {
+                const parsedFilters = typeof filter.filters === "string" ? JSON.parse(filter.filters) : filter.filters
+                if (!parsedFilters) return null
+                return { ...filter, filters: withFilterDefaults(parsedFilters) } as SavedFilter
+              } catch (error) {
+                console.error("Failed to parse saved filter:", error)
+                return null
+              }
+            })
+            .filter((item): item is SavedFilter => Boolean(item))
         : []
       setSavedFilters(normalizedFilters)
     } catch (error) {
@@ -307,33 +343,35 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [supabase, userId])
 
   // Load saved filters on component mount
   useEffect(() => {
+    if (!authReady) return
     loadSavedFilters()
-  }, [loadSavedFilters])
+  }, [authReady, loadSavedFilters, userId])
 
   // Memoize handleSaveFilter
   const handleSaveFilter = useCallback(async () => {
-    if (!filterName.trim()) return
+    if (!filterName.trim() || !userId) return
 
     setLoading(true)
     try {
-      const result = await saveFilterSet(filterName.trim(), currentFilters)
-      if (result.success) {
-        setSaveDialogOpen(false)
-        setFilterName("")
-        await loadSavedFilters()
-      } else {
-        console.error("Failed to save filter:", result.error)
-      }
+      const { error } = await supabase
+        .from("saved_filters")
+        .insert({ name: filterName.trim(), filters: currentFilters, user_id: userId })
+
+      if (error) throw error
+
+      setSaveDialogOpen(false)
+      setFilterName("")
+      await loadSavedFilters()
     } catch (error) {
       console.error("Error saving filter:", error)
     } finally {
       setLoading(false)
     }
-  }, [filterName, currentFilters, loadSavedFilters])
+  }, [currentFilters, filterName, loadSavedFilters, supabase, userId])
 
   // Memoize handleLoadFilter
   const handleLoadFilter = useCallback((savedFilter: SavedFilter) => {
@@ -352,20 +390,22 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
 
     setLoading(true)
     try {
-      const result = await deleteSavedFilter(filterToDelete.id)
-      if (result.success) {
-        await loadSavedFilters()
-        setDeleteConfirmOpen(false)
-        setFilterToDelete(null)
-      } else {
-        console.error("Failed to delete filter:", result.error)
-      }
+      const { error } = await supabase
+        .from("saved_filters")
+        .delete()
+        .eq("id", filterToDelete.id)
+
+      if (error) throw error
+
+      await loadSavedFilters()
+      setDeleteConfirmOpen(false)
+      setFilterToDelete(null)
     } catch (error) {
       console.error("Error deleting filter:", error)
     } finally {
       setLoading(false)
     }
-  }, [filterToDelete, loadSavedFilters])
+  }, [filterToDelete, loadSavedFilters, supabase])
 
   // Memoize handleUpdateFilter
   const handleUpdateFilter = useCallback(async () => {
@@ -373,20 +413,26 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
 
     setLoading(true)
     try {
-      const result = await updateSavedFilter(editingFilter.id, editName.trim(), editingFilter.filters)
-      if (result.success) {
-        setEditingFilter(null)
-        setEditName("")
-        await loadSavedFilters()
-      } else {
-        console.error("Failed to update filter:", result.error)
-      }
+      const { error } = await supabase
+        .from("saved_filters")
+        .update({
+          name: editName.trim(),
+          filters: editingFilter.filters,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", editingFilter.id)
+
+      if (error) throw error
+
+      setEditingFilter(null)
+      setEditName("")
+      await loadSavedFilters()
     } catch (error) {
       console.error("Error updating filter:", error)
     } finally {
       setLoading(false)
     }
-  }, [editingFilter, editName, loadSavedFilters])
+  }, [editingFilter, editName, loadSavedFilters, supabase])
 
   // Memoize getFilterSummary
   const getFilterSummary = useCallback((filters: Filters) => {
