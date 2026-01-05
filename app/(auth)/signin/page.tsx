@@ -6,10 +6,11 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { getSupabaseBrowserClient } from "@/lib/supabase/client"
+import { getSupabaseBrowserClient, setSupabaseAuthStoragePreference } from "@/lib/supabase/client"
 
 function SignInForm() {
   const router = useRouter()
@@ -18,6 +19,7 @@ function SignInForm() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [rememberMe, setRememberMe] = useState(true)
   const signupStatus = searchParams.get("signup")
 
   useEffect(() => {
@@ -34,7 +36,9 @@ function SignInForm() {
     setError(null)
     setIsSubmitting(true)
 
-    const supabase = getSupabaseBrowserClient()
+    const storagePreference = rememberMe ? "local" : "session"
+    setSupabaseAuthStoragePreference(storagePreference)
+    const supabase = getSupabaseBrowserClient(storagePreference)
     const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -102,6 +106,16 @@ function SignInForm() {
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
               />
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="rememberMe"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked === true)}
+              />
+              <Label htmlFor="rememberMe" className="text-sm font-normal text-muted-foreground">
+                Remember me
+              </Label>
             </div>
             {error ? (
               <Alert variant="destructive">
