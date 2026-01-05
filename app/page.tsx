@@ -1183,8 +1183,12 @@ function DashboardContent() {
   const dataLoaded =
     !loading && accounts.length > 0 && centers.length > 0 && services.length > 0 && prospects.length > 0
 
-  if (!authReady || !userId) {
-    return <LoadingState />
+  if (!authReady) {
+    return null
+  }
+
+  if (!userId) {
+    return null
   }
 
   if (loading) {
