@@ -4,22 +4,33 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
+import { signUpSchema, type SignUpValues } from "@/lib/validators/auth"
 
 export default function SignUpPage() {
   const router = useRouter()
-  const [firstName, setFirstName] = useState("")
-  const [lastName, setLastName] = useState("")
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<SignUpValues>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      password: "",
+    },
+  })
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient()
@@ -30,27 +41,23 @@ export default function SignUpPage() {
     })
   }, [router])
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setError(null)
-    setIsSubmitting(true)
-
+  const onSubmit = async (values: SignUpValues) => {
+    setSubmitError(null)
     const supabase = getSupabaseBrowserClient()
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
+      email: values.email,
+      password: values.password,
       options: {
         data: {
-          first_name: firstName,
-          last_name: lastName,
-          phone: phone || null,
+          first_name: values.firstName,
+          last_name: values.lastName,
+          phone: values.phone || null,
         },
       },
     })
 
     if (signUpError) {
-      setError(signUpError.message)
-      setIsSubmitting(false)
+      setSubmitError(signUpError.message)
       return
     }
 
@@ -68,23 +75,21 @@ export default function SignUpPage() {
 
     const userId = user?.id
     if (!userId) {
-      setError("Signup succeeded but the user record was missing.")
-      setIsSubmitting(false)
+      setSubmitError("Signup succeeded but the user record was missing.")
       return
     }
 
     if (signUpData.session) {
       const { error: profileError } = await supabase.from("profiles").insert({
         user_id: userId,
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        phone: phone || null,
+        first_name: values.firstName,
+        last_name: values.lastName,
+        email: values.email,
+        phone: values.phone || null,
       })
 
       if (profileError) {
-        setError(profileError.message)
-        setIsSubmitting(false)
+        setSubmitError(profileError.message)
         return
       }
 
@@ -104,7 +109,7 @@ export default function SignUpPage() {
           <p className="text-sm text-muted-foreground">Join Bamboo Reports with email and password.</p>
         </CardHeader>
         <CardContent>
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First name</Label>
@@ -112,9 +117,11 @@ export default function SignUpPage() {
                   id="firstName"
                   autoComplete="given-name"
                   required
-                  value={firstName}
-                  onChange={(event) => setFirstName(event.target.value)}
+                  {...register("firstName")}
                 />
+                {errors.firstName ? (
+                  <p className="text-xs text-destructive">{errors.firstName.message}</p>
+                ) : null}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lastName">Last name</Label>
@@ -122,9 +129,11 @@ export default function SignUpPage() {
                   id="lastName"
                   autoComplete="family-name"
                   required
-                  value={lastName}
-                  onChange={(event) => setLastName(event.target.value)}
+                  {...register("lastName")}
                 />
+                {errors.lastName ? (
+                  <p className="text-xs text-destructive">{errors.lastName.message}</p>
+                ) : null}
               </div>
             </div>
             <div className="space-y-2">
@@ -134,9 +143,11 @@ export default function SignUpPage() {
                 type="email"
                 autoComplete="email"
                 required
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                {...register("email")}
               />
+              {errors.email ? (
+                <p className="text-xs text-destructive">{errors.email.message}</p>
+              ) : null}
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone">Phone (optional)</Label>
@@ -144,9 +155,11 @@ export default function SignUpPage() {
                 id="phone"
                 type="tel"
                 autoComplete="tel"
-                value={phone}
-                onChange={(event) => setPhone(event.target.value)}
+                {...register("phone")}
               />
+              {errors.phone ? (
+                <p className="text-xs text-destructive">{errors.phone.message}</p>
+              ) : null}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -155,13 +168,15 @@ export default function SignUpPage() {
                 type="password"
                 autoComplete="new-password"
                 required
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                {...register("password")}
               />
+              {errors.password ? (
+                <p className="text-xs text-destructive">{errors.password.message}</p>
+              ) : null}
             </div>
-            {error ? (
+            {submitError ? (
               <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>{submitError}</AlertDescription>
               </Alert>
             ) : null}
             <Button className="w-full" type="submit" disabled={isSubmitting}>

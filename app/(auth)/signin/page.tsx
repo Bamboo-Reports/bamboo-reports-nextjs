@@ -4,6 +4,8 @@ import { Suspense, useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -11,16 +13,26 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { getSupabaseBrowserClient, setSupabaseAuthStoragePreference } from "@/lib/supabase/client"
+import { signInSchema, type SignInValues } from "@/lib/validators/auth"
 
 function SignInForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [rememberMe, setRememberMe] = useState(true)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const signupStatus = searchParams.get("signup")
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<SignInValues>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: true,
+    },
+  })
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient()
@@ -31,22 +43,19 @@ function SignInForm() {
     })
   }, [router])
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setError(null)
-    setIsSubmitting(true)
+  const onSubmit = async (values: SignInValues) => {
+    setSubmitError(null)
 
-    const storagePreference = rememberMe ? "local" : "session"
+    const storagePreference = values.rememberMe ? "local" : "session"
     setSupabaseAuthStoragePreference(storagePreference)
     const supabase = getSupabaseBrowserClient(storagePreference)
     const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+      email: values.email,
+      password: values.password,
     })
 
     if (signInError) {
-      setError(signInError.message)
-      setIsSubmitting(false)
+      setSubmitError(signInError.message)
       return
     }
 
@@ -67,7 +76,7 @@ function SignInForm() {
           user_id: user.id,
           first_name: fallbackFirstName,
           last_name: fallbackLastName,
-          email: user.email ?? email,
+          email: user.email ?? values.email,
           phone: fallbackPhone,
         })
       }
@@ -84,7 +93,7 @@ function SignInForm() {
           <p className="text-sm text-muted-foreground">Sign in to access Bamboo Reports.</p>
         </CardHeader>
         <CardContent>
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -92,9 +101,11 @@ function SignInForm() {
                 type="email"
                 autoComplete="email"
                 required
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                {...register("email")}
               />
+              {errors.email ? (
+                <p className="text-xs text-destructive">{errors.email.message}</p>
+              ) : null}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -103,23 +114,31 @@ function SignInForm() {
                 type="password"
                 autoComplete="current-password"
                 required
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                {...register("password")}
               />
+              {errors.password ? (
+                <p className="text-xs text-destructive">{errors.password.message}</p>
+              ) : null}
             </div>
             <div className="flex items-center gap-2">
-              <Checkbox
-                id="rememberMe"
-                checked={rememberMe}
-                onCheckedChange={(checked) => setRememberMe(checked === true)}
+              <Controller
+                control={control}
+                name="rememberMe"
+                render={({ field }) => (
+                  <Checkbox
+                    id="rememberMe"
+                    checked={field.value}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                  />
+                )}
               />
               <Label htmlFor="rememberMe" className="text-sm font-normal text-muted-foreground">
                 Remember me
               </Label>
             </div>
-            {error ? (
+            {submitError ? (
               <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>{submitError}</AlertDescription>
               </Alert>
             ) : null}
             {signupStatus === "success" ? (
