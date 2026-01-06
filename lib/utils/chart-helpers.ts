@@ -1,22 +1,26 @@
 import type { Account, Center, Function, ChartData } from "../types"
 
-// Color palette for charts
 export const CHART_COLORS = [
-  "#3b82f6", // blue
-  "#10b981", // green
-  "#f59e0b", // amber
-  "#ef4444", // red
-  "#8b5cf6", // violet
-  "#ec4899", // pink
-  "#06b6d4", // cyan
-  "#f97316", // orange
-  "#14b8a6", // teal
-  "#6366f1", // indigo
-  "#84cc16", // lime
-  "#a855f7", // purple
-  "#f43f5e", // rose
-  "#22d3ee", // sky
-  "#facc15", // yellow
+  "#F17C1D",
+  "#F28328",
+  "#F28934",
+  "#F3903F",
+  "#F4964A",
+  "#F59D56",
+  "#F5A361",
+  "#F6AA6C",
+  "#F7B077",
+  "#F7B783",
+  "#F8BE8E",
+  "#F9C499",
+  "#F9CBA5",
+  "#FAD1B0",
+  "#FBD8BB",
+  "#FCDEC7",
+  "#FCE5D2",
+  "#FDEBDD",
+  "#FEF2E8",
+  "#FEF8F4",
 ]
 
 /**
