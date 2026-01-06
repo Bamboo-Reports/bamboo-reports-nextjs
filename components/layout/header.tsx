@@ -89,7 +89,7 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps) {
           <div className="flex items-center gap-3">
             <Image src="/logo.svg" alt="Bamboo Reports logo" width={32} height={32} className="h-8 w-auto" priority />
             <div
-              className="text-base md:text-lg font-semibold tracking-tight text-foreground"
+              className="text-base md:text-lg font-semibold tracking-tight text-foreground relative top-px"
               style={{ fontFamily: "'Google Sans', 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif" }}
             >
               Bamboo Reports
