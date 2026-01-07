@@ -142,6 +142,8 @@ function DashboardContent() {
   const [authReady, setAuthReady] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
 
+  const isRevenueRangeAutoRef = useRef(true)
+
   const baseRevenueRange = useMemo(() => {
     const validRevenues = accounts
       .map((account) => parseRevenue(account.account_hq_revenue))
@@ -330,20 +332,13 @@ function DashboardContent() {
     loadData()
   }, [authReady, userId, loadData])
 
-  // Auto-apply filters with debouncing for smooth performance
+  // Auto-apply filters immediately; useDeferredValue handles smoothing.
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      startFilterTransition(() => {
-        setFilters(pendingFilters)
-        setIsApplying(false)
-      })
-    }, 300) // 300ms debounce for optimal responsiveness
-
     setIsApplying(true)
-
-    return () => {
-      clearTimeout(timeoutId)
-    }
+    startFilterTransition(() => {
+      setFilters(pendingFilters)
+      setIsApplying(false)
+    })
   }, [pendingFilters, startFilterTransition])
 
   // Clear cache and reload data
@@ -364,7 +359,6 @@ function DashboardContent() {
   }, [filters])
 
   const isUpdatingOptions = useRef(false)
-  const prevDynamicRevenueRangeRef = useRef<{ min: number; max: number } | null>(null)
 
   // Extract unique account names for autocomplete - memoized for performance
   const accountNames = useMemo(() => {
@@ -663,21 +657,18 @@ function DashboardContent() {
     setRevenueRange(dynamicRevenueRange)
 
     setPendingFilters((prev) => {
-      const prevDynamic = prevDynamicRevenueRangeRef.current
-      const matchesPrevDynamic =
-        !!prevDynamic &&
-        prev.accountRevenueRange[0] === prevDynamic.min &&
-        prev.accountRevenueRange[1] === prevDynamic.max
-      const shouldExpandToNewRange =
-        matchesPrevDynamic &&
-        (dynamicRevenueRange.min < prev.accountRevenueRange[0] ||
-          dynamicRevenueRange.max > prev.accountRevenueRange[1])
-
-      if (shouldExpandToNewRange) {
-        return {
-          ...prev,
-          accountRevenueRange: [dynamicRevenueRange.min, dynamicRevenueRange.max] as [number, number],
+      if (isRevenueRangeAutoRef.current) {
+        if (
+          prev.accountRevenueRange[0] !== dynamicRevenueRange.min ||
+          prev.accountRevenueRange[1] !== dynamicRevenueRange.max
+        ) {
+          return {
+            ...prev,
+            accountRevenueRange: [dynamicRevenueRange.min, dynamicRevenueRange.max] as [number, number],
+          }
         }
+
+        return prev
       }
 
       const newMin = Math.max(prev.accountRevenueRange[0], dynamicRevenueRange.min)
@@ -692,8 +683,6 @@ function DashboardContent() {
 
       return prev
     })
-
-    prevDynamicRevenueRangeRef.current = dynamicRevenueRange
   }, [dynamicRevenueRange])
 
   // Calculate available options - OPTIMIZED with memoization of filter-relevant state
@@ -1120,6 +1109,7 @@ function DashboardContent() {
       prospectTitleKeywords: [],
       searchTerm: "",
     }
+    isRevenueRangeAutoRef.current = true
     setRevenueRange(baseRevenueRange)
     setFilters(emptyFilters)
     setPendingFilters(emptyFilters)
@@ -1193,6 +1183,7 @@ function DashboardContent() {
   }
 
   const handleLoadSavedFilters = (savedFilters: Filters) => {
+    isRevenueRangeAutoRef.current = false
     setPendingFilters(savedFilters)
     setFilters(savedFilters)
   }
@@ -1209,6 +1200,7 @@ function DashboardContent() {
   const handleMinRevenueChange = (value: string) => {
     const numValue = Number.parseFloat(value) || revenueRange.min
     const clampedValue = Math.max(revenueRange.min, Math.min(numValue, pendingFilters.accountRevenueRange[1]))
+    isRevenueRangeAutoRef.current = false
     setPendingFilters((prev) => ({
       ...prev,
       accountRevenueRange: [clampedValue, prev.accountRevenueRange[1]],
@@ -1218,9 +1210,18 @@ function DashboardContent() {
   const handleMaxRevenueChange = (value: string) => {
     const numValue = Number.parseFloat(value) || revenueRange.max
     const clampedValue = Math.min(revenueRange.max, Math.max(numValue, pendingFilters.accountRevenueRange[0]))
+    isRevenueRangeAutoRef.current = false
     setPendingFilters((prev) => ({
       ...prev,
       accountRevenueRange: [prev.accountRevenueRange[0], clampedValue],
+    }))
+  }
+
+  const handleRevenueRangeChange = (value: [number, number]) => {
+    isRevenueRangeAutoRef.current = false
+    setPendingFilters((prev) => ({
+      ...prev,
+      accountRevenueRange: value,
     }))
   }
 
@@ -1261,6 +1262,7 @@ function DashboardContent() {
             handleExportAll={handleExportAll}
             handleMinRevenueChange={handleMinRevenueChange}
             handleMaxRevenueChange={handleMaxRevenueChange}
+            handleRevenueRangeChange={handleRevenueRangeChange}
             getTotalActiveFilters={getTotalActiveFilters}
             handleLoadSavedFilters={handleLoadSavedFilters}
             formatRevenueInMillions={formatRevenueInMillions}

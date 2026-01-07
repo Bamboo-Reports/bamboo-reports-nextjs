@@ -40,6 +40,7 @@ interface FiltersSidebarProps {
   handleExportAll: () => void
   handleMinRevenueChange: (value: string) => void
   handleMaxRevenueChange: (value: string) => void
+  handleRevenueRangeChange: (value: [number, number]) => void
 
   // Helper functions
   getTotalActiveFilters: () => number
@@ -59,6 +60,7 @@ export function FiltersSidebar({
   handleExportAll,
   handleMinRevenueChange,
   handleMaxRevenueChange,
+  handleRevenueRangeChange,
   getTotalActiveFilters,
   handleLoadSavedFilters,
   formatRevenueInMillions,
@@ -282,12 +284,7 @@ export function FiltersSidebar({
                       <div className="px-2">
                         <Slider
                           value={pendingFilters.accountRevenueRange}
-                          onValueChange={(value) =>
-                            setPendingFilters((prev) => ({
-                              ...prev,
-                              accountRevenueRange: value as [number, number],
-                            }))
-                          }
+                          onValueChange={(value) => handleRevenueRangeChange(value as [number, number])}
                           min={revenueRange.min}
                           max={revenueRange.max}
                           step={Math.max(1, Math.floor((revenueRange.max - revenueRange.min) / 1000))}
