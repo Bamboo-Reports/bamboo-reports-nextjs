@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useCallback, useMemo, useRef, useEffect, useTransition } from "react"
+import React, { useState, useCallback, useMemo, useRef, useEffect, useLayoutEffect, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -331,14 +331,12 @@ function DashboardContent() {
     loadData()
   }, [authReady, userId, loadData])
 
-  // Auto-apply filters immediately.
-  useEffect(() => {
+  // Auto-apply filters immediately without a paint gap.
+  useLayoutEffect(() => {
     setIsApplying(true)
-    startFilterTransition(() => {
-      setFilters(pendingFilters)
-      setIsApplying(false)
-    })
-  }, [pendingFilters, startFilterTransition])
+    setFilters(pendingFilters)
+    setIsApplying(false)
+  }, [pendingFilters])
 
   // Clear cache and reload data
   const handleClearCache = async () => {
