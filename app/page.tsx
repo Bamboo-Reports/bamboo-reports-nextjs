@@ -142,6 +142,21 @@ function DashboardContent() {
   const [authReady, setAuthReady] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
 
+  const baseRevenueRange = useMemo(() => {
+    const validRevenues = accounts
+      .map((account) => parseRevenue(account.account_hq_revenue))
+      .filter((rev) => rev > 0)
+
+    if (validRevenues.length === 0) {
+      return { min: 0, max: 1000000 }
+    }
+
+    return {
+      min: Math.min(...validRevenues),
+      max: Math.max(...validRevenues),
+    }
+  }, [accounts])
+
   // Debounced search handler - optimized for fast response
   const debouncedSearch = useMemo(
     () =>
@@ -349,6 +364,7 @@ function DashboardContent() {
   }, [filters])
 
   const isUpdatingOptions = useRef(false)
+  const prevDynamicRevenueRangeRef = useRef<{ min: number; max: number } | null>(null)
 
   // Extract unique account names for autocomplete - memoized for performance
   const accountNames = useMemo(() => {
@@ -647,6 +663,23 @@ function DashboardContent() {
     setRevenueRange(dynamicRevenueRange)
 
     setPendingFilters((prev) => {
+      const prevDynamic = prevDynamicRevenueRangeRef.current
+      const matchesPrevDynamic =
+        !!prevDynamic &&
+        prev.accountRevenueRange[0] === prevDynamic.min &&
+        prev.accountRevenueRange[1] === prevDynamic.max
+      const shouldExpandToNewRange =
+        matchesPrevDynamic &&
+        (dynamicRevenueRange.min < prev.accountRevenueRange[0] ||
+          dynamicRevenueRange.max > prev.accountRevenueRange[1])
+
+      if (shouldExpandToNewRange) {
+        return {
+          ...prev,
+          accountRevenueRange: [dynamicRevenueRange.min, dynamicRevenueRange.max] as [number, number],
+        }
+      }
+
       const newMin = Math.max(prev.accountRevenueRange[0], dynamicRevenueRange.min)
       const newMax = Math.min(prev.accountRevenueRange[1], dynamicRevenueRange.max)
 
@@ -659,6 +692,8 @@ function DashboardContent() {
 
       return prev
     })
+
+    prevDynamicRevenueRangeRef.current = dynamicRevenueRange
   }, [dynamicRevenueRange])
 
   // Calculate available options - OPTIMIZED with memoization of filter-relevant state
@@ -1068,7 +1103,7 @@ function DashboardContent() {
       accountNasscomStatuses: [],
       accountEmployeesRanges: [],
       accountCenterEmployees: [],
-      accountRevenueRange: [revenueRange.min, revenueRange.max] as [number, number],
+      accountRevenueRange: [baseRevenueRange.min, baseRevenueRange.max] as [number, number],
       includeNullRevenue: false,
       accountNameKeywords: [],
       centerTypes: [],
@@ -1085,6 +1120,7 @@ function DashboardContent() {
       prospectTitleKeywords: [],
       searchTerm: "",
     }
+    setRevenueRange(baseRevenueRange)
     setFilters(emptyFilters)
     setPendingFilters(emptyFilters)
   }
