@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useCallback, useMemo, useRef, useEffect, useDeferredValue, useTransition } from "react"
+import React, { useState, useCallback, useMemo, useRef, useEffect, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -138,7 +138,6 @@ function DashboardContent() {
   const [centersView, setCentersView] = useState<"chart" | "data" | "map">("chart")
   const [prospectsView, setProspectsView] = useState<"chart" | "data">("chart")
   const [, startFilterTransition] = useTransition()
-  const deferredFilters = useDeferredValue(filters)
   const [authReady, setAuthReady] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
 
@@ -332,7 +331,7 @@ function DashboardContent() {
     loadData()
   }, [authReady, userId, loadData])
 
-  // Auto-apply filters immediately; useDeferredValue handles smoothing.
+  // Auto-apply filters immediately.
   useEffect(() => {
     setIsApplying(true)
     startFilterTransition(() => {
@@ -369,7 +368,7 @@ function DashboardContent() {
 
   // Main filtering logic - single pass optimized
   const filteredData = useMemo(() => {
-    const activeFilters = deferredFilters
+    const activeFilters = filters
     const rangeFilterMatch = (range: [number, number], value: string | number, includeNull: boolean) => {
       const numValue = parseRevenue(value)
 
@@ -548,7 +547,7 @@ function DashboardContent() {
       filteredServices: filteredServices,
       filteredProspects: finalFilteredProspects,
     }
-  }, [accounts, centers, functions, services, prospects, deferredFilters])
+  }, [accounts, centers, functions, services, prospects, filters])
 
   // Calculate chart data for accounts
   const accountChartData = useMemo(() => {
@@ -587,17 +586,17 @@ function DashboardContent() {
 
   // Dynamic revenue range calculation - optimized with selective filter state
   const filterStateForRevenue = useMemo(() => ({
-    accountCountries: deferredFilters.accountCountries,
-    accountRegions: deferredFilters.accountRegions,
-    accountIndustries: deferredFilters.accountIndustries,
-    accountSubIndustries: deferredFilters.accountSubIndustries,
-    accountPrimaryCategories: deferredFilters.accountPrimaryCategories,
-    accountPrimaryNatures: deferredFilters.accountPrimaryNatures,
-    accountNasscomStatuses: deferredFilters.accountNasscomStatuses,
-    accountEmployeesRanges: deferredFilters.accountEmployeesRanges,
-    accountCenterEmployees: deferredFilters.accountCenterEmployees,
-    searchTerm: deferredFilters.searchTerm,
-  }), [deferredFilters.accountCountries, deferredFilters.accountRegions, deferredFilters.accountIndustries, deferredFilters.accountSubIndustries, deferredFilters.accountPrimaryCategories, deferredFilters.accountPrimaryNatures, deferredFilters.accountNasscomStatuses, deferredFilters.accountEmployeesRanges, deferredFilters.accountCenterEmployees, deferredFilters.searchTerm])
+    accountCountries: filters.accountCountries,
+    accountRegions: filters.accountRegions,
+    accountIndustries: filters.accountIndustries,
+    accountSubIndustries: filters.accountSubIndustries,
+    accountPrimaryCategories: filters.accountPrimaryCategories,
+    accountPrimaryNatures: filters.accountPrimaryNatures,
+    accountNasscomStatuses: filters.accountNasscomStatuses,
+    accountEmployeesRanges: filters.accountEmployeesRanges,
+    accountCenterEmployees: filters.accountCenterEmployees,
+    searchTerm: filters.searchTerm,
+  }), [filters.accountCountries, filters.accountRegions, filters.accountIndustries, filters.accountSubIndustries, filters.accountPrimaryCategories, filters.accountPrimaryNatures, filters.accountNasscomStatuses, filters.accountEmployeesRanges, filters.accountCenterEmployees, filters.searchTerm])
 
   const dynamicRevenueRange = useMemo(() => {
     const activeFilters = filterStateForRevenue
@@ -687,31 +686,31 @@ function DashboardContent() {
 
   // Calculate available options - OPTIMIZED with memoization of filter-relevant state
   const filterStateForOptions = useMemo(() => ({
-    accountCountries: deferredFilters.accountCountries,
-    accountRegions: deferredFilters.accountRegions,
-    accountIndustries: deferredFilters.accountIndustries,
-    accountSubIndustries: deferredFilters.accountSubIndustries,
-    accountPrimaryCategories: deferredFilters.accountPrimaryCategories,
-    accountPrimaryNatures: deferredFilters.accountPrimaryNatures,
-    accountNasscomStatuses: deferredFilters.accountNasscomStatuses,
-    accountEmployeesRanges: deferredFilters.accountEmployeesRanges,
-    accountCenterEmployees: deferredFilters.accountCenterEmployees,
-    centerTypes: deferredFilters.centerTypes,
-    centerFocus: deferredFilters.centerFocus,
-    centerCities: deferredFilters.centerCities,
-    centerStates: deferredFilters.centerStates,
-    centerCountries: deferredFilters.centerCountries,
-    centerEmployees: deferredFilters.centerEmployees,
-    centerStatuses: deferredFilters.centerStatuses,
-    functionTypes: deferredFilters.functionTypes,
-    prospectDepartments: deferredFilters.prospectDepartments,
-    prospectLevels: deferredFilters.prospectLevels,
-    prospectCities: deferredFilters.prospectCities,
-    accountNameKeywords: deferredFilters.accountNameKeywords,
-    accountRevenueRange: deferredFilters.accountRevenueRange,
-    includeNullRevenue: deferredFilters.includeNullRevenue,
-    searchTerm: deferredFilters.searchTerm,
-  }), [deferredFilters])
+    accountCountries: filters.accountCountries,
+    accountRegions: filters.accountRegions,
+    accountIndustries: filters.accountIndustries,
+    accountSubIndustries: filters.accountSubIndustries,
+    accountPrimaryCategories: filters.accountPrimaryCategories,
+    accountPrimaryNatures: filters.accountPrimaryNatures,
+    accountNasscomStatuses: filters.accountNasscomStatuses,
+    accountEmployeesRanges: filters.accountEmployeesRanges,
+    accountCenterEmployees: filters.accountCenterEmployees,
+    centerTypes: filters.centerTypes,
+    centerFocus: filters.centerFocus,
+    centerCities: filters.centerCities,
+    centerStates: filters.centerStates,
+    centerCountries: filters.centerCountries,
+    centerEmployees: filters.centerEmployees,
+    centerStatuses: filters.centerStatuses,
+    functionTypes: filters.functionTypes,
+    prospectDepartments: filters.prospectDepartments,
+    prospectLevels: filters.prospectLevels,
+    prospectCities: filters.prospectCities,
+    accountNameKeywords: filters.accountNameKeywords,
+    accountRevenueRange: filters.accountRevenueRange,
+    includeNullRevenue: filters.includeNullRevenue,
+    searchTerm: filters.searchTerm,
+  }), [filters])
 
   const availableOptions = useMemo((): AvailableOptions => {
     const activeFilters = filterStateForOptions
