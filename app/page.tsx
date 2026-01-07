@@ -142,6 +142,9 @@ function DashboardContent() {
   const [userId, setUserId] = useState<string | null>(null)
 
   const isRevenueRangeAutoRef = useRef(true)
+  const prevPendingFiltersRef = useRef<Filters>(pendingFilters)
+  const lastChangeWasRevenueOnlyRef = useRef(false)
+  const revenueDebounceRef = useRef<NodeJS.Timeout | null>(null)
 
   const baseRevenueRange = useMemo(() => {
     const validRevenues = accounts
@@ -331,11 +334,61 @@ function DashboardContent() {
     loadData()
   }, [authReady, userId, loadData])
 
-  // Auto-apply filters immediately without a paint gap.
+  const isRevenueOnlyChange = useCallback((prev: Filters, next: Filters) => {
+    const strippedPrev = {
+      ...prev,
+      accountRevenueRange: [0, 0] as [number, number],
+      includeNullRevenue: false,
+    }
+    const strippedNext = {
+      ...next,
+      accountRevenueRange: [0, 0] as [number, number],
+      includeNullRevenue: false,
+    }
+    return JSON.stringify(strippedPrev) === JSON.stringify(strippedNext)
+  }, [])
+
+  // Auto-apply filters immediately without a paint gap (except revenue range, which is debounced).
   useLayoutEffect(() => {
+    const prevFilters = prevPendingFiltersRef.current
+    const revenueOnly = isRevenueOnlyChange(prevFilters, pendingFilters)
+    lastChangeWasRevenueOnlyRef.current = revenueOnly
+    prevPendingFiltersRef.current = pendingFilters
+
+    if (revenueOnly) {
+      setIsApplying(true)
+      if (revenueDebounceRef.current) {
+        clearTimeout(revenueDebounceRef.current)
+        revenueDebounceRef.current = null
+      }
+      return
+    }
+
     setIsApplying(true)
     setFilters(pendingFilters)
     setIsApplying(false)
+  }, [pendingFilters, isRevenueOnlyChange])
+
+  useEffect(() => {
+    if (!lastChangeWasRevenueOnlyRef.current) {
+      return
+    }
+
+    if (revenueDebounceRef.current) {
+      clearTimeout(revenueDebounceRef.current)
+    }
+
+    revenueDebounceRef.current = setTimeout(() => {
+      setFilters(pendingFilters)
+      setIsApplying(false)
+    }, 200)
+
+    return () => {
+      if (revenueDebounceRef.current) {
+        clearTimeout(revenueDebounceRef.current)
+        revenueDebounceRef.current = null
+      }
+    }
   }, [pendingFilters])
 
   // Clear cache and reload data
