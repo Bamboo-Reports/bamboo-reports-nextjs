@@ -204,76 +204,156 @@ NEXT_PUBLIC_LOGO_DEV_TOKEN=pk_your_logo_dev_token_here
 
 ## Data Models
 
-### Account
-Represents a company or organization.
+Schema reference: `schema_20260108_134200.json`.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `account_global_legal_name` | string | Primary identifier |
-| `account_hq_country` | string | Headquarters country |
-| `account_hq_region` | string | Region (Americas, EMEA, APAC) |
-| `account_hq_industry` | string | Industry |
-| `account_hq_sub_industry` | string | Sub-industry |
-| `account_primary_category` | string | Primary category |
-| `account_primary_nature` | string | Primary nature |
-| `account_hq_revenue` | number | Annual revenue |
-| `account_hq_revenue_range` | string | Revenue bracket |
-| `account_hq_employee_count` | number | Employee count |
-| `account_hq_employee_range` | string | Employee bracket |
-| `account_nasscom_status` | string | NASSCOM status |
-| `account_hq_forbes_2000_rank` | number | Forbes 2000 rank |
-| `account_hq_fortune_500_rank` | number | Fortune 500 rank |
+### Schema Summary
 
-### Center
-Represents an account-owned business/service center.
+| Table | Rows | Size (MB) | Primary Key |
+|-------|------|-----------|-------------|
+| `accounts` | 2450 | 2.727 | `account_global_legal_name` |
+| `centers` | 6161 | 8.781 | `cn_unique_key` |
+| `services` | 6131 | 3.148 | None |
+| `functions` | 13883 | 1.219 | None |
+| `prospects` | 38612 | 9.984 | None |
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `cn_unique_key` | string | Unique identifier |
-| `account_global_legal_name` | string | Parent account |
-| `center_name` | string | Center name |
-| `center_type` | string | Center type |
-| `center_focus` | string | Focus area |
-| `center_city` | string | City |
-| `center_state` | string | State/province |
-| `center_country` | string | Country |
-| `center_status` | string | Operational status |
-| `center_employees` | number | Employee count |
-| `lat` / `lng` | number | Coordinates |
+### Accounts
+Represents companies or organizations.
 
-### Prospect
-Represents a lead/contact tied to an account.
+| Column | Type | Nullable | Notes |
+|--------|------|----------|-------|
+| `account_last_update_date` | TIMESTAMP | Yes | |
+| `account_nasscom_status` | TEXT | Yes | |
+| `account_nasscom_member_status` | TEXT | Yes | |
+| `account_global_legal_name` | TEXT | No | Primary key |
+| `account_about` | TEXT | Yes | |
+| `account_hq_address` | TEXT | Yes | |
+| `account_hq_city` | TEXT | Yes | |
+| `account_hq_state` | TEXT | Yes | |
+| `account_hq_zip_code` | TEXT | Yes | |
+| `account_hq_country` | TEXT | Yes | |
+| `account_hq_region` | TEXT | Yes | |
+| `account_hq_boardline` | TEXT | Yes | |
+| `account_hq_website` | TEXT | Yes | |
+| `account_hq_key_offerings` | TEXT | Yes | |
+| `account_key_offerings_source_link` | TEXT | Yes | |
+| `account_hq_sub_industry` | TEXT | Yes | |
+| `account_hq_industry` | TEXT | Yes | |
+| `account_primary_category` | TEXT | Yes | |
+| `account_primary_nature` | TEXT | Yes | |
+| `account_hq_forbes_2000_rank` | INTEGER | Yes | |
+| `account_hq_fortune_500_rank` | INTEGER | Yes | |
+| `account_hq_company_type` | TEXT | Yes | |
+| `account_hq_revenue` | BIGINT | Yes | |
+| `account_hq_revenue_range` | TEXT | Yes | |
+| `account_hq_fy_end` | TEXT | Yes | |
+| `account_hq_revenue_year` | INTEGER | Yes | |
+| `account_hq_revenue_source_type` | TEXT | Yes | |
+| `account_hq_revenue_source_link` | TEXT | Yes | |
+| `account_hq_employee_count` | INTEGER | Yes | |
+| `account_hq_employee_range` | TEXT | Yes | |
+| `account_hq_employee_source_type` | TEXT | Yes | |
+| `account_hq_employee_source_link` | TEXT | Yes | |
+| `account_center_employees` | INTEGER | Yes | |
+| `account_center_employees_range` | TEXT | Yes | |
+| `years_in_india` | INTEGER | Yes | |
+| `account_first_center_year` | INTEGER | Yes | |
+| `account_comments` | TEXT | Yes | |
+| `account_coverage` | TEXT | Yes | |
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `account_global_legal_name` | string | Associated account |
-| `prospect_first_name` | string | First name |
-| `prospect_last_name` | string | Last name |
-| `prospect_title` | string | Job title |
-| `prospect_department` | string | Department |
-| `prospect_level` | string | Seniority |
-| `prospect_linkedin_url` | string | LinkedIn URL |
-| `prospect_email` | string | Email |
+### Centers
+Represents account-owned business or service centers.
 
-### Service
-Represents services offered at a center.
+| Column | Type | Nullable | Notes |
+|--------|------|----------|-------|
+| `last_update_date` | TIMESTAMP | Yes | |
+| `cn_unique_key` | TEXT | No | Primary key |
+| `account_global_legal_name` | TEXT | Yes | |
+| `center_status` | TEXT | Yes | |
+| `center_inc_year` | INTEGER | Yes | |
+| `center_inc_year_notes` | TEXT | Yes | |
+| `center_inc_year_updated_link` | TEXT | Yes | |
+| `center_timeline` | TEXT | Yes | |
+| `center_end_year` | INTEGER | Yes | |
+| `center_account_website` | TEXT | Yes | |
+| `center_name` | TEXT | Yes | |
+| `center_business_segment` | TEXT | Yes | |
+| `center_business_sub_segment` | TEXT | Yes | |
+| `center_management_partner` | TEXT | Yes | |
+| `center_jv_status` | TEXT | Yes | |
+| `center_jv_name` | TEXT | Yes | |
+| `center_type` | TEXT | Yes | |
+| `center_focus` | TEXT | Yes | |
+| `center_source_link` | TEXT | Yes | |
+| `center_website` | TEXT | Yes | |
+| `center_linkedin` | TEXT | Yes | |
+| `center_address` | TEXT | Yes | |
+| `center_city` | TEXT | Yes | |
+| `center_state` | TEXT | Yes | |
+| `center_zip_code` | TEXT | Yes | |
+| `center_country` | TEXT | Yes | |
+| `lat` | DOUBLE PRECISION | Yes | |
+| `lng` | DOUBLE PRECISION | Yes | |
+| `center_region` | TEXT | Yes | |
+| `center_boardline` | TEXT | Yes | |
+| `center_employees` | INTEGER | Yes | |
+| `center_employees_range` | TEXT | Yes | |
+| `center_employees_range_source_link` | TEXT | Yes | |
+| `center_services` | TEXT | Yes | |
+| `center_first_year` | INTEGER | Yes | |
+| `center_comments` | TEXT | Yes | |
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `cn_unique_key` | string | Center reference |
-| `primary_service` | string | Primary service type |
-| `service_it` | string | IT services |
-| `service_erd` | string | ERD services |
-| `service_fna` | string | Finance and Accounting |
-| `service_hr` | string | HR services |
+### Services
+Represents service offerings connected to centers.
 
-### Function
-Represents business functions at a center.
+| Column | Type | Nullable | Notes |
+|--------|------|----------|-------|
+| `last_update_date` | TIMESTAMP | Yes | |
+| `account_global_legal_name` | TEXT | Yes | |
+| `cn_unique_key` | TEXT | Yes | |
+| `center_name` | TEXT | Yes | |
+| `center_type` | TEXT | Yes | |
+| `center_focus` | TEXT | Yes | |
+| `center_city` | TEXT | Yes | |
+| `primary_service` | TEXT | Yes | |
+| `focus_region` | TEXT | Yes | |
+| `service_it` | TEXT | Yes | |
+| `service_erd` | TEXT | Yes | |
+| `service_fna` | TEXT | Yes | |
+| `service_hr` | TEXT | Yes | |
+| `service_procurement` | TEXT | Yes | |
+| `service_sales_marketing` | TEXT | Yes | |
+| `service_customer_support` | TEXT | Yes | |
+| `service_others` | TEXT | Yes | |
+| `software_vendor` | TEXT | Yes | |
+| `software_in_use` | TEXT | Yes | |
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `cn_unique_key` | string | Center reference |
-| `function_name` | string | Function name |
+### Functions
+Represents business functions at centers.
+
+| Column | Type | Nullable | Notes |
+|--------|------|----------|-------|
+| `cn_unique_key` | TEXT | Yes | |
+| `function_name` | TEXT | Yes | |
+
+### Prospects
+Represents contacts and leads tied to accounts or centers.
+
+| Column | Type | Nullable | Notes |
+|--------|------|----------|-------|
+| `last_update_date` | TIMESTAMP | Yes | |
+| `account_global_legal_name` | TEXT | Yes | |
+| `center_name` | TEXT | Yes | |
+| `prospect_full_name` | TEXT | Yes | |
+| `prospect_first_name` | TEXT | Yes | |
+| `prospect_last_name` | TEXT | Yes | |
+| `prospect_title` | TEXT | Yes | |
+| `prospect_department` | TEXT | Yes | |
+| `prospect_level` | TEXT | Yes | |
+| `prospect_linkedin_url` | TEXT | Yes | |
+| `prospect_email` | TEXT | Yes | |
+| `prospect_city` | TEXT | Yes | |
+| `prospect_state` | TEXT | Yes | |
+| `prospect_country` | TEXT | Yes | |
 
 ---
 
