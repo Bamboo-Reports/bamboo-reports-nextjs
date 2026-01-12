@@ -113,7 +113,7 @@ export function FiltersSidebar({
                   {/* Account Filters */}
                   <div className="space-y-3">
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Country</Label>
+                      <Label className="text-xs font-medium">Countries</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.accountCountries || []}
                         selected={pendingFilters.accountCountries}
