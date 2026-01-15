@@ -39,13 +39,47 @@ interface PieChartCardProps {
 }
 
 export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel = "Count", showBigPercentage = false }: PieChartCardProps) => {
-  // Safety check: ensure data is an array
-  const safeData = React.useMemo(() => data || [], [data])
+  // Process data: Top 5 + Others
+  const safeData = React.useMemo(() => {
+    const rawData = data || []
+    
+    // Sort descending by value
+    const sorted = [...rawData].sort((a, b) => {
+      const valA = (a[dataKey as keyof typeof a] as number) || 0
+      const valB = (b[dataKey as keyof typeof b] as number) || 0
+      return valB - valA
+    })
+
+    // If 5 or fewer items, return as is (sorted)
+    if (sorted.length <= 5) return sorted
+
+    // Split into top 5 and others
+    const top5 = sorted.slice(0, 5)
+    const others = sorted.slice(5)
+    
+    // Calculate total for others
+    const othersValue = others.reduce((sum, item) => {
+      return sum + ((item[dataKey as keyof typeof item] as number) || 0)
+    }, 0)
+
+    // Add Others category if it has value
+    if (othersValue > 0) {
+      const othersItem = {
+        name: "Others",
+        [dataKey]: othersValue,
+        // Ensure value property exists if dataKey is different, to satisfy ChartData type
+        ...(dataKey !== "value" ? { value: othersValue } : {})
+      }
+      return [...top5, othersItem as ChartData]
+    }
+    
+    return top5
+  }, [data, dataKey])
 
   // Calculate total for percentage calculation
   const total = React.useMemo(() => {
-    return safeData.reduce((sum, item) => sum + (item.value || 0), 0)
-  }, [safeData])
+    return safeData.reduce((sum, item) => sum + ((item[dataKey as keyof typeof item] as number) || 0), 0)
+  }, [safeData, dataKey])
 
   // Create chart config from data
   const chartConfig = React.useMemo(() => {

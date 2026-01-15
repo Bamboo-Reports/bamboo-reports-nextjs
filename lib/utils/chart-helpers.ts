@@ -33,7 +33,6 @@ export const calculateChartData = (accounts: Account[], field: keyof Account): C
   return Array.from(counts.entries())
     .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value)
-    .slice(0, 10) // Top 10 for better readability
 }
 
 /**
@@ -50,11 +49,10 @@ export const calculateCenterChartData = (centers: Center[], field: keyof Center)
   return Array.from(counts.entries())
     .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value)
-    .slice(0, 10) // Top 10 for better readability
 }
 
 /**
- * Calculate city chart data with top 5 + Others
+ * Calculate city chart data
  */
 export const calculateCityChartData = (centers: Center[]): ChartData[] => {
   const counts = new Map<string, number>()
@@ -64,23 +62,9 @@ export const calculateCityChartData = (centers: Center[]): ChartData[] => {
     counts.set(city, (counts.get(city) || 0) + 1)
   })
 
-  const sorted = Array.from(counts.entries())
+  return Array.from(counts.entries())
     .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value)
-
-  // Take top 5 and group the rest as "Others"
-  if (sorted.length <= 5) {
-    return sorted
-  }
-
-  const top5 = sorted.slice(0, 5)
-  const others = sorted.slice(5).reduce((sum, item) => sum + item.value, 0)
-
-  if (others > 0) {
-    top5.push({ name: "Others", value: others })
-  }
-
-  return top5
 }
 
 /**
@@ -100,5 +84,5 @@ export const calculateFunctionChartData = (functions: Function[], centerKeys: st
   return Array.from(counts.entries())
     .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value)
-    .slice(0, 10) // Top 10 for better readability
 }
+
