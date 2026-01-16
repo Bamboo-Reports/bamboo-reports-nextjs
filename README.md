@@ -76,8 +76,8 @@ graph TD
     Client[Client Browser] <-->|Next.js Server Actions| AppServer[Next.js App Server]
     
     subgraph Data Layer
-        AppServer -->|Read-Only SQL| Neon[Neon PostgreSQL\n(Data Warehouse)]
-        AppServer -->|Auth & User Data| Supabase[Supabase\n(Auth, Profiles, Saved Filters)]
+        AppServer -->|Read-Only SQL| Neon["Neon PostgreSQL<br/>(Data Warehouse)"]
+        AppServer -->|Auth & User Data| Supabase["Supabase<br/>(Auth, Profiles, Saved Filters)"]
     end
     
     subgraph External APIs
