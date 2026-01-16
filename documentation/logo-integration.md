@@ -1,221 +1,100 @@
 # Logo.dev Integration Guide
 
-This application now supports displaying company logos for accounts and centers using Logo.dev.
+This guide details the integration of **Logo.dev** for fetching and displaying company logos across the application. It covers configuration, component usage, and troubleshooting.
 
-## Features
+> **Context:** Used to enhance the visual identity of Accounts and Centers in tables and dialogs.
 
-✅ **Automatic logo fetching** - Displays company logos based on domain names
-✅ **High-quality PNG format** - Uses PNG format for crisp, clear logos with transparency
-✅ **Responsive sizing** - 4 size options (sm, md, lg, xl)
-✅ **Smart fallbacks** - Shows building icon when logo is unavailable
-✅ **Lazy loading** - Optimized for performance with lazy image loading
-✅ **Theme support** - Automatic light/dark mode logo selection
-✅ **Domain cleaning** - Automatically extracts clean domain from various URL formats
-✅ **Optimized scaling** - Logos scaled 1.5x to better fill circular containers
-✅ **Table integration** - Logos appear in both detail dialogs and data table views
+---
 
-## Setup Instructions
+## 1. Configuration & Setup
 
-### 1. Get Your Logo.dev API Token
+### 1.1 Environment Variables
+To enable logo fetching, you must provide a publishable API token.
 
-1. Visit [Logo.dev](https://logo.dev) and sign up for a free account
-2. Navigate to your dashboard and copy your **publishable API key** (starts with `pk_`)
-3. The free tier includes enough requests for development and small applications
+| Variable | Required | Description |
+| :--- | :--- | :--- |
+| `NEXT_PUBLIC_LOGO_DEV_TOKEN` | **Yes** | The **publishable** key (starts with `pk_`) from your Logo.dev dashboard. Safe for client-side use. |
 
-### 2. Configure Environment Variable
+### 1.2 Data Requirements
+The component relies on specific database columns to extract the domain name for the logo lookup.
 
-Create a `.env.local` file in your project root (or add to existing file):
+-   **Accounts:** Uses `account_hq_website` (mapped from `ACCOUNT WEBSITE`).
+-   **Centers:** Uses `center_account_website` (mapped from `CENTER ACCOUNT WEBSITE`).
 
-```bash
-NEXT_PUBLIC_LOGO_DEV_TOKEN=pk_your_actual_token_here
+> **Note:** The component includes a helper to strip protocols (`https://`) and paths (`/about`) to extract the raw hostname (e.g., `microsoft.com`).
+
+---
+
+## 2. Component Reference: `<CompanyLogo />`
+
+A reusable, optimized component located at `components/ui/company-logo.tsx`.
+
+### 2.1 Props Interface
+
+```typescript
+interface CompanyLogoProps {
+  // The website URL or domain (e.g. "https://google.com" or "google.com")
+  domain?: string | null;
+  
+  // Company name for alt text and fallback initials
+  companyName: string;
+  
+  // Size variant (controls dimensions and API image quality)
+  size?: "sm" | "md" | "lg" | "xl";
+  
+  // Theme preference (defaults to "auto" for Logo.dev detection)
+  theme?: "light" | "dark" | "auto";
+  
+  // Additional CSS classes
+  className?: string;
+}
 ```
 
-**Important:** Never commit your actual token to version control!
+### 2.2 Size Mapping
 
-### 3. Data Requirements
+The component automatically requests a higher-resolution image than the container size to ensure sharpness on high-DPI displays.
 
-The application expects the following fields in your data:
+| Variant | Container Size | API Request Size | Use Case |
+| :--- | :--- | :--- | :--- |
+| `sm` | 32px | 80px | Data Tables (`AccountRow`, `CenterRow`) |
+| `md` | 48px | 100px | Detail Dialog Headers |
+| `lg` | 64px | 128px | Large Summary Cards (Future) |
+| `xl` | 96px | 150px | Profile / Hero Pages (Future) |
 
-**Accounts Sheet:**
-- `ACCOUNT WEBSITE` - Domain in format: `www.company.com` or `company.com`
+---
 
-**Centers Sheet:**
-- `CENTER ACCOUNT WEBSITE` - Domain in format: `www.company.com` or `company.com`
+## 3. Implementation Details
 
-Example data:
-```
-ACCOUNT NAME: Microsoft
-ACCOUNT WEBSITE: www.microsoft.com
+### 3.1 Usage Locations
+The `CompanyLogo` component is currently integrated in:
 
-CENTER NAME: Microsoft India Development Center
-CENTER ACCOUNT WEBSITE: www.microsoft.com
-```
+1.  **Account Dialog:** `components/dialogs/account-details-dialog.tsx` (Size: `md`)
+2.  **Center Dialog:** `components/dialogs/center-details-dialog.tsx` (Size: `md`)
+3.  **Account Table:** `components/tables/account-row.tsx` (Size: `sm`)
+4.  **Center Table:** `components/tables/center-row.tsx` (Size: `sm`)
 
-## Component Usage
+### 3.2 Performance & Fallback Logic
+1.  **Lazy Loading:** Images use `loading="lazy"` to prevent bandwidth waste on off-screen rows.
+2.  **Smart Scaling:** Logos are scaled `1.5x` within their container with `8%` padding to ensure they fill the circular frame visually without being cut off.
+3.  **Fallback Strategy:**
+    -   **State 1 (Loading):** Shows a skeletal pulse or generic building icon.
+    -   **State 2 (Success):** Displays the fetched PNG logo.
+    -   **State 3 (Error/404):** If Logo.dev returns a 404 (company not found), it permanently reverts to the generic Building icon to prevent broken image icons.
 
-The `CompanyLogo` component can be used anywhere in your application:
+---
 
-```tsx
-import { CompanyLogo } from "@/components/ui/company-logo"
+## 4. Troubleshooting
 
-// Basic usage
-<CompanyLogo
-  domain="www.google.com"
-  companyName="Google"
-/>
+| Issue | Check | Solution |
+| :--- | :--- | :--- |
+| **Logos are 403 Forbidden** | Environment Variable | Ensure `NEXT_PUBLIC_LOGO_DEV_TOKEN` is set in Vercel/local `.env`. |
+| **Building Icon Shows (No Logo)** | Domain Quality | Check if the database field (`account_hq_website`) is empty or invalid. |
+| **Building Icon Shows (Valid Domain)** | Logo Coverage | The company might not be in the Logo.dev index. This is expected behavior. |
+| **Logo is blurry** | Size Prop | Ensure you aren't using `size="sm"` in a large container. Upgrade to `md` or `lg`. |
 
-// With all options
-<CompanyLogo
-  domain="www.microsoft.com"
-  companyName="Microsoft"
-  size="lg"              // sm, md, lg, xl
-  theme="dark"           // light, dark, auto
-  className="custom-class"
-/>
-```
+---
 
-### Size Options
-- `sm`: 32px container, 80px image requested (for tables)
-- `md`: 48px container, 100px image requested (for dialogs)
-- `lg`: 64px container, 128px image requested
-- `xl`: 96px container, 150px image requested
+## 5. Security & Rate Limits
 
-Higher resolution images are requested to maintain quality when scaled 1.5x.
-
-## How It Works
-
-### Domain Extraction
-The component automatically cleans domain URLs:
-- `www.microsoft.com` → `microsoft.com`
-- `https://www.google.com` → `google.com`
-- `apple.com/products` → `apple.com`
-
-### Fallback Behavior
-1. Component tries to load logo from Logo.dev
-2. Shows loading state with building icon
-3. If logo loads successfully, displays it
-4. If logo fails to load or domain is invalid, shows building icon fallback
-
-### Performance Optimizations
-- **Lazy loading**: Images load only when they enter the viewport
-- **Optimized sizes**: Requests appropriate image size based on display size
-- **Caching**: Browser caches logos for faster subsequent loads
-- **PNG format**: Uses PNG for crisp, high-quality logos with transparency support
-- **Smart scaling**: Logos scaled 1.5x with 8% padding to optimally fill circular containers
-
-### Theme Support
-- `auto`: Logo.dev automatically detects and serves appropriate logo
-- `light`: Requests light mode logo (for dark backgrounds)
-- `dark`: Requests dark mode logo (for light backgrounds)
-
-## Current Implementation
-
-### Account Details Dialog
-- Logo appears in the header next to account name
-- Uses `ACCOUNT WEBSITE` field for domain
-- Container: `md` (48px)
-- Image requested: 100px from API
-- Theme: `auto`
-- Format: PNG
-- Scale: 1.5x with 8% padding
-
-Location: `/components/dialogs/account-details-dialog.tsx:73-78`
-
-### Center Details Dialog
-- Logo appears in the header next to center name
-- Uses `CENTER ACCOUNT WEBSITE` field for domain
-- Container: `md` (48px)
-- Image requested: 100px from API
-- Theme: `auto`
-- Format: PNG
-- Scale: 1.5x with 8% padding
-
-Location: `/components/dialogs/center-details-dialog.tsx:131-136`
-
-### Accounts Table View
-- Logo appears in the first column next to account name
-- Uses `ACCOUNT WEBSITE` field for domain
-- Container: `sm` (32px)
-- Image requested: 80px from API
-- Theme: `auto`
-- Format: PNG
-- Scale: 1.5x with 8% padding
-
-Location: `/components/tables/account-row.tsx:23-28`
-
-### Centers Table View
-- Logo appears in the first column next to account name
-- Uses `CENTER ACCOUNT WEBSITE` field for domain
-- Container: `sm` (32px)
-- Image requested: 80px from API
-- Theme: `auto`
-- Format: PNG
-- Scale: 1.5x with 8% padding
-
-Location: `/components/tables/center-row.tsx:18-23`
-
-## Troubleshooting
-
-### Logos not appearing?
-
-1. **Check your API token**
-   ```bash
-   echo $NEXT_PUBLIC_LOGO_DEV_TOKEN
-   ```
-
-2. **Verify domain data**
-   - Ensure `ACCOUNT WEBSITE` and `CENTER ACCOUNT WEBSITE` fields contain valid domains
-   - Check for typos or extra spaces
-
-3. **Check browser console**
-   - Look for 404 errors (logo not found - this is normal for some companies)
-   - Look for 401/403 errors (invalid API token)
-
-4. **Check Logo.dev coverage**
-   - Not all companies have logos in Logo.dev's database
-   - Fallback icon will show automatically
-
-### Building icon always showing?
-
-- Verify the domain field contains a valid domain with at least one dot
-- Check that the domain is not empty or just whitespace
-- Try accessing the logo URL directly: `https://img.logo.dev/domain.com?token=YOUR_TOKEN`
-
-## API Rate Limits
-
-Logo.dev free tier includes:
-- 10,000 requests per month
-- Sufficient for most development and small production apps
-
-For production applications with high traffic, consider:
-- Caching logos on your server
-- Using a CDN
-- Upgrading to a paid Logo.dev plan
-
-## Cost Considerations
-
-- **Free tier**: Perfect for development and low-traffic apps
-- **Paid tiers**: Available for high-volume applications
-- **Self-hosting**: Logo.dev also offers self-hosted options
-
-## Security Notes
-
-- API token is a **publishable key** (safe to use in client-side code)
-- Token should still be treated as sensitive (don't commit to public repos)
-- Use environment variables for configuration
-- Logo.dev URLs are served over HTTPS
-
-## Future Enhancements
-
-Possible improvements for the future:
-- [ ] Server-side logo caching to reduce API calls
-- [ ] Custom logo upload for companies not in Logo.dev
-- [ ] Logo size optimization based on screen DPI
-- [ ] Batch logo prefetching for tables
-- [ ] Logo color extraction for dynamic theming
-
-## Resources
-
-- [Logo.dev Documentation](https://docs.logo.dev)
-- [Logo.dev Dashboard](https://logo.dev/dashboard)
-- [Component Source](/components/ui/company-logo.tsx)
+-   **Security:** The API token is publishable. Do **not** use your Secret Key (starts with `sk_`).
+-   **Rate Limits:** The Free tier allows ~10k requests/month. Browser caching helps significantly reduce hit counts for recurring visitors.
