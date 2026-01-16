@@ -265,6 +265,7 @@ We maintain detailed documentation for specific subsystems in the `documentation
 - [**Saved Filters**](documentation/supabase-saved-filters.md): Technical spec for the saved filters JSON structure.
 - [**Project Architecture**](documentation/project-architecture.md): High-level design, Server Actions, and State Management.
 - [**Developer Workflow**](documentation/developer-workflow.md): Guide for common tasks, adding filters, and troubleshooting.
+- [**Logo Integration**](documentation/logo-integration.md): Setup and usage guide for the Logo.dev integration.
 
 ---
 
