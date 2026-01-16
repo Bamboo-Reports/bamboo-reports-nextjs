@@ -6,6 +6,8 @@ A modern Business Intelligence dashboard built with Next.js App Router, React, a
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red)](LICENSE)
+[![Supabase](https://img.shields.io/badge/Auth-Supabase-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com)
 
 ---
 
@@ -13,56 +15,81 @@ A modern Business Intelligence dashboard built with Next.js App Router, React, a
 
 - [Overview](#overview)
 - [Key Features](#key-features)
+- [Architecture & Data Flow](#architecture--data-flow)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
 - [Environment Variables](#environment-variables)
-- [Data Models](#data-models)
-- [Application Architecture](#application-architecture)
-- [Scripts](#scripts)
+- [Authentication & User Data](#authentication--user-data)
+- [Database & Schema](#database--schema)
 - [Deployment](#deployment)
-- [License](#license)
-- [Support](#support)
+- [Troubleshooting](#troubleshooting)
+- [Documentation Reference](#documentation-reference)
 
 ---
 
 ## Overview
 
-Bamboo Reports provides a unified view of business entities (Accounts, Centers, Services, Functions, and Prospects). The dashboard combines:
+Bamboo Reports provides a unified view of business entities (**Accounts**, **Centers**, **Services**, **Functions**, and **Prospects**). The dashboard combines high-performance data grids with geospatial analytics to empower decision-makers.
 
-- summary metrics and interactive charts,
-- map-based exploration of center locations,
-- advanced filtering with include/exclude logic,
-- and multi-sheet Excel exports for offline analysis.
-
-The product is designed for fast exploration of large datasets, with a UI optimized for quick iteration and high signal-to-noise decision making.
+### Core Value Proposition
+- **High Signal-to-Noise:** Designed for rapid filtering and drilling down into large datasets.
+- **Geospatial Intelligence:** Visualize delivery center density across Indian metros.
+- **Persistence:** Save complex filter configurations to the cloud (Supabase) for recurring reporting tasks.
+- **Exportability:** Generate boardroom-ready Excel reports with multi-sheet support.
 
 ---
 
 ## Key Features
 
 ### Dashboard and Insights
-- Summary cards showing filtered vs. total counts per entity.
-- Pie and donut charts for categorical breakdowns (region, nature, revenue, employees).
-- Tabbed navigation for Accounts, Centers, and Prospects.
-- Mapbox GL map with clustering for center locations.
+- **Smart Summary Cards:** Real-time filtered vs. total counts per entity.
+- **Interactive Charts:** Recharts-powered Pie and Donut charts for categorical breakdowns (Region, Nature, Revenue, Employees).
+- **Tabbed Navigation:** Seamless switching between Accounts, Centers, and Prospects contexts.
+- **Geospatial Analytics:** Mapbox GL map with clustering for center locations, optimized for 5000+ points.
 
-### Advanced Filtering
-- Multi-select filters for country, region, industry, category, nature, and more.
-- Include/exclude toggle per filter group for precise slicing.
-- Revenue range slider and keyword search.
-- Saved filter presets with load/update/delete workflows.
-- Debounced, auto-applied filtering for smooth UX.
+### Advanced Filtering Engine
+- **Multi-Select Filters:** Country, Region, Industry, Category, Nature, and more.
+- **Precision Slicing:** "Include" vs. "Exclude" toggle per filter group.
+- **Range Sliders:** Revenue and Employee count sliders with logarithmic scaling logic.
+- **Saved Filters:** Persist complex filter sets to Supabase with RLS isolation.
+- **Debounced Search:** 300ms debounce on keyword inputs to optimize database load.
 
-### Data Management and Exploration
-- Paginated tables (50 items per page) optimized for large datasets.
-- Row-level detail dialogs with complete record views.
-- Consistent type-safe models across the stack.
+### Data Management
+- **Paginated Tables:** 50 items per page, optimized for performance.
+- **Row-Level Details:** Comprehensive dialog views for every entity.
+- **Type Safety:** Shared TypeScript definitions ensuring consistency from DB to UI.
 
 ### Export and Integrations
-- Excel exports in `.xlsx` format.
-- Multi-sheet export for all entities or selected tabs.
-- Company logo rendering via Logo.dev API.
+- **Excel Exports:** Native `.xlsx` generation using `xlsx`.
+- **Multi-Sheet Support:** Export all filtered entities into separate sheets in a single file.
+- **Logo Integration:** Automated company logo fetching via Logo.dev API.
+
+---
+
+## Architecture & Data Flow
+
+The application follows a **Server-First** data architecture with **Client-Side** interactivity.
+
+```mermaid
+graph TD
+    Client[Client Browser] <-->|Next.js Server Actions| AppServer[Next.js App Server]
+    
+    subgraph Data Layer
+        AppServer -->|Read-Only SQL| Neon[Neon PostgreSQL\n(Data Warehouse)]
+        AppServer -->|Auth & User Data| Supabase[Supabase\n(Auth, Profiles, Saved Filters)]
+    end
+    
+    subgraph External APIs
+        Client -->|Map Tiles| Mapbox[Mapbox GL API]
+        Client -->|Images| LogoDev[Logo.dev API]
+    end
+```
+
+### Data Fetching Strategy
+1.  **Initial Load:** `Promise.all` fetches metadata (Filters, Counts) and initial page data concurrently.
+2.  **Filtering:** User actions trigger Server Actions (`app/actions.ts`) which construct dynamic SQL queries.
+3.  **Caching:** In-memory `Map` cache (5-minute TTL) prevents redundant DB hits for static reference data (Countries, Industries).
 
 ---
 
@@ -71,68 +98,56 @@ The product is designed for fast exploration of large datasets, with a UI optimi
 ### Core Framework
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| Next.js | 14.2.x | React framework with App Router |
-| React | 19 | UI library |
-| TypeScript | 5 | Type-safe development |
+| **Next.js** | 14.2.x | App Router, Server Actions, SSR |
+| **React** | 19 | Component Library, Hooks |
+| **TypeScript** | 5 | Strict Type Safety |
 
 ### UI and Styling
 | Technology | Purpose |
 |------------|---------|
-| Tailwind CSS | Utility-first styling |
-| shadcn/ui | Component library based on Radix UI |
-| Radix UI | Accessible primitives |
-| Lucide React | Icons |
-| next-themes | Theme handling |
-
-### Data and Visualization
-| Technology | Purpose |
-|------------|---------|
-| Recharts | Charting |
-| Mapbox GL | Interactive maps |
-| react-map-gl | Mapbox React integration |
-| xlsx | Excel export |
+| **Tailwind CSS** | Utility-first styling system |
+| **shadcn/ui** | Accessible component primitives (Radix UI) |
+| **Lucide React** | Consistent iconography |
+| **next-themes** | Dark/Light mode support |
 
 ### Backend and Utilities
 | Technology | Purpose |
 |------------|---------|
-| Neon PostgreSQL | Serverless database |
-| Next.js Server Actions | Server-side data operations |
-| Zod | Validation |
-| react-hook-form | Forms |
-| date-fns | Date utilities |
+| **Supabase** | Authentication, User Profiles, Saved Filters (JSONB) |
+| **Neon PostgreSQL** | Primary Business Intelligence Data Warehouse |
+| **Zod** | Schema validation for forms and API inputs |
+| **date-fns** | robust date manipulation |
 
 ---
 
 ## Project Structure
 
-```
+A highly organized codebase designed for scalability.
+
+```bash
 bamboo-reports-nextjs/
-  app/                         # Next.js App Router
-    page.tsx                   # Main dashboard page
-    layout.tsx                 # Root layout with providers
-    actions.ts                 # Server actions for data operations
-    globals.css                # Global styles
-  components/
-    charts/                    # Chart components
-    dashboard/                 # Summary cards and hero widgets
-    dialogs/                   # Row detail dialogs
-    filters/                   # Filter sidebar and controls
-    layout/                    # Header/footer layout
-    maps/                      # Mapbox visualization
-    states/                    # Loading/error/empty UI states
-    tables/                    # Table row components
-    tabs/                      # Tab content for entities
-    ui/                        # shadcn/ui base components
-  hooks/                       # Custom React hooks
-  lib/
-    types.ts                   # Shared TypeScript models
-    utils.ts                   # Utility helpers
-    utils/                     # Filter/export/chart helpers
-  public/                      # Static assets
-  styles/                      # Extra styling
-  next.config.mjs              # Next.js configuration
-  tailwind.config.ts           # Tailwind configuration
-  package.json                 # Scripts and dependencies
+├── app/                        # Next.js App Router (Pages & Layouts)
+│   ├── actions.ts              # SERVER ACTIONS (Data Fetching Layer)
+│   ├── layout.tsx              # Root layout (Providers, Toasters)
+│   └── page.tsx                # Main Dashboard Entry Point
+├── components/                 # React Components
+│   ├── charts/                 # Recharts Visualizations
+│   ├── dashboard/              # Summary Cards & Hero Stats
+│   ├── dialogs/                # Detail Views (Modal Popups)
+│   ├── filters/                # Sidebar Filter Logic
+│   ├── maps/                   # Mapbox Integration
+│   ├── saved-filters/          # Saved Filter CRUD Components
+│   ├── tables/                 # Data Grid Components
+│   └── ui/                     # Shared Design System (shadcn)
+├── lib/                        # Utilities & Configuration
+│   ├── supabase/               # Supabase Client Factory
+│   ├── types.ts                # SHARED TYPES (DB & UI)
+│   └── utils/                  # Helper Functions (Formatters, Sorters)
+├── documentation/              # DETAILED TECHNICAL DOCS
+│   ├── schema-migration-guide.md
+│   ├── supabase-auth-setup.md
+│   └── supabase-saved-filters.md
+└── public/                     # Static Assets (Images, Fonts)
 ```
 
 ---
@@ -140,282 +155,119 @@ bamboo-reports-nextjs/
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18.17+ (or later)
-- npm, yarn, or pnpm
-- Neon PostgreSQL database
-- Mapbox access token
+- **Node.js 18.17+**
+- **npm** (v9+) or **pnpm**
+- **Neon PostgreSQL:** Connection string for the data warehouse.
+- **Supabase Project:** For Authentication and User State.
+- **Mapbox Token:** For the geospatial view.
 
 ### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-org/bamboo-reports-nextjs.git
-   cd bamboo-reports-nextjs
-   ```
 
-2. Install dependencies:
-   ```bash
-   npm install
-   # or
-   yarn install
-   # or
-   pnpm install
-   ```
+1.  **Clone the Repository:**
+    ```bash
+    git clone https://github.com/researchnxt/bamboo-reports-nextjs.git
+    cd bamboo-reports-nextjs
+    ```
 
-3. Create local environment file:
-   ```bash
-   cp .env.example .env.local
-   ```
+2.  **Install Dependencies:**
+    ```bash
+    npm install
+    # or
+    pnpm install
+    ```
 
-4. Update `.env.local` values (see [Environment Variables](#environment-variables)).
+3.  **Environment Setup:**
+    Duplicate the example file and fill in your secrets.
+    ```bash
+    cp .env.example .env.local
+    ```
 
-5. Start the dev server:
-   ```bash
-   npm run dev
-   ```
-
-6. Open the app at `http://localhost:3000`.
+4.  **Run Development Server:**
+    ```bash
+    npm run dev
+    ```
+    Open [http://localhost:3000](http://localhost:3000) to view the app.
 
 ---
 
 ## Environment Variables
 
-Create `.env.local` in the project root:
-
-```bash
-# Database - Neon PostgreSQL connection string
-DATABASE_URL=postgresql://user:password@host.neon.tech/database?sslmode=require
-
-# Mapbox - For interactive maps in Centers tab
-# Get your token at: https://account.mapbox.com/access-tokens/
-NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=pk.your_mapbox_token_here
-
-# Logo.dev - For company logo fetching
-# Get your free token at: https://logo.dev
-NEXT_PUBLIC_LOGO_DEV_TOKEN=pk_your_logo_dev_token_here
-```
-
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DATABASE_URL` | Yes | Neon PostgreSQL connection string |
-| `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` | Yes | Mapbox access token |
-| `NEXT_PUBLIC_LOGO_DEV_TOKEN` | No | Logo.dev token for company logos |
+| `DATABASE_URL` | **Yes** | Neon PostgreSQL connection string (Postgres protocol). |
+| `NEXT_PUBLIC_SUPABASE_URL` | **Yes** | Your Supabase Project URL. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **Yes** | Supabase Public Anon Key (safe for client). |
+| `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` | **Yes** | Mapbox public token for rendering map tiles. |
+| `NEXT_PUBLIC_LOGO_DEV_TOKEN` | No | Token for fetching company logos (optional). |
 
 ---
 
-## Data Models
+## Authentication & User Data
 
-Schema reference: `schema_20260108_134200.json`.
+The app delegates identity management to **Supabase Auth**.
 
-### Schema Summary
+-   **Sign Up/Login:** Standard Email/Password flow.
+-   **Session Persistance:** Handled via HTTP-only cookies (Next.js Middleware).
+-   **User Data:**
+    -   **`public.profiles`**: Stores user metadata (First Name, Last Name, Role).
+    -   **`public.saved_filters`**: Stores JSON blobs of user's filter configurations.
+-   **Security:** Row Level Security (RLS) ensures full data isolation between users.
 
-| Table | Rows | Size (MB) | Primary Key |
-|-------|------|-----------|-------------|
-| `accounts` | 2450 | 2.727 | `account_global_legal_name` |
-| `centers` | 6161 | 8.781 | `cn_unique_key` |
-| `services` | 6131 | 3.148 | None |
-| `functions` | 13883 | 1.219 | None |
-| `prospects` | 38612 | 9.984 | None |
-
-### Accounts
-Represents companies or organizations.
-
-| Column | Type | Nullable | Notes |
-|--------|------|----------|-------|
-| `account_last_update_date` | TIMESTAMP | Yes | |
-| `account_nasscom_status` | TEXT | Yes | |
-| `account_nasscom_member_status` | TEXT | Yes | |
-| `account_global_legal_name` | TEXT | No | Primary key |
-| `account_about` | TEXT | Yes | |
-| `account_hq_address` | TEXT | Yes | |
-| `account_hq_city` | TEXT | Yes | |
-| `account_hq_state` | TEXT | Yes | |
-| `account_hq_zip_code` | TEXT | Yes | |
-| `account_hq_country` | TEXT | Yes | |
-| `account_hq_region` | TEXT | Yes | |
-| `account_hq_boardline` | TEXT | Yes | |
-| `account_hq_website` | TEXT | Yes | |
-| `account_hq_key_offerings` | TEXT | Yes | |
-| `account_key_offerings_source_link` | TEXT | Yes | |
-| `account_hq_sub_industry` | TEXT | Yes | |
-| `account_hq_industry` | TEXT | Yes | |
-| `account_primary_category` | TEXT | Yes | |
-| `account_primary_nature` | TEXT | Yes | |
-| `account_hq_forbes_2000_rank` | INTEGER | Yes | |
-| `account_hq_fortune_500_rank` | INTEGER | Yes | |
-| `account_hq_company_type` | TEXT | Yes | |
-| `account_hq_revenue` | BIGINT | Yes | |
-| `account_hq_revenue_range` | TEXT | Yes | |
-| `account_hq_fy_end` | TEXT | Yes | |
-| `account_hq_revenue_year` | INTEGER | Yes | |
-| `account_hq_revenue_source_type` | TEXT | Yes | |
-| `account_hq_revenue_source_link` | TEXT | Yes | |
-| `account_hq_employee_count` | INTEGER | Yes | |
-| `account_hq_employee_range` | TEXT | Yes | |
-| `account_hq_employee_source_type` | TEXT | Yes | |
-| `account_hq_employee_source_link` | TEXT | Yes | |
-| `account_center_employees` | INTEGER | Yes | |
-| `account_center_employees_range` | TEXT | Yes | |
-| `years_in_india` | INTEGER | Yes | |
-| `account_first_center_year` | INTEGER | Yes | |
-| `account_comments` | TEXT | Yes | |
-| `account_coverage` | TEXT | Yes | |
-
-### Centers
-Represents account-owned business or service centers.
-
-| Column | Type | Nullable | Notes |
-|--------|------|----------|-------|
-| `last_update_date` | TIMESTAMP | Yes | |
-| `cn_unique_key` | TEXT | No | Primary key |
-| `account_global_legal_name` | TEXT | Yes | |
-| `center_status` | TEXT | Yes | |
-| `center_inc_year` | INTEGER | Yes | |
-| `center_inc_year_notes` | TEXT | Yes | |
-| `center_inc_year_updated_link` | TEXT | Yes | |
-| `center_timeline` | TEXT | Yes | |
-| `center_end_year` | INTEGER | Yes | |
-| `center_account_website` | TEXT | Yes | |
-| `center_name` | TEXT | Yes | |
-| `center_business_segment` | TEXT | Yes | |
-| `center_business_sub_segment` | TEXT | Yes | |
-| `center_management_partner` | TEXT | Yes | |
-| `center_jv_status` | TEXT | Yes | |
-| `center_jv_name` | TEXT | Yes | |
-| `center_type` | TEXT | Yes | |
-| `center_focus` | TEXT | Yes | |
-| `center_source_link` | TEXT | Yes | |
-| `center_website` | TEXT | Yes | |
-| `center_linkedin` | TEXT | Yes | |
-| `center_address` | TEXT | Yes | |
-| `center_city` | TEXT | Yes | |
-| `center_state` | TEXT | Yes | |
-| `center_zip_code` | TEXT | Yes | |
-| `center_country` | TEXT | Yes | |
-| `lat` | DOUBLE PRECISION | Yes | |
-| `lng` | DOUBLE PRECISION | Yes | |
-| `center_region` | TEXT | Yes | |
-| `center_boardline` | TEXT | Yes | |
-| `center_employees` | INTEGER | Yes | |
-| `center_employees_range` | TEXT | Yes | |
-| `center_employees_range_source_link` | TEXT | Yes | |
-| `center_services` | TEXT | Yes | |
-| `center_first_year` | INTEGER | Yes | |
-| `center_comments` | TEXT | Yes | |
-
-### Services
-Represents service offerings connected to centers.
-
-| Column | Type | Nullable | Notes |
-|--------|------|----------|-------|
-| `last_update_date` | TIMESTAMP | Yes | |
-| `account_global_legal_name` | TEXT | Yes | |
-| `cn_unique_key` | TEXT | Yes | |
-| `center_name` | TEXT | Yes | |
-| `center_type` | TEXT | Yes | |
-| `center_focus` | TEXT | Yes | |
-| `center_city` | TEXT | Yes | |
-| `primary_service` | TEXT | Yes | |
-| `focus_region` | TEXT | Yes | |
-| `service_it` | TEXT | Yes | |
-| `service_erd` | TEXT | Yes | |
-| `service_fna` | TEXT | Yes | |
-| `service_hr` | TEXT | Yes | |
-| `service_procurement` | TEXT | Yes | |
-| `service_sales_marketing` | TEXT | Yes | |
-| `service_customer_support` | TEXT | Yes | |
-| `service_others` | TEXT | Yes | |
-| `software_vendor` | TEXT | Yes | |
-| `software_in_use` | TEXT | Yes | |
-
-### Functions
-Represents business functions at centers.
-
-| Column | Type | Nullable | Notes |
-|--------|------|----------|-------|
-| `cn_unique_key` | TEXT | Yes | |
-| `function_name` | TEXT | Yes | |
-
-### Prospects
-Represents contacts and leads tied to accounts or centers.
-
-| Column | Type | Nullable | Notes |
-|--------|------|----------|-------|
-| `last_update_date` | TIMESTAMP | Yes | |
-| `account_global_legal_name` | TEXT | Yes | |
-| `center_name` | TEXT | Yes | |
-| `prospect_full_name` | TEXT | Yes | |
-| `prospect_first_name` | TEXT | Yes | |
-| `prospect_last_name` | TEXT | Yes | |
-| `prospect_title` | TEXT | Yes | |
-| `prospect_department` | TEXT | Yes | |
-| `prospect_level` | TEXT | Yes | |
-| `prospect_linkedin_url` | TEXT | Yes | |
-| `prospect_email` | TEXT | Yes | |
-| `prospect_city` | TEXT | Yes | |
-| `prospect_state` | TEXT | Yes | |
-| `prospect_country` | TEXT | Yes | |
+> **Setup Guide:** Follow the [Supabase Auth Setup](documentation/supabase-auth-setup.md) guide to initialize your Supabase project tables.
 
 ---
 
-## Application Architecture
+## Database & Schema
 
-### Server Actions
-All database reads use Next.js Server Actions in `app/actions.ts`:
-- retry logic for transient failures,
-- in-memory caching with a 5-minute TTL,
-- concurrent fetching for faster page loads,
-- structured error handling with UI fallbacks.
+The core BI data resides in **Neon PostgreSQL**. We strictly follow `snake_case` naming.
 
-### Performance and UX Optimizations
-- memoized row components to reduce re-renders,
-- `useMemo`/`useCallback` for derived data,
-- `useDeferredValue` for filter-heavy UI,
-- 150ms debounced search input,
-- pagination defaults to 50 rows per page.
+-   **Tables:** `accounts`, `centers`, `services`, `functions`, `prospects`.
+-   **Linkage:**
+    -   `centers` are linked to `accounts` via `account_global_legal_name`.
+    -   `services` are linked to `centers` via `cn_unique_key`.
 
-### Component Design
-The UI is organized by feature folders for clarity:
-charts, dialogs, filters, tables, tabs, and shared UI primitives.
-
----
-
-## Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start the development server |
-| `npm run build` | Build for production |
-| `npm run start` | Run production build |
-| `npm run lint` | Run ESLint |
+> **Reference:** See the [Schema Migration Guide](documentation/schema-migration-guide.md) for the complete column definition and table relationships.
 
 ---
 
 ## Deployment
 
 ### Vercel (Recommended)
-1. Push the repository to GitHub.
-2. Import the repo in Vercel.
-3. Configure environment variables in Vercel.
-4. Deploy.
 
-### Manual Deployment
-1. Build:
-   ```bash
-   npm run build
-   ```
-2. Start:
-   ```bash
-   npm run start
-   ```
+This project is optimized for Vercel.
+
+1.  **Push to GitHub.**
+2.  **Import in Vercel:** Select the repository.
+3.  **Configure Environment Variables:** Add all keys from your `.env.local`.
+4.  **Deploy:** Vercel will auto-detect Next.js and build.
+
+*Note: The build process uses `pnpm` to ensure consistent dependency resolution.*
+
+---
+
+## Troubleshooting
+
+| Issue | Possible Cause | Solution |
+| :--- | :--- | :--- |
+| **Map not loading** | Invalid Mapbox Token | Check `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`. Ensure the token has `styles:read` scope. |
+| **"Database connection failed"** | Neon Scaling / Network | The Neon instance might be sleeping. Retry after 5 seconds. Check `DATABASE_URL`. |
+| **Auth Errors (401/403)** | Supabase Config | Verify `NEXT_PUBLIC_SUPABASE_URL` and `ANON_KEY`. Check RLS policies in Supabase dashboard. |
+| **Missing Logos** | Logo.dev Token | Ensure `NEXT_PUBLIC_LOGO_DEV_TOKEN` is set. If omitted, fallback initials are used. |
+
+---
+
+## Documentation Reference
+
+We maintain detailed documentation for specific subsystems in the `documentation/` folder:
+
+- [**Schema Guide**](documentation/schema-migration-guide.md): Deep dive into the data model and migration paths.
+- [**Supabase Auth**](documentation/supabase-auth-setup.md): Setting up the `profiles` table and Auth triggers.
+- [**Saved Filters**](documentation/supabase-saved-filters.md): Technical spec for the saved filters JSON structure.
+- [**Project Architecture**](documentation/project-architecture.md): High-level design, Server Actions, and State Management.
+- [**Developer Workflow**](documentation/developer-workflow.md): Guide for common tasks, adding filters, and troubleshooting.
 
 ---
 
 ## License
 
-This project is proprietary software owned by ResearchNXT.
-
----
-
-## Support
-
-For questions or support, contact the ResearchNXT development team.
+Proprietary software owned by ResearchNXT.
