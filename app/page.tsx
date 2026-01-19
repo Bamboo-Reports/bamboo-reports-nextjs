@@ -1302,6 +1302,7 @@ function DashboardContent() {
 
                 <CentersTab
                   centers={filteredData.filteredCenters}
+                  allCenters={centers}
                   functions={functions}
                   services={filteredData.filteredServices}
                   centerChartData={centerChartData}
