@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, Download, PieChartIcon, Table as TableIcon, MapIcon, LayoutGrid } from "lucide-react"
+import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, Download, PieChartIcon, Table as TableIcon, MapIcon, LayoutGrid, Layers, MapPin } from "lucide-react"
 import { CenterRow } from "@/components/tables"
 import { CenterGridCard } from "@/components/cards/center-grid-card"
 import { PieChartCard } from "@/components/charts/pie-chart-card"
@@ -15,12 +15,14 @@ import { CenterDetailsDialog } from "@/components/dialogs/center-details-dialog"
 import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
 import { exportToExcel } from "@/lib/utils/export-helpers"
 import { CentersMap } from "@/components/maps/centers-map"
+import { CentersChoroplethMap } from "@/components/maps/centers-choropleth-map"
 import { MapErrorBoundary } from "@/components/maps/map-error-boundary"
 import { ViewSwitcher } from "@/components/ui/view-switcher"
 import type { Center, Function, Service } from "@/lib/types"
 
 interface CentersTabProps {
   centers: Center[]
+  allCenters: Center[]
   functions: Function[]
   services: Service[]
   centerChartData: {
@@ -38,6 +40,7 @@ interface CentersTabProps {
 
 export function CentersTab({
   centers,
+  allCenters,
   services,
   centerChartData,
   centersView,
@@ -56,6 +59,7 @@ export function CentersTab({
     direction: null,
   })
   const [dataLayout, setDataLayout] = useState<"table" | "grid">("table")
+  const [mapMode, setMapMode] = useState<"city" | "state">("city")
 
   const handleCenterClick = (center: Center) => {
     setSelectedCenter(center)
@@ -206,11 +210,34 @@ export function CentersTab({
        {centersView === "map" && (
          <Card className="flex flex-col h-[calc(100vh-22.5rem)] border shadow-sm animate-fade-in">
            <CardHeader className="shrink-0 px-6 py-4">
-             <CardTitle className="text-lg">Centers Map</CardTitle>
+             <div className="flex items-center gap-3">
+               <CardTitle className="text-lg">Centers Map</CardTitle>
+               <ViewSwitcher
+                 value={mapMode}
+                 onValueChange={(value) => setMapMode(value as "city" | "state")}
+                 options={[
+                   {
+                     value: "city",
+                     label: <span className="text-[hsl(var(--chart-4))]">City</span>,
+                     icon: <MapPin className="h-4 w-4 text-[hsl(var(--chart-4))]" />,
+                   },
+                   {
+                     value: "state",
+                     label: <span className="text-[hsl(var(--chart-3))]">State</span>,
+                     icon: <Layers className="h-4 w-4 text-[hsl(var(--chart-3))]" />,
+                   },
+                 ]}
+                 className="ml-auto"
+               />
+             </div>
            </CardHeader>
            <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
              <MapErrorBoundary>
-               <CentersMap centers={centers} heightClass="h-full" />
+               {mapMode === "city" ? (
+                 <CentersMap centers={centers} heightClass="h-full" />
+               ) : (
+                 <CentersChoroplethMap centers={centers} allCenters={allCenters} heightClass="h-full" />
+               )}
              </MapErrorBoundary>
            </CardContent>
          </Card>
