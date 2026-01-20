@@ -104,9 +104,7 @@ export interface FilterValue {
 
 export interface Filters {
   accountCountries: FilterValue[]
-  accountRegions: FilterValue[]
   accountIndustries: FilterValue[]
-  accountSubIndustries: FilterValue[]
   accountPrimaryCategories: FilterValue[]
   accountPrimaryNatures: FilterValue[]
   accountNasscomStatuses: FilterValue[]
@@ -114,6 +112,10 @@ export interface Filters {
   accountCenterEmployees: FilterValue[]
   accountRevenueRange: [number, number]
   includeNullRevenue: boolean
+  accountYearsInIndiaRange: [number, number]
+  includeNullYearsInIndia: boolean
+  accountFirstCenterYearRange: [number, number]
+  includeNullFirstCenterYear: boolean
   accountNameKeywords: FilterValue[]
   centerTypes: FilterValue[]
   centerFocus: FilterValue[]
@@ -122,12 +124,13 @@ export interface Filters {
   centerCountries: FilterValue[]
   centerEmployees: FilterValue[]
   centerStatuses: FilterValue[]
+  centerIncYearRange: [number, number]
+  includeNullCenterIncYear: boolean
   functionTypes: FilterValue[]
   prospectDepartments: FilterValue[]
   prospectLevels: FilterValue[]
   prospectCities: FilterValue[]
   prospectTitleKeywords: FilterValue[]
-  searchTerm: string
 }
 
 export interface FilterOption {
@@ -138,9 +141,7 @@ export interface FilterOption {
 
 export interface AvailableOptions {
   accountCountries: FilterOption[]
-  accountRegions: FilterOption[]
   accountIndustries: FilterOption[]
-  accountSubIndustries: FilterOption[]
   accountPrimaryCategories: FilterOption[]
   accountPrimaryNatures: FilterOption[]
   accountNasscomStatuses: FilterOption[]

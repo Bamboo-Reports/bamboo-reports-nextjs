@@ -2,34 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useRef, useEffect, useLayoutEffect, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Slider } from "@/components/ui/slider"
-import {
-  Filter,
-  RotateCcw,
-  Info,
-  Download,
-  Database,
-  RefreshCw,
-  AlertCircle,
-  CheckCircle,
-  ExternalLink,
-  Copy,
-  Loader2,
-  Building,
-  Briefcase,
-  PieChartIcon,
-  Table as TableIcon,
-} from "lucide-react"
-import { MultiSelect } from "@/components/multi-select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getAllData, testConnection, getDatabaseStatus, clearCache } from "./actions"
 import { LoadingState } from "@/components/states/loading-state"
 import { ErrorState } from "@/components/states/error-state"
@@ -41,11 +14,6 @@ import { ProspectsTab } from "@/components/tabs/prospects-tab"
 import {
   parseRevenue,
   formatRevenueInMillions,
-  debounce,
-  getPaginatedData,
-  getTotalPages,
-  getPageInfo,
-  copyToClipboard,
 } from "@/lib/utils/helpers"
 import {
   createValueMatcher,
@@ -58,7 +26,6 @@ import {
   calculateFunctionChartData,
 } from "@/lib/utils/chart-helpers"
 import {
-  exportToExcel,
   exportAllData as exportAll,
 } from "@/lib/utils/export-helpers"
 import type { Account, Center, Function, Service, Prospect, Filters, FilterOption, AvailableOptions } from "@/lib/types"
@@ -76,11 +43,12 @@ function DashboardContent() {
   const [connectionStatus, setConnectionStatus] = useState<string>("")
   const [dbStatus, setDbStatus] = useState<any>(null)
   const [revenueRange, setRevenueRange] = useState<{ min: number; max: number }>({ min: 0, max: 1000000 })
+  const [yearsInIndiaRange, setYearsInIndiaRange] = useState<{ min: number; max: number }>({ min: 0, max: 1000000 })
+  const [firstCenterYearRange, setFirstCenterYearRange] = useState<{ min: number; max: number }>({ min: 0, max: 1000000 })
+  const [centerIncYearRange, setCenterIncYearRange] = useState<{ min: number; max: number }>({ min: 0, max: 1000000 })
   const [filters, setFilters] = useState<Filters>({
     accountCountries: [],
-    accountRegions: [],
     accountIndustries: [],
-    accountSubIndustries: [],
     accountPrimaryCategories: [],
     accountPrimaryNatures: [],
     accountNasscomStatuses: [],
@@ -88,6 +56,10 @@ function DashboardContent() {
     accountCenterEmployees: [],
     accountRevenueRange: [0, 1000000],
     includeNullRevenue: false,
+    accountYearsInIndiaRange: [0, 1000000],
+    includeNullYearsInIndia: false,
+    accountFirstCenterYearRange: [0, 1000000],
+    includeNullFirstCenterYear: false,
     accountNameKeywords: [],
     centerTypes: [],
     centerFocus: [],
@@ -96,18 +68,17 @@ function DashboardContent() {
     centerCountries: [],
     centerEmployees: [],
     centerStatuses: [],
+    centerIncYearRange: [0, 1000000],
+    includeNullCenterIncYear: false,
     functionTypes: [],
     prospectDepartments: [],
     prospectLevels: [],
     prospectCities: [],
     prospectTitleKeywords: [],
-    searchTerm: "",
   })
   const [pendingFilters, setPendingFilters] = useState<Filters>({
     accountCountries: [],
-    accountRegions: [],
     accountIndustries: [],
-    accountSubIndustries: [],
     accountPrimaryCategories: [],
     accountPrimaryNatures: [],
     accountNasscomStatuses: [],
@@ -115,6 +86,10 @@ function DashboardContent() {
     accountCenterEmployees: [],
     accountRevenueRange: [0, 1000000],
     includeNullRevenue: false,
+    accountYearsInIndiaRange: [0, 1000000],
+    includeNullYearsInIndia: false,
+    accountFirstCenterYearRange: [0, 1000000],
+    includeNullFirstCenterYear: false,
     accountNameKeywords: [],
     centerTypes: [],
     centerFocus: [],
@@ -123,17 +98,17 @@ function DashboardContent() {
     centerCountries: [],
     centerEmployees: [],
     centerStatuses: [],
+    centerIncYearRange: [0, 1000000],
+    includeNullCenterIncYear: false,
     functionTypes: [],
     prospectDepartments: [],
     prospectLevels: [],
     prospectCities: [],
     prospectTitleKeywords: [],
-    searchTerm: "",
   })
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(50)
   const [isApplying, setIsApplying] = useState(false)
-  const [searchInput, setSearchInput] = useState("")
   const [accountsView, setAccountsView] = useState<"chart" | "data">("chart")
   const [centersView, setCentersView] = useState<"chart" | "data" | "map">("chart")
   const [prospectsView, setProspectsView] = useState<"chart" | "data">("chart")
@@ -157,22 +132,6 @@ function DashboardContent() {
       max: Math.max(...validRevenues),
     }
   }, [accounts])
-
-  // Debounced search handler - optimized for fast response
-  const debouncedSearch = useMemo(
-    () =>
-      debounce((value: string) => {
-        setPendingFilters((prev) => ({ ...prev, searchTerm: value }))
-      }, 150),
-    [setPendingFilters]
-  )
-
-  // Handle search input change
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setSearchInput(value)
-    debouncedSearch(value)
-  }
 
   const checkDatabaseStatus = useCallback(async () => {
     try {
@@ -279,6 +238,48 @@ function DashboardContent() {
         setPendingFilters((prev) => ({ ...prev, accountRevenueRange: newRange }))
       }
 
+      const yearsInIndiaValues = accountsData
+        .map((account: Account) => Number(account.years_in_india ?? 0))
+        .filter((value: number) => value > 0)
+
+      if (yearsInIndiaValues.length > 0) {
+        const minYearsInIndia = Math.min(...yearsInIndiaValues)
+        const maxYearsInIndia = Math.max(...yearsInIndiaValues)
+        setYearsInIndiaRange({ min: minYearsInIndia, max: maxYearsInIndia })
+
+        const newRange: [number, number] = [minYearsInIndia, maxYearsInIndia]
+        setFilters((prev) => ({ ...prev, accountYearsInIndiaRange: newRange }))
+        setPendingFilters((prev) => ({ ...prev, accountYearsInIndiaRange: newRange }))
+      }
+
+      const firstCenterYearValues = accountsData
+        .map((account: Account) => Number(account.account_first_center_year ?? 0))
+        .filter((value: number) => value > 0)
+
+      if (firstCenterYearValues.length > 0) {
+        const minFirstCenterYear = Math.min(...firstCenterYearValues)
+        const maxFirstCenterYear = Math.max(...firstCenterYearValues)
+        setFirstCenterYearRange({ min: minFirstCenterYear, max: maxFirstCenterYear })
+
+        const newRange: [number, number] = [minFirstCenterYear, maxFirstCenterYear]
+        setFilters((prev) => ({ ...prev, accountFirstCenterYearRange: newRange }))
+        setPendingFilters((prev) => ({ ...prev, accountFirstCenterYearRange: newRange }))
+      }
+
+      const centerIncYearValues = centersData
+        .map((center: Center) => Number(center.center_inc_year ?? 0))
+        .filter((value: number) => value > 0)
+
+      if (centerIncYearValues.length > 0) {
+        const minCenterIncYear = Math.min(...centerIncYearValues)
+        const maxCenterIncYear = Math.max(...centerIncYearValues)
+        setCenterIncYearRange({ min: minCenterIncYear, max: maxCenterIncYear })
+
+        const newRange: [number, number] = [minCenterIncYear, maxCenterIncYear]
+        setFilters((prev) => ({ ...prev, centerIncYearRange: newRange }))
+        setPendingFilters((prev) => ({ ...prev, centerIncYearRange: newRange }))
+      }
+
       setConnectionStatus(
         `Successfully loaded: ${accountsData.length} accounts, ${centersData.length} centers, ${functionsData.length} functions, ${servicesData.length} services, ${prospectsData.length} prospects`
       )
@@ -364,33 +365,51 @@ function DashboardContent() {
     )
   }, [accounts])
 
+  const normalizeNumber = (value: number | string | null | undefined) => {
+    if (value === null || value === undefined || value === "") return 0
+    const num = typeof value === "number" ? value : Number(value)
+    return Number.isFinite(num) ? num : 0
+  }
+
+  const parseRevenueValue = (value: number | string | null | undefined) => parseRevenue(value ?? 0)
+
+  const rangeFilterMatch = (
+    range: [number, number],
+    value: number | string | null | undefined,
+    includeNull: boolean,
+    parser: (value: number | string | null | undefined) => number = normalizeNumber
+  ) => {
+    const numValue = parser(value)
+
+    if (includeNull && (numValue === 0 || value === null || value === undefined || value === "")) {
+      return true
+    }
+
+    if (!includeNull && (numValue === 0 || value === null || value === undefined || value === "")) {
+      return false
+    }
+
+    return numValue >= range[0] && numValue <= range[1]
+  }
+
   // Main filtering logic - single pass optimized
   const filteredData = useMemo(() => {
     const activeFilters = filters
-    const rangeFilterMatch = (range: [number, number], value: string | number, includeNull: boolean) => {
-      const numValue = parseRevenue(value)
-
-      if (includeNull && (numValue === 0 || value === null || value === undefined || value === "")) {
-        return true
-      }
-
-      if (!includeNull && (numValue === 0 || value === null || value === undefined || value === "")) {
-        return false
-      }
-
-      return numValue >= range[0] && numValue <= range[1]
-    }
 
     const matchAccountCountry = createValueMatcher(activeFilters.accountCountries)
-    const matchAccountRegion = createValueMatcher(activeFilters.accountRegions)
     const matchAccountIndustry = createValueMatcher(activeFilters.accountIndustries)
-    const matchAccountSubIndustry = createValueMatcher(activeFilters.accountSubIndustries)
     const matchAccountPrimaryCategory = createValueMatcher(activeFilters.accountPrimaryCategories)
     const matchAccountPrimaryNature = createValueMatcher(activeFilters.accountPrimaryNatures)
     const matchAccountNasscom = createValueMatcher(activeFilters.accountNasscomStatuses)
     const matchAccountEmployeesRange = createValueMatcher(activeFilters.accountEmployeesRanges)
     const matchAccountCenterEmployees = createValueMatcher(activeFilters.accountCenterEmployees)
     const matchAccountName = createKeywordMatcher(activeFilters.accountNameKeywords)
+    const matchAccountRevenue = (value: number | string | null | undefined) =>
+      rangeFilterMatch(activeFilters.accountRevenueRange, value, activeFilters.includeNullRevenue, parseRevenueValue)
+    const matchAccountYearsInIndia = (value: number | string | null | undefined) =>
+      rangeFilterMatch(activeFilters.accountYearsInIndiaRange, value, activeFilters.includeNullYearsInIndia)
+    const matchAccountFirstCenterYear = (value: number | string | null | undefined) =>
+      rangeFilterMatch(activeFilters.accountFirstCenterYearRange, value, activeFilters.includeNullFirstCenterYear)
 
     const matchCenterType = createValueMatcher(activeFilters.centerTypes)
     const matchCenterFocus = createValueMatcher(activeFilters.centerFocus)
@@ -399,6 +418,8 @@ function DashboardContent() {
     const matchCenterCountry = createValueMatcher(activeFilters.centerCountries)
     const matchCenterEmployees = createValueMatcher(activeFilters.centerEmployees)
     const matchCenterStatus = createValueMatcher(activeFilters.centerStatuses)
+    const matchCenterIncYear = (value: number | string | null | undefined) =>
+      rangeFilterMatch(activeFilters.centerIncYearRange, value, activeFilters.includeNullCenterIncYear)
 
     const matchFunctionType = createValueMatcher(activeFilters.functionTypes)
 
@@ -409,9 +430,7 @@ function DashboardContent() {
 
     const hasAccountFilters =
       activeFilters.accountCountries.length > 0 ||
-      activeFilters.accountRegions.length > 0 ||
       activeFilters.accountIndustries.length > 0 ||
-      activeFilters.accountSubIndustries.length > 0 ||
       activeFilters.accountPrimaryCategories.length > 0 ||
       activeFilters.accountPrimaryNatures.length > 0 ||
       activeFilters.accountNasscomStatuses.length > 0 ||
@@ -420,6 +439,12 @@ function DashboardContent() {
       activeFilters.accountRevenueRange[0] > 0 ||
       activeFilters.accountRevenueRange[1] < Number.MAX_SAFE_INTEGER ||
       activeFilters.includeNullRevenue ||
+      activeFilters.accountYearsInIndiaRange[0] > 0 ||
+      activeFilters.accountYearsInIndiaRange[1] < Number.MAX_SAFE_INTEGER ||
+      activeFilters.includeNullYearsInIndia ||
+      activeFilters.accountFirstCenterYearRange[0] > 0 ||
+      activeFilters.accountFirstCenterYearRange[1] < Number.MAX_SAFE_INTEGER ||
+      activeFilters.includeNullFirstCenterYear ||
       activeFilters.accountNameKeywords.length > 0
 
     const hasProspectFilters =
@@ -440,17 +465,15 @@ function DashboardContent() {
 
     for (const account of accounts) {
       if (!matchAccountCountry(account.account_hq_country)) continue
-      if (!matchAccountRegion(account.account_hq_region)) continue
       if (!matchAccountIndustry(account.account_hq_industry)) continue
-      if (!matchAccountSubIndustry(account.account_hq_sub_industry)) continue
       if (!matchAccountPrimaryCategory(account.account_primary_category)) continue
       if (!matchAccountPrimaryNature(account.account_primary_nature)) continue
       if (!matchAccountNasscom(account.account_nasscom_status)) continue
       if (!matchAccountEmployeesRange(account.account_hq_employee_range)) continue
       if (!matchAccountCenterEmployees(account.account_center_employees_range || "")) continue
-      if (!rangeFilterMatch(activeFilters.accountRevenueRange, account.account_hq_revenue, activeFilters.includeNullRevenue)) {
-        continue
-      }
+      if (!matchAccountRevenue(account.account_hq_revenue)) continue
+      if (!matchAccountYearsInIndia(account.years_in_india)) continue
+      if (!matchAccountFirstCenterYear(account.account_first_center_year)) continue
       if (!matchAccountName(account.account_global_legal_name)) continue
 
       filteredAccounts.push(account)
@@ -466,6 +489,7 @@ function DashboardContent() {
       if (!matchCenterCountry(center.center_country)) continue
       if (!matchCenterEmployees(center.center_employees_range)) continue
       if (!matchCenterStatus(center.center_status)) continue
+      if (!matchCenterIncYear(center.center_inc_year)) continue
 
       filteredCenters.push(center)
       centerKeySet.add(center.cn_unique_key)
@@ -585,16 +609,29 @@ function DashboardContent() {
   // Dynamic revenue range calculation - optimized with selective filter state
   const filterStateForRevenue = useMemo(() => ({
     accountCountries: filters.accountCountries,
-    accountRegions: filters.accountRegions,
     accountIndustries: filters.accountIndustries,
-    accountSubIndustries: filters.accountSubIndustries,
     accountPrimaryCategories: filters.accountPrimaryCategories,
     accountPrimaryNatures: filters.accountPrimaryNatures,
     accountNasscomStatuses: filters.accountNasscomStatuses,
     accountEmployeesRanges: filters.accountEmployeesRanges,
     accountCenterEmployees: filters.accountCenterEmployees,
-    searchTerm: filters.searchTerm,
-  }), [filters.accountCountries, filters.accountRegions, filters.accountIndustries, filters.accountSubIndustries, filters.accountPrimaryCategories, filters.accountPrimaryNatures, filters.accountNasscomStatuses, filters.accountEmployeesRanges, filters.accountCenterEmployees, filters.searchTerm])
+    accountYearsInIndiaRange: filters.accountYearsInIndiaRange,
+    includeNullYearsInIndia: filters.includeNullYearsInIndia,
+    accountFirstCenterYearRange: filters.accountFirstCenterYearRange,
+    includeNullFirstCenterYear: filters.includeNullFirstCenterYear,
+  }), [
+    filters.accountCountries,
+    filters.accountIndustries,
+    filters.accountPrimaryCategories,
+    filters.accountPrimaryNatures,
+    filters.accountNasscomStatuses,
+    filters.accountEmployeesRanges,
+    filters.accountCenterEmployees,
+    filters.accountYearsInIndiaRange,
+    filters.includeNullYearsInIndia,
+    filters.accountFirstCenterYearRange,
+    filters.includeNullFirstCenterYear,
+  ])
 
   const dynamicRevenueRange = useMemo(() => {
     const activeFilters = filterStateForRevenue
@@ -605,33 +642,28 @@ function DashboardContent() {
     }
 
     const matchCountry = createValueMatcher(tempFilters.accountCountries)
-    const matchRegion = createValueMatcher(tempFilters.accountRegions)
     const matchIndustry = createValueMatcher(tempFilters.accountIndustries)
-    const matchSubIndustry = createValueMatcher(tempFilters.accountSubIndustries)
     const matchPrimaryCategory = createValueMatcher(tempFilters.accountPrimaryCategories)
     const matchPrimaryNature = createValueMatcher(tempFilters.accountPrimaryNatures)
     const matchNasscom = createValueMatcher(tempFilters.accountNasscomStatuses)
     const matchEmployeesRange = createValueMatcher(tempFilters.accountEmployeesRanges)
     const matchCenterEmployees = createValueMatcher(tempFilters.accountCenterEmployees)
-
-    const searchTermLower = tempFilters.searchTerm.trim().toLowerCase()
+    const matchYearsInIndiaRange = (value: number | string | null | undefined) =>
+      rangeFilterMatch(tempFilters.accountYearsInIndiaRange, value, tempFilters.includeNullYearsInIndia)
+    const matchFirstCenterYearRange = (value: number | string | null | undefined) =>
+      rangeFilterMatch(tempFilters.accountFirstCenterYearRange, value, tempFilters.includeNullFirstCenterYear)
 
     const tempFilteredAccounts = accounts.filter((account) => {
-      const matchesSearch =
-        searchTermLower === "" ||
-        account.account_global_legal_name.toLowerCase().includes(searchTermLower)
-
       return (
         matchCountry(account.account_hq_country) &&
-        matchRegion(account.account_hq_region) &&
         matchIndustry(account.account_hq_industry) &&
-        matchSubIndustry(account.account_hq_sub_industry) &&
         matchPrimaryCategory(account.account_primary_category) &&
         matchPrimaryNature(account.account_primary_nature) &&
         matchNasscom(account.account_nasscom_status) &&
         matchEmployeesRange(account.account_hq_employee_range) &&
         matchCenterEmployees(account.account_center_employees_range || "") &&
-        matchesSearch
+        matchYearsInIndiaRange(account.years_in_india) &&
+        matchFirstCenterYearRange(account.account_first_center_year)
       )
     })
 
@@ -685,14 +717,16 @@ function DashboardContent() {
   // Calculate available options - OPTIMIZED with memoization of filter-relevant state
   const filterStateForOptions = useMemo(() => ({
     accountCountries: filters.accountCountries,
-    accountRegions: filters.accountRegions,
     accountIndustries: filters.accountIndustries,
-    accountSubIndustries: filters.accountSubIndustries,
     accountPrimaryCategories: filters.accountPrimaryCategories,
     accountPrimaryNatures: filters.accountPrimaryNatures,
     accountNasscomStatuses: filters.accountNasscomStatuses,
     accountEmployeesRanges: filters.accountEmployeesRanges,
     accountCenterEmployees: filters.accountCenterEmployees,
+    accountYearsInIndiaRange: filters.accountYearsInIndiaRange,
+    includeNullYearsInIndia: filters.includeNullYearsInIndia,
+    accountFirstCenterYearRange: filters.accountFirstCenterYearRange,
+    includeNullFirstCenterYear: filters.includeNullFirstCenterYear,
     centerTypes: filters.centerTypes,
     centerFocus: filters.centerFocus,
     centerCities: filters.centerCities,
@@ -700,6 +734,8 @@ function DashboardContent() {
     centerCountries: filters.centerCountries,
     centerEmployees: filters.centerEmployees,
     centerStatuses: filters.centerStatuses,
+    centerIncYearRange: filters.centerIncYearRange,
+    includeNullCenterIncYear: filters.includeNullCenterIncYear,
     functionTypes: filters.functionTypes,
     prospectDepartments: filters.prospectDepartments,
     prospectLevels: filters.prospectLevels,
@@ -707,7 +743,6 @@ function DashboardContent() {
     accountNameKeywords: filters.accountNameKeywords,
     accountRevenueRange: filters.accountRevenueRange,
     includeNullRevenue: filters.includeNullRevenue,
-    searchTerm: filters.searchTerm,
   }), [filters])
 
   const availableOptions = useMemo((): AvailableOptions => {
@@ -715,9 +750,7 @@ function DashboardContent() {
     if (isUpdatingOptions.current) {
       return {
         accountCountries: [],
-        accountRegions: [],
         accountIndustries: [],
-        accountSubIndustries: [],
         accountPrimaryCategories: [],
         accountPrimaryNatures: [],
         accountNasscomStatuses: [],
@@ -738,15 +771,17 @@ function DashboardContent() {
     }
 
     const matchAccountCountry = createValueMatcher(activeFilters.accountCountries)
-    const matchAccountRegion = createValueMatcher(activeFilters.accountRegions)
     const matchAccountIndustry = createValueMatcher(activeFilters.accountIndustries)
-    const matchAccountSubIndustry = createValueMatcher(activeFilters.accountSubIndustries)
     const matchAccountPrimaryCategory = createValueMatcher(activeFilters.accountPrimaryCategories)
     const matchAccountPrimaryNature = createValueMatcher(activeFilters.accountPrimaryNatures)
     const matchAccountNasscom = createValueMatcher(activeFilters.accountNasscomStatuses)
     const matchAccountEmployeesRange = createValueMatcher(activeFilters.accountEmployeesRanges)
     const matchAccountCenterEmployees = createValueMatcher(activeFilters.accountCenterEmployees)
     const matchAccountName = createKeywordMatcher(activeFilters.accountNameKeywords)
+    const matchAccountYearsInIndia = (value: number | string | null | undefined) =>
+      rangeFilterMatch(activeFilters.accountYearsInIndiaRange, value, activeFilters.includeNullYearsInIndia)
+    const matchAccountFirstCenterYear = (value: number | string | null | undefined) =>
+      rangeFilterMatch(activeFilters.accountFirstCenterYearRange, value, activeFilters.includeNullFirstCenterYear)
 
     const matchCenterType = createValueMatcher(activeFilters.centerTypes)
     const matchCenterFocus = createValueMatcher(activeFilters.centerFocus)
@@ -755,6 +790,8 @@ function DashboardContent() {
     const matchCenterCountry = createValueMatcher(activeFilters.centerCountries)
     const matchCenterEmployees = createValueMatcher(activeFilters.centerEmployees)
     const matchCenterStatus = createValueMatcher(activeFilters.centerStatuses)
+    const matchCenterIncYear = (value: number | string | null | undefined) =>
+      rangeFilterMatch(activeFilters.centerIncYearRange, value, activeFilters.includeNullCenterIncYear)
 
     const matchProspectDepartment = createValueMatcher(activeFilters.prospectDepartments)
     const matchProspectLevel = createValueMatcher(activeFilters.prospectLevels)
@@ -762,9 +799,7 @@ function DashboardContent() {
 
     const accountCounts = {
       countries: new Map<string, number>(),
-      regions: new Map<string, number>(),
       industries: new Map<string, number>(),
-      subIndustries: new Map<string, number>(),
       primaryCategories: new Map<string, number>(),
       primaryNatures: new Map<string, number>(),
       nasscomStatuses: new Map<string, number>(),
@@ -774,29 +809,28 @@ function DashboardContent() {
 
     const validAccountNames = new Set<string>()
 
-    const searchTermLower = (activeFilters.searchTerm || "").trim().toLowerCase()
-
     accounts.forEach((account) => {
-      const matchesSearch =
-        searchTermLower === "" || account.account_global_legal_name.toLowerCase().includes(searchTermLower)
-
-      if (!matchesSearch) return
-
       const matchesAccountName = matchAccountName(account.account_global_legal_name)
 
       if (!matchesAccountName) return
 
-      const revenue = parseRevenue(account.account_hq_revenue)
-      const matchesRevenue = activeFilters.includeNullRevenue
-        ? true
-        : revenue >= activeFilters.accountRevenueRange[0] && revenue <= activeFilters.accountRevenueRange[1]
+      const matchesRevenue = rangeFilterMatch(
+        activeFilters.accountRevenueRange,
+        account.account_hq_revenue,
+        activeFilters.includeNullRevenue,
+        parseRevenueValue
+      )
 
       if (!matchesRevenue) return
 
+      const matchesYearsInIndia = matchAccountYearsInIndia(account.years_in_india)
+      if (!matchesYearsInIndia) return
+
+      const matchesFirstCenterYear = matchAccountFirstCenterYear(account.account_first_center_year)
+      if (!matchesFirstCenterYear) return
+
       const country = account.account_hq_country
-      const region = account.account_hq_region
       const industry = account.account_hq_industry
-      const subIndustry = account.account_hq_sub_industry
       const category = account.account_primary_category
       const nature = account.account_primary_nature
       const nasscom = account.account_nasscom_status
@@ -804,9 +838,7 @@ function DashboardContent() {
       const centerEmp = account.account_center_employees_range || ""
 
       const matchesCountry = matchAccountCountry(country)
-      const matchesRegion = matchAccountRegion(region)
       const matchesIndustry = matchAccountIndustry(industry)
-      const matchesSubIndustry = matchAccountSubIndustry(subIndustry)
       const matchesCategory = matchAccountPrimaryCategory(category)
       const matchesNature = matchAccountPrimaryNature(nature)
       const matchesNasscom = matchAccountNasscom(nasscom)
@@ -814,9 +846,7 @@ function DashboardContent() {
       const matchesCenterEmp = matchAccountCenterEmployees(centerEmp)
 
       if (
-        matchesRegion &&
         matchesIndustry &&
-        matchesSubIndustry &&
         matchesCategory &&
         matchesNature &&
         matchesNasscom &&
@@ -827,20 +857,6 @@ function DashboardContent() {
       }
       if (
         matchesCountry &&
-        matchesIndustry &&
-        matchesSubIndustry &&
-        matchesCategory &&
-        matchesNature &&
-        matchesNasscom &&
-        matchesEmpRange &&
-        matchesCenterEmp
-      ) {
-        accountCounts.regions.set(region, (accountCounts.regions.get(region) || 0) + 1)
-      }
-      if (
-        matchesCountry &&
-        matchesRegion &&
-        matchesSubIndustry &&
         matchesCategory &&
         matchesNature &&
         matchesNasscom &&
@@ -851,21 +867,7 @@ function DashboardContent() {
       }
       if (
         matchesCountry &&
-        matchesRegion &&
         matchesIndustry &&
-        matchesCategory &&
-        matchesNature &&
-        matchesNasscom &&
-        matchesEmpRange &&
-        matchesCenterEmp
-      ) {
-        accountCounts.subIndustries.set(subIndustry, (accountCounts.subIndustries.get(subIndustry) || 0) + 1)
-      }
-      if (
-        matchesCountry &&
-        matchesRegion &&
-        matchesIndustry &&
-        matchesSubIndustry &&
         matchesNature &&
         matchesNasscom &&
         matchesEmpRange &&
@@ -875,9 +877,7 @@ function DashboardContent() {
       }
       if (
         matchesCountry &&
-        matchesRegion &&
         matchesIndustry &&
-        matchesSubIndustry &&
         matchesCategory &&
         matchesNasscom &&
         matchesEmpRange &&
@@ -887,9 +887,7 @@ function DashboardContent() {
       }
       if (
         matchesCountry &&
-        matchesRegion &&
         matchesIndustry &&
-        matchesSubIndustry &&
         matchesCategory &&
         matchesNature &&
         matchesEmpRange &&
@@ -899,9 +897,7 @@ function DashboardContent() {
       }
       if (
         matchesCountry &&
-        matchesRegion &&
         matchesIndustry &&
-        matchesSubIndustry &&
         matchesCategory &&
         matchesNature &&
         matchesNasscom &&
@@ -911,9 +907,7 @@ function DashboardContent() {
       }
       if (
         matchesCountry &&
-        matchesRegion &&
         matchesIndustry &&
-        matchesSubIndustry &&
         matchesCategory &&
         matchesNature &&
         matchesNasscom &&
@@ -922,19 +916,17 @@ function DashboardContent() {
         accountCounts.centerEmployees.set(centerEmp, (accountCounts.centerEmployees.get(centerEmp) || 0) + 1)
       }
 
-      if (
-        matchesCountry &&
-        matchesRegion &&
-        matchesIndustry &&
-        matchesSubIndustry &&
-        matchesCategory &&
-        matchesNature &&
-        matchesNasscom &&
-        matchesEmpRange &&
-        matchesCenterEmp
-      ) {
-        validAccountNames.add(account.account_global_legal_name)
-      }
+        if (
+          matchesCountry &&
+          matchesIndustry &&
+          matchesCategory &&
+          matchesNature &&
+          matchesNasscom &&
+          matchesEmpRange &&
+          matchesCenterEmp
+        ) {
+          validAccountNames.add(account.account_global_legal_name)
+        }
     })
 
     const centerCounts = {
@@ -967,6 +959,9 @@ function DashboardContent() {
       const matchesCountry = matchCenterCountry(country)
       const matchesEmployees = matchCenterEmployees(employees)
       const matchesStatus = matchCenterStatus(status)
+      const matchesIncYear = matchCenterIncYear(center.center_inc_year)
+
+      if (!matchesIncYear) return
 
       if (matchesFocus && matchesCity && matchesState && matchesCountry && matchesEmployees && matchesStatus) {
         centerCounts.types.set(type, (centerCounts.types.get(type) || 0) + 1)
@@ -1048,9 +1043,7 @@ function DashboardContent() {
 
     return {
       accountCountries: mapToSortedArray(accountCounts.countries),
-      accountRegions: mapToSortedArray(accountCounts.regions),
       accountIndustries: mapToSortedArray(accountCounts.industries),
-      accountSubIndustries: mapToSortedArray(accountCounts.subIndustries),
       accountPrimaryCategories: mapToSortedArray(accountCounts.primaryCategories),
       accountPrimaryNatures: mapToSortedArray(accountCounts.primaryNatures),
       accountNasscomStatuses: mapToSortedArray(accountCounts.nasscomStatuses),
@@ -1081,9 +1074,7 @@ function DashboardContent() {
   const resetFilters = () => {
     const emptyFilters = {
       accountCountries: [],
-      accountRegions: [],
       accountIndustries: [],
-      accountSubIndustries: [],
       accountPrimaryCategories: [],
       accountPrimaryNatures: [],
       accountNasscomStatuses: [],
@@ -1091,6 +1082,10 @@ function DashboardContent() {
       accountCenterEmployees: [],
       accountRevenueRange: [baseRevenueRange.min, baseRevenueRange.max] as [number, number],
       includeNullRevenue: false,
+      accountYearsInIndiaRange: [yearsInIndiaRange.min, yearsInIndiaRange.max] as [number, number],
+      includeNullYearsInIndia: false,
+      accountFirstCenterYearRange: [firstCenterYearRange.min, firstCenterYearRange.max] as [number, number],
+      includeNullFirstCenterYear: false,
       accountNameKeywords: [],
       centerTypes: [],
       centerFocus: [],
@@ -1099,12 +1094,13 @@ function DashboardContent() {
       centerCountries: [],
       centerEmployees: [],
       centerStatuses: [],
+      centerIncYearRange: [centerIncYearRange.min, centerIncYearRange.max] as [number, number],
+      includeNullCenterIncYear: false,
       functionTypes: [],
       prospectDepartments: [],
       prospectLevels: [],
       prospectCities: [],
       prospectTitleKeywords: [],
-      searchTerm: "",
     }
     isRevenueRangeAutoRef.current = true
     setRevenueRange(baseRevenueRange)
@@ -1113,35 +1109,48 @@ function DashboardContent() {
   }
 
   const getTotalPendingFilters = () => {
-    return (
-      pendingFilters.accountCountries.length +
-      pendingFilters.accountRegions.length +
-      pendingFilters.accountIndustries.length +
-      pendingFilters.accountSubIndustries.length +
-      pendingFilters.accountPrimaryCategories.length +
-      pendingFilters.accountPrimaryNatures.length +
-      pendingFilters.accountNasscomStatuses.length +
-      pendingFilters.accountEmployeesRanges.length +
-      pendingFilters.accountCenterEmployees.length +
-      (pendingFilters.accountRevenueRange[0] !== revenueRange.min ||
-        pendingFilters.accountRevenueRange[1] !== revenueRange.max
-        ? 1
-        : 0) +
-      (pendingFilters.includeNullRevenue ? 1 : 0) +
-      pendingFilters.accountNameKeywords.length +
-      pendingFilters.centerTypes.length +
-      pendingFilters.centerFocus.length +
-      pendingFilters.centerCities.length +
-      pendingFilters.centerStates.length +
-      pendingFilters.centerCountries.length +
-      pendingFilters.centerEmployees.length +
-      pendingFilters.centerStatuses.length +
-      pendingFilters.functionTypes.length +
-      pendingFilters.prospectDepartments.length +
-      pendingFilters.prospectLevels.length +
-      pendingFilters.prospectCities.length +
-      pendingFilters.prospectTitleKeywords.length
-    )
+      return (
+        pendingFilters.accountCountries.length +
+        pendingFilters.accountIndustries.length +
+        pendingFilters.accountPrimaryCategories.length +
+        pendingFilters.accountPrimaryNatures.length +
+        pendingFilters.accountNasscomStatuses.length +
+        pendingFilters.accountEmployeesRanges.length +
+        pendingFilters.accountCenterEmployees.length +
+        (pendingFilters.accountRevenueRange[0] !== revenueRange.min ||
+          pendingFilters.accountRevenueRange[1] !== revenueRange.max
+          ? 1
+          : 0) +
+        (pendingFilters.includeNullRevenue ? 1 : 0) +
+        (pendingFilters.accountYearsInIndiaRange[0] !== yearsInIndiaRange.min ||
+          pendingFilters.accountYearsInIndiaRange[1] !== yearsInIndiaRange.max
+          ? 1
+          : 0) +
+        (pendingFilters.includeNullYearsInIndia ? 1 : 0) +
+        (pendingFilters.accountFirstCenterYearRange[0] !== firstCenterYearRange.min ||
+          pendingFilters.accountFirstCenterYearRange[1] !== firstCenterYearRange.max
+          ? 1
+          : 0) +
+        (pendingFilters.includeNullFirstCenterYear ? 1 : 0) +
+        pendingFilters.accountNameKeywords.length +
+        pendingFilters.centerTypes.length +
+        pendingFilters.centerFocus.length +
+        pendingFilters.centerCities.length +
+        pendingFilters.centerStates.length +
+        pendingFilters.centerCountries.length +
+        pendingFilters.centerEmployees.length +
+        pendingFilters.centerStatuses.length +
+        (pendingFilters.centerIncYearRange[0] !== centerIncYearRange.min ||
+          pendingFilters.centerIncYearRange[1] !== centerIncYearRange.max
+          ? 1
+          : 0) +
+        (pendingFilters.includeNullCenterIncYear ? 1 : 0) +
+        pendingFilters.functionTypes.length +
+        pendingFilters.prospectDepartments.length +
+        pendingFilters.prospectLevels.length +
+        pendingFilters.prospectCities.length +
+        pendingFilters.prospectTitleKeywords.length
+      )
   }
 
   const hasUnappliedChanges = () => {
@@ -1149,31 +1158,44 @@ function DashboardContent() {
   }
 
   const getTotalActiveFilters = () => {
-    return (
-      filters.accountCountries.length +
-      filters.accountRegions.length +
-      filters.accountIndustries.length +
-      filters.accountSubIndustries.length +
-      filters.accountPrimaryCategories.length +
-      filters.accountPrimaryNatures.length +
-      filters.accountNasscomStatuses.length +
-      filters.accountEmployeesRanges.length +
-      filters.accountCenterEmployees.length +
-      (filters.accountRevenueRange[0] !== revenueRange.min || filters.accountRevenueRange[1] !== revenueRange.max
-        ? 1
-        : 0) +
-      (filters.includeNullRevenue ? 1 : 0) +
-      filters.accountNameKeywords.length +
-      filters.centerTypes.length +
-      filters.centerFocus.length +
-      filters.centerCities.length +
-      filters.centerStates.length +
-      filters.centerCountries.length +
-      filters.centerEmployees.length +
-      filters.centerStatuses.length +
-      filters.functionTypes.length +
-      filters.prospectDepartments.length +
-      filters.prospectLevels.length +
+      return (
+        filters.accountCountries.length +
+        filters.accountIndustries.length +
+        filters.accountPrimaryCategories.length +
+        filters.accountPrimaryNatures.length +
+        filters.accountNasscomStatuses.length +
+        filters.accountEmployeesRanges.length +
+        filters.accountCenterEmployees.length +
+        (filters.accountRevenueRange[0] !== revenueRange.min || filters.accountRevenueRange[1] !== revenueRange.max
+          ? 1
+          : 0) +
+        (filters.includeNullRevenue ? 1 : 0) +
+        (filters.accountYearsInIndiaRange[0] !== yearsInIndiaRange.min ||
+          filters.accountYearsInIndiaRange[1] !== yearsInIndiaRange.max
+          ? 1
+          : 0) +
+        (filters.includeNullYearsInIndia ? 1 : 0) +
+        (filters.accountFirstCenterYearRange[0] !== firstCenterYearRange.min ||
+          filters.accountFirstCenterYearRange[1] !== firstCenterYearRange.max
+          ? 1
+          : 0) +
+        (filters.includeNullFirstCenterYear ? 1 : 0) +
+        filters.accountNameKeywords.length +
+        filters.centerTypes.length +
+        filters.centerFocus.length +
+        filters.centerCities.length +
+        filters.centerStates.length +
+        filters.centerCountries.length +
+        filters.centerEmployees.length +
+        filters.centerStatuses.length +
+        (filters.centerIncYearRange[0] !== centerIncYearRange.min ||
+          filters.centerIncYearRange[1] !== centerIncYearRange.max
+          ? 1
+          : 0) +
+        (filters.includeNullCenterIncYear ? 1 : 0) +
+        filters.functionTypes.length +
+        filters.prospectDepartments.length +
+        filters.prospectLevels.length +
       filters.prospectCities.length +
       filters.prospectTitleKeywords.length
     )
@@ -1222,6 +1244,93 @@ function DashboardContent() {
     }))
   }
 
+  const handleMinYearsInIndiaChange = (value: string) => {
+    const numValue = Number.parseFloat(value) || yearsInIndiaRange.min
+    const clampedValue = Math.max(yearsInIndiaRange.min, Math.min(numValue, pendingFilters.accountYearsInIndiaRange[1]))
+    setPendingFilters((prev) => ({
+      ...prev,
+      accountYearsInIndiaRange: [clampedValue, prev.accountYearsInIndiaRange[1]],
+    }))
+  }
+
+  const handleMaxYearsInIndiaChange = (value: string) => {
+    const numValue = Number.parseFloat(value) || yearsInIndiaRange.max
+    const clampedValue = Math.min(yearsInIndiaRange.max, Math.max(numValue, pendingFilters.accountYearsInIndiaRange[0]))
+    setPendingFilters((prev) => ({
+      ...prev,
+      accountYearsInIndiaRange: [prev.accountYearsInIndiaRange[0], clampedValue],
+    }))
+  }
+
+  const handleYearsInIndiaRangeChange = (value: [number, number]) => {
+    setPendingFilters((prev) => ({
+      ...prev,
+      accountYearsInIndiaRange: value,
+    }))
+  }
+
+  const handleMinFirstCenterYearChange = (value: string) => {
+    const numValue = Number.parseFloat(value) || firstCenterYearRange.min
+    const clampedValue = Math.max(
+      firstCenterYearRange.min,
+      Math.min(numValue, pendingFilters.accountFirstCenterYearRange[1])
+    )
+    setPendingFilters((prev) => ({
+      ...prev,
+      accountFirstCenterYearRange: [clampedValue, prev.accountFirstCenterYearRange[1]],
+    }))
+  }
+
+  const handleMaxFirstCenterYearChange = (value: string) => {
+    const numValue = Number.parseFloat(value) || firstCenterYearRange.max
+    const clampedValue = Math.min(
+      firstCenterYearRange.max,
+      Math.max(numValue, pendingFilters.accountFirstCenterYearRange[0])
+    )
+    setPendingFilters((prev) => ({
+      ...prev,
+      accountFirstCenterYearRange: [prev.accountFirstCenterYearRange[0], clampedValue],
+    }))
+  }
+
+  const handleFirstCenterYearRangeChange = (value: [number, number]) => {
+    setPendingFilters((prev) => ({
+      ...prev,
+      accountFirstCenterYearRange: value,
+    }))
+  }
+
+  const handleMinCenterIncYearChange = (value: string) => {
+    const numValue = Number.parseFloat(value) || centerIncYearRange.min
+    const clampedValue = Math.max(
+      centerIncYearRange.min,
+      Math.min(numValue, pendingFilters.centerIncYearRange[1])
+    )
+    setPendingFilters((prev) => ({
+      ...prev,
+      centerIncYearRange: [clampedValue, prev.centerIncYearRange[1]],
+    }))
+  }
+
+  const handleMaxCenterIncYearChange = (value: string) => {
+    const numValue = Number.parseFloat(value) || centerIncYearRange.max
+    const clampedValue = Math.min(
+      centerIncYearRange.max,
+      Math.max(numValue, pendingFilters.centerIncYearRange[0])
+    )
+    setPendingFilters((prev) => ({
+      ...prev,
+      centerIncYearRange: [prev.centerIncYearRange[0], clampedValue],
+    }))
+  }
+
+  const handleCenterIncYearRangeChange = (value: [number, number]) => {
+    setPendingFilters((prev) => ({
+      ...prev,
+      centerIncYearRange: value,
+    }))
+  }
+
   const dataLoaded =
     !loading && accounts.length > 0 && centers.length > 0 && services.length > 0 && prospects.length > 0
 
@@ -1253,6 +1362,9 @@ function DashboardContent() {
             availableOptions={availableOptions}
             isApplying={isApplying}
             revenueRange={revenueRange}
+            yearsInIndiaRange={yearsInIndiaRange}
+            firstCenterYearRange={firstCenterYearRange}
+            centerIncYearRange={centerIncYearRange}
             accountNames={accountNames}
             setPendingFilters={setPendingFilters}
             resetFilters={resetFilters}
@@ -1260,6 +1372,15 @@ function DashboardContent() {
             handleMinRevenueChange={handleMinRevenueChange}
             handleMaxRevenueChange={handleMaxRevenueChange}
             handleRevenueRangeChange={handleRevenueRangeChange}
+            handleMinYearsInIndiaChange={handleMinYearsInIndiaChange}
+            handleMaxYearsInIndiaChange={handleMaxYearsInIndiaChange}
+            handleYearsInIndiaRangeChange={handleYearsInIndiaRangeChange}
+            handleMinFirstCenterYearChange={handleMinFirstCenterYearChange}
+            handleMaxFirstCenterYearChange={handleMaxFirstCenterYearChange}
+            handleFirstCenterYearRangeChange={handleFirstCenterYearRangeChange}
+            handleMinCenterIncYearChange={handleMinCenterIncYearChange}
+            handleMaxCenterIncYearChange={handleMaxCenterIncYearChange}
+            handleCenterIncYearRangeChange={handleCenterIncYearRangeChange}
             getTotalActiveFilters={getTotalActiveFilters}
             handleLoadSavedFilters={handleLoadSavedFilters}
             formatRevenueInMillions={formatRevenueInMillions}

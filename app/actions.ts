@@ -445,9 +445,7 @@ export async function getAllData() {
  */
 export async function getFilteredAccounts(filters: {
   countries?: string[]
-  regions?: string[]
   industries?: string[]
-  searchTerm?: string
 }) {
   try {
     if (!sql) {
@@ -463,16 +461,8 @@ export async function getFilteredAccounts(filters: {
       query = sql`${query} AND account_hq_country = ANY(${filters.countries})`
     }
 
-    if (filters.regions && filters.regions.length > 0) {
-      query = sql`${query} AND account_hq_region = ANY(${filters.regions})`
-    }
-
     if (filters.industries && filters.industries.length > 0) {
       query = sql`${query} AND account_hq_industry = ANY(${filters.industries})`
-    }
-
-    if (filters.searchTerm && filters.searchTerm.trim()) {
-      query = sql`${query} AND account_global_legal_name ILIKE ${`%${filters.searchTerm}%`}`
     }
 
     query = sql`${query} ORDER BY account_global_legal_name`

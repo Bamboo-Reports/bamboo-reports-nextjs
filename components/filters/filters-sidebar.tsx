@@ -2,7 +2,6 @@
 
 import React, { useState } from "react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
@@ -10,9 +9,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Slider } from "@/components/ui/slider"
 import {
   Filter,
-  RotateCcw,
-  Download,
-
   Building,
   Briefcase,
   Users,
@@ -32,6 +28,9 @@ interface FiltersSidebarProps {
   availableOptions: AvailableOptions
   isApplying: boolean
   revenueRange: { min: number; max: number }
+  yearsInIndiaRange: { min: number; max: number }
+  firstCenterYearRange: { min: number; max: number }
+  centerIncYearRange: { min: number; max: number }
   accountNames: string[]
 
   // Callback functions
@@ -41,6 +40,15 @@ interface FiltersSidebarProps {
   handleMinRevenueChange: (value: string) => void
   handleMaxRevenueChange: (value: string) => void
   handleRevenueRangeChange: (value: [number, number]) => void
+  handleMinYearsInIndiaChange: (value: string) => void
+  handleMaxYearsInIndiaChange: (value: string) => void
+  handleYearsInIndiaRangeChange: (value: [number, number]) => void
+  handleMinFirstCenterYearChange: (value: string) => void
+  handleMaxFirstCenterYearChange: (value: string) => void
+  handleFirstCenterYearRangeChange: (value: [number, number]) => void
+  handleMinCenterIncYearChange: (value: string) => void
+  handleMaxCenterIncYearChange: (value: string) => void
+  handleCenterIncYearRangeChange: (value: [number, number]) => void
 
   // Helper functions
   getTotalActiveFilters: () => number
@@ -54,6 +62,9 @@ export function FiltersSidebar({
   availableOptions,
   isApplying,
   revenueRange,
+  yearsInIndiaRange,
+  firstCenterYearRange,
+  centerIncYearRange,
   accountNames,
   setPendingFilters,
   resetFilters,
@@ -61,6 +72,15 @@ export function FiltersSidebar({
   handleMinRevenueChange,
   handleMaxRevenueChange,
   handleRevenueRangeChange,
+  handleMinYearsInIndiaChange,
+  handleMaxYearsInIndiaChange,
+  handleYearsInIndiaRangeChange,
+  handleMinFirstCenterYearChange,
+  handleMaxFirstCenterYearChange,
+  handleFirstCenterYearRangeChange,
+  handleMinCenterIncYearChange,
+  handleMaxCenterIncYearChange,
+  handleCenterIncYearRangeChange,
   getTotalActiveFilters,
   handleLoadSavedFilters,
   formatRevenueInMillions,
@@ -88,7 +108,7 @@ export function FiltersSidebar({
           </div>
 
           {/* Accordion Filters */}
-          <Accordion type="multiple" defaultValue={["accounts", "centers"]} className="w-full">
+          <Accordion type="multiple" defaultValue={[]} className="w-full">
             {/* Accounts Accordion */}
             <AccordionItem value="accounts">
               <AccordionTrigger className="text-sm font-semibold">
@@ -126,19 +146,6 @@ export function FiltersSidebar({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">Regions</Label>
-                      <EnhancedMultiSelect
-                        options={availableOptions.accountRegions || []}
-                        selected={pendingFilters.accountRegions}
-                        onChange={(selected) => {
-                          setPendingFilters((prev) => ({ ...prev, accountRegions: selected }))
-                          setActiveFilter("accountRegions")
-                        }}
-                        placeholder="Select regions..."
-                        isApplying={isApplying && activeFilter === "accountRegions"}
-                      />
-                    </div>
-                    <div className="space-y-2">
                       <Label className="text-xs font-medium">Industries</Label>
                       <EnhancedMultiSelect
                         options={availableOptions.accountIndustries}
@@ -149,19 +156,6 @@ export function FiltersSidebar({
                         }}
                         placeholder="Select industries..."
                         isApplying={isApplying && activeFilter === "accountIndustries"}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-medium">Sub Industries</Label>
-                      <EnhancedMultiSelect
-                        options={availableOptions.accountSubIndustries}
-                        selected={pendingFilters.accountSubIndustries}
-                        onChange={(selected) => {
-                          setPendingFilters((prev) => ({ ...prev, accountSubIndustries: selected }))
-                          setActiveFilter("accountSubIndustries")
-                        }}
-                        placeholder="Select sub industries..."
-                        isApplying={isApplying && activeFilter === "accountSubIndustries"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -296,6 +290,140 @@ export function FiltersSidebar({
                         <span>{formatRevenueInMillions(revenueRange.max)}</span>
                       </div>
                     </div>
+
+                    {/* Total India Headcount Range */}
+                    <div className="space-y-3 pt-4 mt-4 border-t border-border">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-medium">
+                          Total India Headcount: {pendingFilters.accountYearsInIndiaRange[0].toLocaleString()} -{" "}
+                          {pendingFilters.accountYearsInIndiaRange[1].toLocaleString()}
+                        </Label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="include-null-years-in-india"
+                            checked={pendingFilters.includeNullYearsInIndia || false}
+                            onChange={(e) =>
+                              setPendingFilters((prev) => ({
+                                ...prev,
+                                includeNullYearsInIndia: e.target.checked,
+                              }))
+                            }
+                            className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-border rounded"
+                          />
+                          <Label htmlFor="include-null-years-in-india" className="text-xs text-foreground cursor-pointer">
+                            Include null/zero
+                          </Label>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <Label htmlFor="min-years-in-india" className="text-xs">Min</Label>
+                          <Input
+                            id="min-years-in-india"
+                            type="number"
+                            value={pendingFilters.accountYearsInIndiaRange[0]}
+                            onChange={(e) => handleMinYearsInIndiaChange(e.target.value)}
+                            min={yearsInIndiaRange.min}
+                            max={pendingFilters.accountYearsInIndiaRange[1]}
+                            className="text-xs h-8"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="max-years-in-india" className="text-xs">Max</Label>
+                          <Input
+                            id="max-years-in-india"
+                            type="number"
+                            value={pendingFilters.accountYearsInIndiaRange[1]}
+                            onChange={(e) => handleMaxYearsInIndiaChange(e.target.value)}
+                            min={pendingFilters.accountYearsInIndiaRange[0]}
+                            max={yearsInIndiaRange.max}
+                            className="text-xs h-8"
+                          />
+                        </div>
+                      </div>
+                      <div className="px-2">
+                        <Slider
+                          value={pendingFilters.accountYearsInIndiaRange}
+                          onValueChange={(value) => handleYearsInIndiaRangeChange(value as [number, number])}
+                          min={yearsInIndiaRange.min}
+                          max={yearsInIndiaRange.max}
+                          step={1}
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="flex justify-between text-xs text-muted-foreground px-2">
+                        <span>{yearsInIndiaRange.min.toLocaleString()}</span>
+                        <span>{yearsInIndiaRange.max.toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    {/* Years In India Range */}
+                    <div className="space-y-3 pt-4 mt-4 border-t border-border">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-medium">
+                          Years In India: {pendingFilters.accountFirstCenterYearRange[0].toLocaleString()} -{" "}
+                          {pendingFilters.accountFirstCenterYearRange[1].toLocaleString()}
+                        </Label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="include-null-first-center-year"
+                            checked={pendingFilters.includeNullFirstCenterYear || false}
+                            onChange={(e) =>
+                              setPendingFilters((prev) => ({
+                                ...prev,
+                                includeNullFirstCenterYear: e.target.checked,
+                              }))
+                            }
+                            className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-border rounded"
+                          />
+                          <Label htmlFor="include-null-first-center-year" className="text-xs text-foreground cursor-pointer">
+                            Include null/zero
+                          </Label>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <Label htmlFor="min-first-center-year" className="text-xs">Min</Label>
+                          <Input
+                            id="min-first-center-year"
+                            type="number"
+                            value={pendingFilters.accountFirstCenterYearRange[0]}
+                            onChange={(e) => handleMinFirstCenterYearChange(e.target.value)}
+                            min={firstCenterYearRange.min}
+                            max={pendingFilters.accountFirstCenterYearRange[1]}
+                            className="text-xs h-8"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="max-first-center-year" className="text-xs">Max</Label>
+                          <Input
+                            id="max-first-center-year"
+                            type="number"
+                            value={pendingFilters.accountFirstCenterYearRange[1]}
+                            onChange={(e) => handleMaxFirstCenterYearChange(e.target.value)}
+                            min={pendingFilters.accountFirstCenterYearRange[0]}
+                            max={firstCenterYearRange.max}
+                            className="text-xs h-8"
+                          />
+                        </div>
+                      </div>
+                      <div className="px-2">
+                        <Slider
+                          value={pendingFilters.accountFirstCenterYearRange}
+                          onValueChange={(value) => handleFirstCenterYearRangeChange(value as [number, number])}
+                          min={firstCenterYearRange.min}
+                          max={firstCenterYearRange.max}
+                          step={1}
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="flex justify-between text-xs text-muted-foreground px-2">
+                        <span>{firstCenterYearRange.min.toLocaleString()}</span>
+                        <span>{firstCenterYearRange.max.toLocaleString()}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </AccordionContent>
@@ -403,6 +531,73 @@ export function FiltersSidebar({
                         placeholder="Select status..."
                         isApplying={isApplying && activeFilter === "centerStatuses"}
                       />
+                    </div>
+
+                    {/* Center Timeline Range */}
+                    <div className="space-y-3 pt-4 mt-4 border-t border-border">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-medium">
+                          Timeline: {pendingFilters.centerIncYearRange[0].toLocaleString()} -{" "}
+                          {pendingFilters.centerIncYearRange[1].toLocaleString()}
+                        </Label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="include-null-center-inc-year"
+                            checked={pendingFilters.includeNullCenterIncYear || false}
+                            onChange={(e) =>
+                              setPendingFilters((prev) => ({
+                                ...prev,
+                                includeNullCenterIncYear: e.target.checked,
+                              }))
+                            }
+                            className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-border rounded"
+                          />
+                          <Label htmlFor="include-null-center-inc-year" className="text-xs text-foreground cursor-pointer">
+                            Include null/zero
+                          </Label>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <Label htmlFor="min-center-inc-year" className="text-xs">Min</Label>
+                          <Input
+                            id="min-center-inc-year"
+                            type="number"
+                            value={pendingFilters.centerIncYearRange[0]}
+                            onChange={(e) => handleMinCenterIncYearChange(e.target.value)}
+                            min={centerIncYearRange.min}
+                            max={pendingFilters.centerIncYearRange[1]}
+                            className="text-xs h-8"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="max-center-inc-year" className="text-xs">Max</Label>
+                          <Input
+                            id="max-center-inc-year"
+                            type="number"
+                            value={pendingFilters.centerIncYearRange[1]}
+                            onChange={(e) => handleMaxCenterIncYearChange(e.target.value)}
+                            min={pendingFilters.centerIncYearRange[0]}
+                            max={centerIncYearRange.max}
+                            className="text-xs h-8"
+                          />
+                        </div>
+                      </div>
+                      <div className="px-2">
+                        <Slider
+                          value={pendingFilters.centerIncYearRange}
+                          onValueChange={(value) => handleCenterIncYearRangeChange(value as [number, number])}
+                          min={centerIncYearRange.min}
+                          max={centerIncYearRange.max}
+                          step={1}
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="flex justify-between text-xs text-muted-foreground px-2">
+                        <span>{centerIncYearRange.min.toLocaleString()}</span>
+                        <span>{centerIncYearRange.max.toLocaleString()}</span>
+                      </div>
                     </div>
 
                     {/* Functions nested inside Centers */}

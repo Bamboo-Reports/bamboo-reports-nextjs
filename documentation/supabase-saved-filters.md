@@ -50,9 +50,7 @@ The `filters` column stores the **Application State**, not the Database Schema. 
 interface Filters {
   // Accounts
   accountCountries: string[];
-  accountRegions: string[];
   accountIndustries: string[];
-  accountSubIndustries: string[];
   accountPrimaryCategories: string[];
   accountPrimaryNatures: string[];
   accountNasscomStatuses: string[];
@@ -60,6 +58,10 @@ interface Filters {
   accountCenterEmployees: string[];
   accountRevenueRange: [number, number]; // e.g., [0, 1000000]
   includeNullRevenue: boolean;
+  accountYearsInIndiaRange: [number, number];
+  includeNullYearsInIndia: boolean;
+  accountFirstCenterYearRange: [number, number];
+  includeNullFirstCenterYear: boolean;
   accountNameKeywords: string[];
 
   // Centers
@@ -70,6 +72,8 @@ interface Filters {
   centerCountries: string[];
   centerEmployees: string[];
   centerStatuses: string[];
+  centerIncYearRange: [number, number];
+  includeNullCenterIncYear: boolean;
   
   // Functions
   functionTypes: string[];
@@ -79,9 +83,6 @@ interface Filters {
   prospectLevels: string[];
   prospectCities: string[];
   prospectTitleKeywords: string[];
-  
-  // Global
-  searchTerm: string;
 }
 ```
 
