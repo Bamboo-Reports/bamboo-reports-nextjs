@@ -375,7 +375,10 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         onLoad={(e) => {
           // Force a resize calculation after map loads to ensure it fills container
           setTimeout(() => {
-            e.target.resize()
+            const mapInstance = mapRef.current?.getMap?.() ?? mapRef.current
+            if (mapInstance?.resize) {
+              mapInstance.resize()
+            }
             setIsMapReady(true)
           }, 200)
         }}
