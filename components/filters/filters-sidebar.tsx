@@ -88,7 +88,7 @@ export function FiltersSidebar({
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
 
   return (
-    <div className="border-r bg-sidebar overflow-y-auto overflow-x-hidden w-[384px] shrink-0 relative">
+    <div className="border-r bg-sidebar overflow-y-auto overflow-x-hidden w-[350px] shrink-0 relative">
       <div className="p-3 space-y-3">
           {/* Filter Actions */}
           <div className="flex flex-col gap-2 mb-3 pb-3 border-b border-sidebar-border">
@@ -118,7 +118,8 @@ export function FiltersSidebar({
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <div className="space-y-4 pt-2">
+                <div className="max-h-[320px] overflow-y-auto pr-2">
+                  <div className="space-y-4 pt-2">
                   {/* Account Name Search with Autocomplete */}
                   <div className="space-y-2 pb-4 border-b border-border">
                     <Label className="text-xs font-medium">Search Account Name</Label>
@@ -426,7 +427,8 @@ export function FiltersSidebar({
                     </div>
                   </div>
                 </div>
-              </AccordionContent>
+              </div>
+            </AccordionContent>
             </AccordionItem>
 
             {/* Centers Accordion */}
@@ -438,7 +440,8 @@ export function FiltersSidebar({
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <div className="space-y-4 pt-2">
+                <div className="max-h-[320px] overflow-y-auto pr-2">
+                  <div className="space-y-4 pt-2">
                   {/* Center Filters */}
                   <div className="space-y-3">
                     <div className="space-y-2">
@@ -616,7 +619,8 @@ export function FiltersSidebar({
                     </div>
                   </div>
                 </div>
-              </AccordionContent>
+              </div>
+            </AccordionContent>
             </AccordionItem>
 
             {/* Prospects Accordion */}
@@ -628,7 +632,8 @@ export function FiltersSidebar({
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <div className="space-y-4 pt-2">
+                <div className="max-h-[320px] overflow-y-auto pr-2">
+                  <div className="space-y-4 pt-2">
                   {/* Prospect Filters */}
                   <div className="space-y-3">
                     <div className="space-y-2">
@@ -680,7 +685,8 @@ export function FiltersSidebar({
                     </div>
                   </div>
                 </div>
-              </AccordionContent>
+              </div>
+            </AccordionContent>
             </AccordionItem>
           </Accordion>
         </div>
