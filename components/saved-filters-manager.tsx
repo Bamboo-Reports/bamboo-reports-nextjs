@@ -47,16 +47,27 @@ interface SavedFilter {
 type FilterValueLike = FilterValue | string | null | undefined
 
 const DEFAULT_REVENUE_RANGE: [number, number] = [0, 1000000]
+const DEFAULT_YEARS_IN_INDIA_RANGE: [number, number] = [0, 1000000]
+const DEFAULT_FIRST_CENTER_YEAR_RANGE: [number, number] = [0, 1000000]
+const DEFAULT_CENTER_INC_YEAR_RANGE: [number, number] = [0, 1000000]
 
 const calculateActiveFilters = (filters: Filters) => {
   const [minRevenue, maxRevenue] = filters.accountRevenueRange || DEFAULT_REVENUE_RANGE
   const revenueFilterActive = minRevenue !== DEFAULT_REVENUE_RANGE[0] || maxRevenue !== DEFAULT_REVENUE_RANGE[1]
+  const [minYearsInIndia, maxYearsInIndia] = filters.accountYearsInIndiaRange || DEFAULT_YEARS_IN_INDIA_RANGE
+  const yearsInIndiaFilterActive =
+    minYearsInIndia !== DEFAULT_YEARS_IN_INDIA_RANGE[0] || maxYearsInIndia !== DEFAULT_YEARS_IN_INDIA_RANGE[1]
+  const [minFirstCenterYear, maxFirstCenterYear] =
+    filters.accountFirstCenterYearRange || DEFAULT_FIRST_CENTER_YEAR_RANGE
+  const firstCenterYearFilterActive =
+    minFirstCenterYear !== DEFAULT_FIRST_CENTER_YEAR_RANGE[0] || maxFirstCenterYear !== DEFAULT_FIRST_CENTER_YEAR_RANGE[1]
+  const [minCenterIncYear, maxCenterIncYear] = filters.centerIncYearRange || DEFAULT_CENTER_INC_YEAR_RANGE
+  const centerIncYearFilterActive =
+    minCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[0] || maxCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[1]
 
   return (
     filters.accountCountries.length +
-    filters.accountRegions.length +
     filters.accountIndustries.length +
-    filters.accountSubIndustries.length +
     filters.accountPrimaryCategories.length +
     filters.accountPrimaryNatures.length +
     filters.accountNasscomStatuses.length +
@@ -64,6 +75,10 @@ const calculateActiveFilters = (filters: Filters) => {
     filters.accountCenterEmployees.length +
     (revenueFilterActive ? 1 : 0) +
     (filters.includeNullRevenue ? 1 : 0) +
+    (yearsInIndiaFilterActive ? 1 : 0) +
+    (filters.includeNullYearsInIndia ? 1 : 0) +
+    (firstCenterYearFilterActive ? 1 : 0) +
+    (filters.includeNullFirstCenterYear ? 1 : 0) +
     filters.accountNameKeywords.length +
     filters.centerTypes.length +
     filters.centerFocus.length +
@@ -72,6 +87,8 @@ const calculateActiveFilters = (filters: Filters) => {
     filters.centerCountries.length +
     filters.centerEmployees.length +
     filters.centerStatuses.length +
+    (centerIncYearFilterActive ? 1 : 0) +
+    (filters.includeNullCenterIncYear ? 1 : 0) +
     filters.functionTypes.length +
     filters.prospectDepartments.length +
     filters.prospectLevels.length +
@@ -84,12 +101,19 @@ const withFilterDefaults = (filters: Partial<Filters> | null | undefined): Filte
   const revenueRange = Array.isArray(filters?.accountRevenueRange) && filters?.accountRevenueRange.length === 2
     ? filters.accountRevenueRange.map(Number) as [number, number]
     : DEFAULT_REVENUE_RANGE
+  const yearsInIndiaRange = Array.isArray(filters?.accountYearsInIndiaRange) && filters?.accountYearsInIndiaRange.length === 2
+    ? filters.accountYearsInIndiaRange.map(Number) as [number, number]
+    : DEFAULT_YEARS_IN_INDIA_RANGE
+  const firstCenterYearRange = Array.isArray(filters?.accountFirstCenterYearRange) && filters?.accountFirstCenterYearRange.length === 2
+    ? filters.accountFirstCenterYearRange.map(Number) as [number, number]
+    : DEFAULT_FIRST_CENTER_YEAR_RANGE
+  const centerIncYearRange = Array.isArray(filters?.centerIncYearRange) && filters?.centerIncYearRange.length === 2
+    ? filters.centerIncYearRange.map(Number) as [number, number]
+    : DEFAULT_CENTER_INC_YEAR_RANGE
 
   return {
     accountCountries: filters?.accountCountries ?? [],
-    accountRegions: filters?.accountRegions ?? [],
     accountIndustries: filters?.accountIndustries ?? [],
-    accountSubIndustries: filters?.accountSubIndustries ?? [],
     accountPrimaryCategories: filters?.accountPrimaryCategories ?? [],
     accountPrimaryNatures: filters?.accountPrimaryNatures ?? [],
     accountNasscomStatuses: filters?.accountNasscomStatuses ?? [],
@@ -97,6 +121,10 @@ const withFilterDefaults = (filters: Partial<Filters> | null | undefined): Filte
     accountCenterEmployees: filters?.accountCenterEmployees ?? [],
     accountRevenueRange: revenueRange,
     includeNullRevenue: filters?.includeNullRevenue ?? false,
+    accountYearsInIndiaRange: yearsInIndiaRange,
+    includeNullYearsInIndia: filters?.includeNullYearsInIndia ?? false,
+    accountFirstCenterYearRange: firstCenterYearRange,
+    includeNullFirstCenterYear: filters?.includeNullFirstCenterYear ?? false,
     accountNameKeywords: filters?.accountNameKeywords ?? [],
     centerTypes: filters?.centerTypes ?? [],
     centerFocus: filters?.centerFocus ?? [],
@@ -105,12 +133,13 @@ const withFilterDefaults = (filters: Partial<Filters> | null | undefined): Filte
     centerCountries: filters?.centerCountries ?? [],
     centerEmployees: filters?.centerEmployees ?? [],
     centerStatuses: filters?.centerStatuses ?? [],
+    centerIncYearRange: centerIncYearRange,
+    includeNullCenterIncYear: filters?.includeNullCenterIncYear ?? false,
     functionTypes: filters?.functionTypes ?? [],
     prospectDepartments: filters?.prospectDepartments ?? [],
     prospectLevels: filters?.prospectLevels ?? [],
     prospectCities: filters?.prospectCities ?? [],
     prospectTitleKeywords: filters?.prospectTitleKeywords ?? [],
-    searchTerm: filters?.searchTerm ?? "",
   }
 }
 
@@ -174,6 +203,16 @@ const SavedFilterCard = memo(({
   }, [filter.filters])
   const [minRevenue, maxRevenue] = filter.filters.accountRevenueRange || DEFAULT_REVENUE_RANGE
   const revenueFilterActive = minRevenue !== DEFAULT_REVENUE_RANGE[0] || maxRevenue !== DEFAULT_REVENUE_RANGE[1]
+  const [minYearsInIndia, maxYearsInIndia] = filter.filters.accountYearsInIndiaRange || DEFAULT_YEARS_IN_INDIA_RANGE
+  const yearsInIndiaFilterActive =
+    minYearsInIndia !== DEFAULT_YEARS_IN_INDIA_RANGE[0] || maxYearsInIndia !== DEFAULT_YEARS_IN_INDIA_RANGE[1]
+  const [minFirstCenterYear, maxFirstCenterYear] =
+    filter.filters.accountFirstCenterYearRange || DEFAULT_FIRST_CENTER_YEAR_RANGE
+  const firstCenterYearFilterActive =
+    minFirstCenterYear !== DEFAULT_FIRST_CENTER_YEAR_RANGE[0] || maxFirstCenterYear !== DEFAULT_FIRST_CENTER_YEAR_RANGE[1]
+  const [minCenterIncYear, maxCenterIncYear] = filter.filters.centerIncYearRange || DEFAULT_CENTER_INC_YEAR_RANGE
+  const centerIncYearFilterActive =
+    minCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[0] || maxCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[1]
 
   return (
     <Card>
@@ -224,9 +263,7 @@ const SavedFilterCard = memo(({
           <div className="flex flex-wrap gap-1">
             {renderFilterValues(filter.filters.accountNameKeywords, "Account Name")}
             {renderFilterValues(filter.filters.accountCountries, "Country")}
-            {renderFilterValues(filter.filters.accountRegions, "Region")}
             {renderFilterValues(filter.filters.accountIndustries, "Industry")}
-            {renderFilterValues(filter.filters.accountSubIndustries, "Sub Industry")}
             {renderFilterValues(filter.filters.accountPrimaryCategories, "Category")}
             {renderFilterValues(filter.filters.accountPrimaryNatures, "Nature")}
             {renderFilterValues(filter.filters.accountNasscomStatuses, "NASSCOM")}
@@ -253,8 +290,32 @@ const SavedFilterCard = memo(({
             {filter.filters.includeNullRevenue && (
               <FilterBadge filterKey="Revenue" value="Include null revenue" />
             )}
-            {filter.filters.searchTerm && (
-              <FilterBadge filterKey="Search" value={`"${filter.filters.searchTerm}"`} />
+            {yearsInIndiaFilterActive && (
+              <FilterBadge
+                filterKey="India Headcount"
+                value={`${minYearsInIndia.toLocaleString()} - ${maxYearsInIndia.toLocaleString()}`}
+              />
+            )}
+            {filter.filters.includeNullYearsInIndia && (
+              <FilterBadge filterKey="India Headcount" value="Include null/zero" />
+            )}
+            {firstCenterYearFilterActive && (
+              <FilterBadge
+                filterKey="Years In India"
+                value={`${minFirstCenterYear.toLocaleString()} - ${maxFirstCenterYear.toLocaleString()}`}
+              />
+            )}
+            {filter.filters.includeNullFirstCenterYear && (
+              <FilterBadge filterKey="Years In India" value="Include null/zero" />
+            )}
+            {centerIncYearFilterActive && (
+              <FilterBadge
+                filterKey="Timeline"
+                value={`${minCenterIncYear.toLocaleString()} - ${maxCenterIncYear.toLocaleString()}`}
+              />
+            )}
+            {filter.filters.includeNullCenterIncYear && (
+              <FilterBadge filterKey="Timeline" value="Include null/zero" />
             )}
           </div>
         </div>
