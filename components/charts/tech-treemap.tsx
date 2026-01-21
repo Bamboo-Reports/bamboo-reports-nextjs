@@ -47,15 +47,24 @@ export const TechTreemap = memo(({
   React.useEffect(() => {
     let active = true
     const load = async () => {
-      const Highcharts = (await import("highcharts")).default
-      const HighchartsTreemap = (await import("highcharts/modules/treemap")).default
-      HighchartsTreemap(Highcharts)
-      const HighchartsReact = (await import("highcharts-react-official")).default
+      const highchartsModule = await import("highcharts")
+      const Highcharts = (highchartsModule as any).default ?? highchartsModule
+      const treemapModule = await import("highcharts/modules/treemap")
+      const HighchartsTreemap = (treemapModule as any).default ?? treemapModule
+      if (typeof HighchartsTreemap === "function") {
+        HighchartsTreemap(Highcharts)
+      }
+      const highchartsReactModule = await import("highcharts-react-official")
+      const HighchartsReact = (highchartsReactModule as any).default ?? highchartsReactModule
       if (active) {
         setChartLib({ Highcharts, HighchartsReact })
       }
     }
-    load()
+    load().catch(() => {
+      if (active) {
+        setChartLib(null)
+      }
+    })
     return () => {
       active = false
     }

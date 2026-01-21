@@ -26,13 +26,19 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
   React.useEffect(() => {
     let active = true
     const load = async () => {
-      const Highcharts = (await import("highcharts")).default
-      const HighchartsReact = (await import("highcharts-react-official")).default
+      const highchartsModule = await import("highcharts")
+      const Highcharts = (highchartsModule as any).default ?? highchartsModule
+      const highchartsReactModule = await import("highcharts-react-official")
+      const HighchartsReact = (highchartsReactModule as any).default ?? highchartsReactModule
       if (active) {
         setChartLib({ Highcharts, HighchartsReact })
       }
     }
-    load()
+    load().catch(() => {
+      if (active) {
+        setChartLib(null)
+      }
+    })
     return () => {
       active = false
     }
