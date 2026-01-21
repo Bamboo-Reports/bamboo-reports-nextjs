@@ -135,6 +135,7 @@ export interface Filters {
   centerIncYearRange: [number, number]
   includeNullCenterIncYear: boolean
   functionTypes: FilterValue[]
+  centerSoftwareInUseKeywords: FilterValue[]
   prospectDepartments: FilterValue[]
   prospectLevels: FilterValue[]
   prospectCities: FilterValue[]

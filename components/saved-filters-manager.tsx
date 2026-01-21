@@ -90,6 +90,7 @@ const calculateActiveFilters = (filters: Filters) => {
     (centerIncYearFilterActive ? 1 : 0) +
     (filters.includeNullCenterIncYear ? 1 : 0) +
     filters.functionTypes.length +
+    filters.centerSoftwareInUseKeywords.length +
     filters.prospectDepartments.length +
     filters.prospectLevels.length +
     filters.prospectCities.length +
@@ -136,6 +137,7 @@ const withFilterDefaults = (filters: Partial<Filters> | null | undefined): Filte
     centerIncYearRange: centerIncYearRange,
     includeNullCenterIncYear: filters?.includeNullCenterIncYear ?? false,
     functionTypes: filters?.functionTypes ?? [],
+    centerSoftwareInUseKeywords: filters?.centerSoftwareInUseKeywords ?? [],
     prospectDepartments: filters?.prospectDepartments ?? [],
     prospectLevels: filters?.prospectLevels ?? [],
     prospectCities: filters?.prospectCities ?? [],
@@ -277,6 +279,7 @@ const SavedFilterCard = memo(({
             {renderFilterValues(filter.filters.centerEmployees, "Center Employees")}
             {renderFilterValues(filter.filters.centerStatuses, "Center Status")}
             {renderFilterValues(filter.filters.functionTypes, "Function")}
+            {renderFilterValues(filter.filters.centerSoftwareInUseKeywords, "Software In Use")}
             {renderFilterValues(filter.filters.prospectDepartments, "Department")}
             {renderFilterValues(filter.filters.prospectLevels, "Prospect Level")}
             {renderFilterValues(filter.filters.prospectCities, "Prospect City")}
