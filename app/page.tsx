@@ -472,11 +472,11 @@ function DashboardContent() {
     let centerKeySet = new Set<string>()
 
     const centerSoftwareIndex = new Map<string, string>()
-    for (const service of services) {
-      const software = service.software_in_use?.trim()
-      if (!software) continue
-      const existing = centerSoftwareIndex.get(service.cn_unique_key)
-      centerSoftwareIndex.set(service.cn_unique_key, existing ? `${existing} | ${software}` : software)
+    for (const techRow of tech) {
+      const software = techRow.software_in_use?.trim()
+      if (!software || !techRow.cn_unique_key) continue
+      const existing = centerSoftwareIndex.get(techRow.cn_unique_key)
+      centerSoftwareIndex.set(techRow.cn_unique_key, existing ? `${existing} | ${software}` : software)
     }
 
     for (const account of accounts) {
@@ -963,11 +963,11 @@ function DashboardContent() {
     const validCenterKeys = new Set<string>()
 
     const centerSoftwareIndex = new Map<string, string>()
-    for (const service of services) {
-      const software = service.software_in_use?.trim()
-      if (!software) continue
-      const existing = centerSoftwareIndex.get(service.cn_unique_key)
-      centerSoftwareIndex.set(service.cn_unique_key, existing ? `${existing} | ${software}` : software)
+    for (const techRow of tech) {
+      const software = techRow.software_in_use?.trim()
+      if (!software || !techRow.cn_unique_key) continue
+      const existing = centerSoftwareIndex.get(techRow.cn_unique_key)
+      centerSoftwareIndex.set(techRow.cn_unique_key, existing ? `${existing} | ${software}` : software)
     }
 
     centers.forEach((center) => {
