@@ -617,6 +617,16 @@ export function FiltersSidebar({
                         isApplying={isApplying && activeFilter === "functionTypes"}
                       />
                     </div>
+                    <div className="space-y-2 pt-4 mt-4 border-t border-border">
+                      <Label className="text-xs font-medium">Software In Use</Label>
+                      <TitleKeywordInput
+                        keywords={pendingFilters.centerSoftwareInUseKeywords}
+                        onChange={(keywords) =>
+                          setPendingFilters((prev) => ({ ...prev, centerSoftwareInUseKeywords: keywords }))
+                        }
+                        placeholder="e.g., SAP, Oracle, Workday..."
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

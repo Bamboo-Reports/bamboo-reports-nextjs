@@ -72,6 +72,7 @@ function DashboardContent() {
     centerIncYearRange: [0, 1000000],
     includeNullCenterIncYear: false,
     functionTypes: [],
+    centerSoftwareInUseKeywords: [],
     prospectDepartments: [],
     prospectLevels: [],
     prospectCities: [],
@@ -102,6 +103,7 @@ function DashboardContent() {
     centerIncYearRange: [0, 1000000],
     includeNullCenterIncYear: false,
     functionTypes: [],
+    centerSoftwareInUseKeywords: [],
     prospectDepartments: [],
     prospectLevels: [],
     prospectCities: [],
@@ -426,6 +428,7 @@ function DashboardContent() {
       rangeFilterMatch(activeFilters.centerIncYearRange, value, activeFilters.includeNullCenterIncYear)
 
     const matchFunctionType = createValueMatcher(activeFilters.functionTypes)
+    const matchCenterSoftwareInUse = createKeywordMatcher(activeFilters.centerSoftwareInUseKeywords)
 
     const matchProspectDepartment = createValueMatcher(activeFilters.prospectDepartments)
     const matchProspectLevel = createValueMatcher(activeFilters.prospectLevels)
@@ -458,6 +461,7 @@ function DashboardContent() {
       activeFilters.prospectTitleKeywords.length > 0
 
     const hasFunctionFilters = activeFilters.functionTypes.length > 0
+    const hasCenterSoftwareFilters = activeFilters.centerSoftwareInUseKeywords.length > 0
 
     let filteredAccounts: Account[] = []
     let filteredCenters: Center[] = []
@@ -466,6 +470,14 @@ function DashboardContent() {
 
     let accountNameSet = new Set<string>()
     let centerKeySet = new Set<string>()
+
+    const centerSoftwareIndex = new Map<string, string>()
+    for (const service of services) {
+      const software = service.software_in_use?.trim()
+      if (!software) continue
+      const existing = centerSoftwareIndex.get(service.cn_unique_key)
+      centerSoftwareIndex.set(service.cn_unique_key, existing ? `${existing} | ${software}` : software)
+    }
 
     for (const account of accounts) {
       if (!matchAccountCountry(account.account_hq_country)) continue
@@ -494,6 +506,9 @@ function DashboardContent() {
       if (!matchCenterEmployees(center.center_employees_range)) continue
       if (!matchCenterStatus(center.center_status)) continue
       if (!matchCenterIncYear(center.center_inc_year)) continue
+      if (hasCenterSoftwareFilters && !matchCenterSoftwareInUse(centerSoftwareIndex.get(center.cn_unique_key) ?? "")) {
+        continue
+      }
 
       filteredCenters.push(center)
       centerKeySet.add(center.cn_unique_key)
@@ -741,6 +756,7 @@ function DashboardContent() {
     centerIncYearRange: filters.centerIncYearRange,
     includeNullCenterIncYear: filters.includeNullCenterIncYear,
     functionTypes: filters.functionTypes,
+    centerSoftwareInUseKeywords: filters.centerSoftwareInUseKeywords,
     prospectDepartments: filters.prospectDepartments,
     prospectLevels: filters.prospectLevels,
     prospectCities: filters.prospectCities,
@@ -796,6 +812,7 @@ function DashboardContent() {
     const matchCenterStatus = createValueMatcher(activeFilters.centerStatuses)
     const matchCenterIncYear = (value: number | string | null | undefined) =>
       rangeFilterMatch(activeFilters.centerIncYearRange, value, activeFilters.includeNullCenterIncYear)
+    const matchCenterSoftwareInUse = createKeywordMatcher(activeFilters.centerSoftwareInUseKeywords)
 
     const matchProspectDepartment = createValueMatcher(activeFilters.prospectDepartments)
     const matchProspectLevel = createValueMatcher(activeFilters.prospectLevels)
@@ -945,6 +962,14 @@ function DashboardContent() {
 
     const validCenterKeys = new Set<string>()
 
+    const centerSoftwareIndex = new Map<string, string>()
+    for (const service of services) {
+      const software = service.software_in_use?.trim()
+      if (!software) continue
+      const existing = centerSoftwareIndex.get(service.cn_unique_key)
+      centerSoftwareIndex.set(service.cn_unique_key, existing ? `${existing} | ${software}` : software)
+    }
+
     centers.forEach((center) => {
       if (!validAccountNames.has(center.account_global_legal_name)) return
 
@@ -964,8 +989,10 @@ function DashboardContent() {
       const matchesEmployees = matchCenterEmployees(employees)
       const matchesStatus = matchCenterStatus(status)
       const matchesIncYear = matchCenterIncYear(center.center_inc_year)
+      const matchesSoftware = matchCenterSoftwareInUse(centerSoftwareIndex.get(center.cn_unique_key) ?? "")
 
       if (!matchesIncYear) return
+      if (!matchesSoftware) return
 
       if (matchesFocus && matchesCity && matchesState && matchesCountry && matchesEmployees && matchesStatus) {
         centerCounts.types.set(type, (centerCounts.types.get(type) || 0) + 1)
@@ -996,7 +1023,8 @@ function DashboardContent() {
         matchesState &&
         matchesCountry &&
         matchesEmployees &&
-        matchesStatus
+        matchesStatus &&
+        matchesSoftware
       ) {
         validCenterKeys.add(center.cn_unique_key)
       }
@@ -1065,7 +1093,7 @@ function DashboardContent() {
       prospectLevels: mapToSortedArray(prospectCounts.levels),
       prospectCities: mapToSortedArray(prospectCounts.cities),
     }
-  }, [accounts, centers, functions, prospects, filterStateForOptions])
+  }, [accounts, centers, functions, services, prospects, filterStateForOptions])
 
   const applyFilters = useCallback(() => {
     setIsApplying(true)
@@ -1101,6 +1129,7 @@ function DashboardContent() {
       centerIncYearRange: [centerIncYearRange.min, centerIncYearRange.max] as [number, number],
       includeNullCenterIncYear: false,
       functionTypes: [],
+      centerSoftwareInUseKeywords: [],
       prospectDepartments: [],
       prospectLevels: [],
       prospectCities: [],
@@ -1150,6 +1179,7 @@ function DashboardContent() {
           : 0) +
         (pendingFilters.includeNullCenterIncYear ? 1 : 0) +
         pendingFilters.functionTypes.length +
+        pendingFilters.centerSoftwareInUseKeywords.length +
         pendingFilters.prospectDepartments.length +
         pendingFilters.prospectLevels.length +
         pendingFilters.prospectCities.length +
@@ -1198,6 +1228,7 @@ function DashboardContent() {
           : 0) +
         (filters.includeNullCenterIncYear ? 1 : 0) +
         filters.functionTypes.length +
+        filters.centerSoftwareInUseKeywords.length +
         filters.prospectDepartments.length +
         filters.prospectLevels.length +
       filters.prospectCities.length +
