@@ -1,19 +1,22 @@
 "use client"
 
 import React, { memo } from "react"
-import { Treemap, ResponsiveContainer, Tooltip, type TooltipProps } from "recharts"
+import Highcharts from "highcharts"
+import HighchartsTreemap from "highcharts/modules/treemap"
+import HighchartsReact from "highcharts-react-official"
 import { Layers } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { CHART_COLORS } from "@/lib/utils/chart-helpers"
 import type { Tech } from "@/lib/types"
 
 type TreemapNode = {
+  id: string
+  parent?: string
   name: string
-  size?: number
-  fill?: string
+  value?: number
+  color?: string
   category?: string
   count?: number
-  children?: TreemapNode[]
 }
 
 interface TechTreemapProps {
@@ -32,108 +35,8 @@ const hexToRgba = (hex: string, alpha: number) => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
-const CustomTooltip = memo(({ active, payload }: TooltipProps<number, string>) => {
-  if (!active || !payload || payload.length === 0) return null
-  const data = payload[0]?.payload as TreemapNode | undefined
-  if (!data) return null
-
-  return (
-    <div className="rounded-lg border border-border bg-background px-3 py-2 shadow-lg">
-      <p className="text-xs font-semibold text-foreground">
-        {data.name}
-      </p>
-      {data.category && (
-        <p className="text-[11px] text-muted-foreground">Category: {data.category}</p>
-      )}
-      {typeof data.count === "number" && (
-        <p className="text-[11px] text-muted-foreground">
-          Instances: <span className="font-medium text-foreground">{data.count}</span>
-        </p>
-      )}
-    </div>
-  )
-})
-CustomTooltip.displayName = "CustomTooltip"
-
-const CustomNode = (props: any) => {
-  const { depth, x, y, width, height, name, fill, count, category } = props
-  const isCategory = depth === 1
-  const isLeaf = depth >= 2
-  const canShowLabel = width > 80 && height > 40
-  const safeX = Math.round(x)
-  const safeY = Math.round(y)
-  const safeWidth = Math.max(0, Math.floor(width))
-  const safeHeight = Math.max(0, Math.floor(height))
-  const inset = isLeaf ? 2 : 0
-  const leafRadius = 6
-
-  return (
-    <g>
-      {isCategory && (
-        <rect
-          x={safeX}
-          y={safeY}
-          width={safeWidth}
-          height={safeHeight}
-          style={{
-            fill: "transparent",
-            stroke: "rgba(255,255,255,0.9)",
-            strokeWidth: 1.5,
-            shapeRendering: "crispEdges",
-          }}
-        />
-      )}
-      <rect
-        x={safeX + inset}
-        y={safeY + inset}
-        width={Math.max(0, safeWidth - inset * 2)}
-        height={Math.max(0, safeHeight - inset * 2)}
-        rx={isLeaf ? leafRadius : 0}
-        style={{
-          fill,
-          stroke: "rgba(255,255,255,0.6)",
-          strokeWidth: 1,
-          shapeRendering: "crispEdges",
-        }}
-      />
-      {isLeaf && canShowLabel && (
-        <foreignObject
-          x={safeX + 6}
-          y={safeY + 6}
-          width={Math.max(0, safeWidth - 12)}
-          height={Math.max(0, safeHeight - 12)}
-          pointerEvents="none"
-        >
-          <div className="h-full w-full overflow-hidden text-white">
-            <div className="text-[12px] font-semibold leading-snug">{name}</div>
-            {category && (
-              <div className="text-[10px] uppercase tracking-[0.18em] text-white/70 leading-snug">
-                {category}
-              </div>
-            )}
-            {typeof count === "number" && (
-              <div className="text-[11px] text-white/80 leading-snug">
-                {count} instances
-              </div>
-            )}
-          </div>
-        </foreignObject>
-      )}
-      {isCategory && safeWidth > 90 && safeHeight > 36 && (
-        <foreignObject
-          x={safeX + 8}
-          y={safeY + 6}
-          width={Math.max(0, safeWidth - 16)}
-          height={20}
-          pointerEvents="none"
-        >
-          <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/90">
-            {name}
-          </div>
-        </foreignObject>
-      )}
-    </g>
-  )
+if (typeof HighchartsTreemap === "function") {
+  HighchartsTreemap(Highcharts)
 }
 
 export const TechTreemap = memo(({
@@ -142,7 +45,7 @@ export const TechTreemap = memo(({
   heightClass = "h-[320px] lg:h-[420px]",
   showTitle = true,
 }: TechTreemapProps) => {
-  const data = React.useMemo(() => {
+  const data = React.useMemo<TreemapNode[]>(() => {
     const categoryMap = new Map<string, Map<string, number>>()
 
     tech.forEach((item) => {
@@ -157,20 +60,30 @@ export const TechTreemap = memo(({
       softwareMap.set(software, (softwareMap.get(software) || 0) + 1)
     })
 
-    return Array.from(categoryMap.entries()).map(([category, softwareMap], index) => {
+    const nodes: TreemapNode[] = []
+    Array.from(categoryMap.entries()).forEach(([category, softwareMap], index) => {
       const categoryColor = CHART_COLORS[index % CHART_COLORS.length]
-      return {
+      const categoryId = `cat-${index}`
+      nodes.push({
+        id: categoryId,
         name: category,
-        fill: categoryColor,
-        children: Array.from(softwareMap.entries()).map(([software, count]) => ({
+        color: categoryColor,
+      })
+
+      Array.from(softwareMap.entries()).forEach(([software, count], softwareIndex) => {
+        nodes.push({
+          id: `${categoryId}-${softwareIndex}`,
+          parent: categoryId,
           name: software,
-          size: count,
+          value: count,
           count,
           category,
-          fill: hexToRgba(categoryColor, 0.85),
-        })),
-      }
+          color: hexToRgba(categoryColor, 0.85),
+        })
+      })
     })
+
+    return nodes
   }, [tech])
 
   if (data.length === 0) {
@@ -191,18 +104,83 @@ export const TechTreemap = memo(({
         </div>
       )}
       <div className={cn("w-full h-full min-h-0", heightClass)}>
-        <ResponsiveContainer width="100%" height="100%">
-          <Treemap
-            data={data}
-            dataKey="size"
-            aspectRatio={4 / 3}
-            stroke="#ffffff"
-            content={<CustomNode />}
-            isAnimationActive={false}
-          >
-            <Tooltip content={<CustomTooltip />} />
-          </Treemap>
-        </ResponsiveContainer>
+        <HighchartsReact
+          highcharts={Highcharts}
+          options={{
+            chart: {
+              type: "treemap",
+              backgroundColor: "transparent",
+            },
+            title: { text: showTitle ? title : undefined, align: "left" },
+            credits: { enabled: false },
+            tooltip: {
+              useHTML: true,
+              backgroundColor: "transparent",
+              borderWidth: 0,
+              shadow: false,
+              formatter: function () {
+                const point = this.point as Highcharts.Point & { category?: string; count?: number }
+                return `
+                  <div class="rounded-lg border border-border bg-background px-3 py-2 shadow-lg">
+                    <p class="text-xs font-semibold text-foreground">${point.name}</p>
+                    ${point.category ? `<p class="text-[11px] text-muted-foreground">Category: ${point.category}</p>` : ""}
+                    ${typeof point.count === "number" ? `<p class="text-[11px] text-muted-foreground">Instances: <span class="font-medium text-foreground">${point.count}</span></p>` : ""}
+                  </div>
+                `
+              },
+            },
+            plotOptions: {
+              treemap: {
+                layoutAlgorithm: "squarified",
+                allowTraversingTree: true,
+                alternateStartingDirection: true,
+                dataLabels: {
+                  format: "{point.name}",
+                  style: {
+                    textOutline: "none",
+                  },
+                },
+                borderRadius: 3,
+                nodeSizeBy: "leaf",
+              },
+            },
+            series: [
+              {
+                type: "treemap",
+                name: "Tech Stack",
+                data,
+                levels: [
+                  {
+                    level: 1,
+                    layoutAlgorithm: "sliceAndDice",
+                    groupPadding: 3,
+                    dataLabels: {
+                      headers: true,
+                      enabled: true,
+                      style: {
+                        fontSize: "0.6em",
+                        fontWeight: "normal",
+                        color: "var(--highcharts-neutral-color-100, #000)",
+                        textOutline: "none",
+                      },
+                    },
+                    borderRadius: 3,
+                    borderWidth: 1,
+                    colorByPoint: true,
+                  },
+                  {
+                    level: 2,
+                    dataLabels: {
+                      enabled: true,
+                      inside: false,
+                    },
+                  },
+                ],
+              },
+            ],
+          }}
+          containerProps={{ style: { height: "100%", width: "100%" } }}
+        />
       </div>
     </div>
   )
