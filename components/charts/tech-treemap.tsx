@@ -1,13 +1,11 @@
 "use client"
 
 import React, { memo } from "react"
-import Highcharts from "highcharts"
-import HighchartsTreemap from "highcharts/modules/treemap"
-import HighchartsReact from "highcharts-react-official"
 import { Layers } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { CHART_COLORS } from "@/lib/utils/chart-helpers"
 import type { Tech } from "@/lib/types"
+import type { Options, Point } from "highcharts"
 
 type TreemapNode = {
   id: string
@@ -35,16 +33,34 @@ const hexToRgba = (hex: string, alpha: number) => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
-if (typeof HighchartsTreemap === "function") {
-  HighchartsTreemap(Highcharts)
-}
-
 export const TechTreemap = memo(({
   tech,
   title = "Tech Stack",
   heightClass = "h-[320px] lg:h-[420px]",
   showTitle = true,
 }: TechTreemapProps) => {
+  const [chartLib, setChartLib] = React.useState<{
+    Highcharts: typeof import("highcharts")
+    HighchartsReact: React.ComponentType<any>
+  } | null>(null)
+
+  React.useEffect(() => {
+    let active = true
+    const load = async () => {
+      const Highcharts = (await import("highcharts")).default
+      const HighchartsTreemap = (await import("highcharts/modules/treemap")).default
+      HighchartsTreemap(Highcharts)
+      const HighchartsReact = (await import("highcharts-react-official")).default
+      if (active) {
+        setChartLib({ Highcharts, HighchartsReact })
+      }
+    }
+    load()
+    return () => {
+      active = false
+    }
+  }, [])
+
   const data = React.useMemo<TreemapNode[]>(() => {
     const categoryMap = new Map<string, Map<string, number>>()
 
@@ -104,9 +120,10 @@ export const TechTreemap = memo(({
         </div>
       )}
       <div className={cn("w-full h-full min-h-0", heightClass)}>
-        <HighchartsReact
-          highcharts={Highcharts}
-          options={{
+        {chartLib ? (
+          <chartLib.HighchartsReact
+            highcharts={chartLib.Highcharts}
+            options={{
             chart: {
               type: "treemap",
               backgroundColor: "transparent",
@@ -119,7 +136,7 @@ export const TechTreemap = memo(({
               borderWidth: 0,
               shadow: false,
               formatter: function () {
-                const point = this.point as Highcharts.Point & { category?: string; count?: number }
+                const point = this.point as Point & { category?: string; count?: number }
                 return `
                   <div class="rounded-lg border border-border bg-background px-3 py-2 shadow-lg">
                     <p class="text-xs font-semibold text-foreground">${point.name}</p>
@@ -178,9 +195,14 @@ export const TechTreemap = memo(({
                 ],
               },
             ],
-          }}
-          containerProps={{ style: { height: "100%", width: "100%" } }}
-        />
+          } as Options}
+            containerProps={{ style: { height: "100%", width: "100%" } }}
+          />
+        ) : (
+          <div className="h-full w-full flex items-center justify-center text-muted-foreground text-sm">
+            Loading chart...
+          </div>
+        )}
       </div>
     </div>
   )

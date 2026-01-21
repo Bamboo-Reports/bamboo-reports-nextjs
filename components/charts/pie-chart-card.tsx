@@ -2,11 +2,10 @@
 
 import React, { memo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import Highcharts from "highcharts"
-import HighchartsReact from "highcharts-react-official"
 import { PieChartIcon } from "lucide-react"
 import { CHART_COLORS } from "@/lib/utils/chart-helpers"
 import type { ChartData } from "@/lib/types"
+import type { Options, Point } from "highcharts"
 
 interface PieChartCardProps {
   title: string
@@ -19,6 +18,25 @@ interface PieChartCardProps {
 export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel = "Count", showBigPercentage = false }: PieChartCardProps) => {
   // Safety check: ensure data is an array
   const safeData = React.useMemo(() => data || [], [data])
+  const [chartLib, setChartLib] = React.useState<{
+    Highcharts: typeof import("highcharts")
+    HighchartsReact: React.ComponentType<any>
+  } | null>(null)
+
+  React.useEffect(() => {
+    let active = true
+    const load = async () => {
+      const Highcharts = (await import("highcharts")).default
+      const HighchartsReact = (await import("highcharts-react-official")).default
+      if (active) {
+        setChartLib({ Highcharts, HighchartsReact })
+      }
+    }
+    load()
+    return () => {
+      active = false
+    }
+  }, [])
 
   // Calculate total for percentage calculation
   const total = React.useMemo(() => {
@@ -39,7 +57,7 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
     })
   }, [safeData, dataKey])
 
-  const options = React.useMemo<Highcharts.Options>(() => {
+  const options = React.useMemo<Options>(() => {
     return {
       chart: {
         type: "pie",
@@ -56,7 +74,7 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
         borderWidth: 0,
         shadow: false,
         formatter: function () {
-          const point = this.point as Highcharts.Point
+          const point = this.point as Point
           const value = typeof point.y === "number" ? point.y : 0
           const percent = total > 0 ? Math.round((value / total) * 100) : 0
           const color = point.color || CHART_COLORS[0]
@@ -104,7 +122,17 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
       <CardContent>
         {safeData.length > 0 ? (
           <div className="h-[400px] w-full">
-            <HighchartsReact highcharts={Highcharts} options={options} containerProps={{ style: { height: "100%", width: "100%" } }} />
+            {chartLib ? (
+              <chartLib.HighchartsReact
+                highcharts={chartLib.Highcharts}
+                options={options}
+                containerProps={{ style: { height: "100%", width: "100%" } }}
+              />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center text-muted-foreground text-sm">
+                Loading chart...
+              </div>
+            )}
           </div>
         ) : (
           <div className="h-[300px] flex items-center justify-center text-muted-foreground">
