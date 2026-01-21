@@ -72,6 +72,14 @@ export interface Service {
   account_global_legal_name?: string | null
 }
 
+export interface Tech {
+  account_global_legal_name: string | null
+  cn_unique_key: string | null
+  software_in_use: string | null
+  software_vendor: string | null
+  software_category: string | null
+}
+
 export interface Prospect {
   account_global_legal_name: string
   center_name: string | null

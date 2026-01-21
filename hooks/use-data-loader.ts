@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react"
 import { getAllData, testConnection, getDatabaseStatus, clearCache } from "@/app/actions"
 import { parseRevenue } from "@/lib/utils/helpers"
-import type { Account, Center, Function, Service, Filters } from "@/lib/types"
+import type { Account, Center, Function, Service, Tech, Filters } from "@/lib/types"
 
 interface UseDataLoaderReturn {
   accounts: Account[]
   centers: Center[]
   functions: Function[]
   services: Service[]
+  tech: Tech[]
   loading: boolean
   error: string | null
   connectionStatus: string
@@ -28,6 +29,7 @@ export function useDataLoader(
   const [centers, setCenters] = useState<Center[]>([])
   const [functions, setFunctions] = useState<Function[]>([])
   const [services, setServices] = useState<Service[]>([])
+  const [tech, setTech] = useState<Tech[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [connectionStatus, setConnectionStatus] = useState<string>("")
@@ -98,12 +100,14 @@ export function useDataLoader(
       const centersData = Array.isArray(data.centers) ? data.centers : []
       const functionsData = Array.isArray(data.functions) ? data.functions : []
       const servicesData = Array.isArray(data.services) ? data.services : []
+      const techData = Array.isArray(data.tech) ? data.tech : []
 
       if (
         accountsData.length === 0 &&
         centersData.length === 0 &&
         functionsData.length === 0 &&
-        servicesData.length === 0
+        servicesData.length === 0 &&
+        techData.length === 0
       ) {
         setError("No data found in database tables. Please check if your tables contain data.")
         setConnectionStatus("No data available")
@@ -114,6 +118,7 @@ export function useDataLoader(
       setCenters(centersData as Center[])
       setFunctions(functionsData as Function[])
       setServices(servicesData as Service[])
+      setTech(techData as Tech[])
 
       const revenues = accountsData
         .map((account: Account) => parseRevenue(account.account_hq_revenue))
@@ -130,7 +135,7 @@ export function useDataLoader(
       }
 
       setConnectionStatus(
-        `Successfully loaded: ${accountsData.length} accounts, ${centersData.length} centers, ${functionsData.length} functions, ${servicesData.length} services`
+        `Successfully loaded: ${accountsData.length} accounts, ${centersData.length} centers, ${functionsData.length} functions, ${servicesData.length} services, ${techData.length} tech`
       )
     } catch (err) {
       console.error("Error loading data:", err)
@@ -162,6 +167,7 @@ export function useDataLoader(
     centers,
     functions,
     services,
+    tech,
     loading,
     error,
     connectionStatus,

@@ -23,13 +23,14 @@ import { AccountDetailsDialog } from "@/components/dialogs/account-details-tabbe
 import { ViewSwitcher } from "@/components/ui/view-switcher"
 import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
 import { exportToExcel } from "@/lib/utils/export-helpers"
-import type { Account, Center, Prospect, Service, Function } from "@/lib/types"
+import type { Account, Center, Prospect, Service, Function, Tech } from "@/lib/types"
 
 interface AccountsTabProps {
   accounts: Account[]
   centers: Center[]
   prospects: Prospect[]
   services: Service[]
+  tech: Tech[]
   functions: Function[]
   accountChartData: {
     regionData: Array<{ name: string; value: number; fill?: string }>
@@ -49,6 +50,7 @@ export function AccountsTab({
   centers,
   prospects,
   services,
+  tech,
   accountChartData,
   accountsView,
   setAccountsView,
@@ -355,6 +357,7 @@ export function AccountsTab({
         centers={centers}
         prospects={prospects}
         services={services}
+        tech={tech}
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
       />
