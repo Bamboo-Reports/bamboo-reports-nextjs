@@ -28,19 +28,22 @@ import {
   Info,
   Building,
   UserCircle,
+  Layers,
 } from "lucide-react"
 import { formatRevenueInMillions, parseRevenue } from "@/lib/utils/helpers"
-import type { Account, Center, Prospect, Service } from "@/lib/types"
+import type { Account, Center, Prospect, Service, Tech } from "@/lib/types"
 import { CompanyLogo } from "@/components/ui/company-logo"
 import { CenterDetailsDialog } from "./center-details-dialog"
 import { ProspectDetailsDialog } from "./prospect-details-dialog"
 import { Badge } from "@/components/ui/badge"
+import { TechTreemap } from "@/components/charts/tech-treemap"
 
 interface AccountDetailsDialogProps {
   account: Account | null
   centers: Center[]
   prospects: Prospect[]
   services: Service[]
+  tech: Tech[]
   open: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -50,6 +53,7 @@ export function AccountDetailsDialog({
   centers,
   prospects,
   services,
+  tech,
   open,
   onOpenChange,
 }: AccountDetailsDialogProps) {
@@ -66,6 +70,9 @@ export function AccountDetailsDialog({
   )
   const accountProspects = prospects.filter(
     (prospect) => prospect.account_global_legal_name === account.account_global_legal_name
+  )
+  const accountTech = tech.filter(
+    (item) => item.account_global_legal_name === account.account_global_legal_name
   )
 
   // Merge city and country for location
@@ -163,6 +170,38 @@ export function AccountDetailsDialog({
 
             {/* Account Info Tab */}
             <TabsContent value="info" className="space-y-6 mt-4">
+              {/* Tech Stack & Centers Section */}
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+                  <Info className="h-4 w-4" />
+                  Tech Stack & Centers
+                </h3>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+                  <div className="rounded-lg border border-border/60 bg-background/40 backdrop-blur-sm shadow-sm overflow-hidden h-[300px] lg:h-[420px]">
+                    <div className="flex h-full flex-col">
+                      <div className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-muted-foreground border-b border-border/40">
+                        <Layers className="h-4 w-4" />
+                        Tech Stack
+                      </div>
+                      <div className="flex-1 min-h-0">
+                        <TechTreemap tech={accountTech} heightClass="h-full" showTitle={false} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-border/60 bg-background/40 backdrop-blur-sm shadow-sm overflow-hidden h-[300px] lg:h-[420px]">
+                    <div className="flex h-full flex-col">
+                      <div className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-muted-foreground border-b border-border/40">
+                        <MapPin className="h-4 w-4" />
+                        Centers Map
+                      </div>
+                      <div className="flex-1 min-h-0">
+                        <CentersMap centers={accountCenters} heightClass="h-full" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Company Overview Section */}
               {(account.account_hq_company_type || account.account_about || account.account_hq_key_offerings) && (
                 <div>
@@ -170,27 +209,22 @@ export function AccountDetailsDialog({
                     <Info className="h-4 w-4" />
                     Company Overview
                   </h3>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-                    <div className="grid grid-cols-1 gap-3">
-                      <InfoRow
-                        icon={Building2}
-                        label="Account Type"
-                        value={account.account_hq_company_type}
-                      />
-                      <InfoRow
-                        icon={Building2}
-                        label="About"
-                        value={account.account_about}
-                      />
-                      <InfoRow
-                        icon={Package}
-                        label="Key Offerings"
-                        value={account.account_hq_key_offerings}
-                      />
-                    </div>
-                    <div className="w-full">
-                      <CentersMap centers={accountCenters} heightClass="h-[320px] lg:h-[420px]" />
-                    </div>
+                  <div className="grid grid-cols-1 gap-3">
+                    <InfoRow
+                      icon={Building2}
+                      label="Account Type"
+                      value={account.account_hq_company_type}
+                    />
+                    <InfoRow
+                      icon={Building2}
+                      label="About"
+                      value={account.account_about}
+                    />
+                    <InfoRow
+                      icon={Package}
+                      label="Key Offerings"
+                      value={account.account_hq_key_offerings}
+                    />
                   </div>
                 </div>
               )}

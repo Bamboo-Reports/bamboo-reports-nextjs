@@ -28,7 +28,7 @@ import {
 import {
   exportAllData as exportAll,
 } from "@/lib/utils/export-helpers"
-import type { Account, Center, Function, Service, Prospect, Filters, FilterOption, AvailableOptions } from "@/lib/types"
+import type { Account, Center, Function, Service, Prospect, Tech, Filters, FilterOption, AvailableOptions } from "@/lib/types"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 
 function DashboardContent() {
@@ -37,6 +37,7 @@ function DashboardContent() {
   const [centers, setCenters] = useState<Center[]>([])
   const [functions, setFunctions] = useState<Function[]>([])
   const [services, setServices] = useState<Service[]>([])
+  const [tech, setTech] = useState<Tech[]>([])
   const [prospects, setProspects] = useState<Prospect[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -204,6 +205,7 @@ function DashboardContent() {
       const centersData = Array.isArray(data.centers) ? data.centers : []
       const functionsData = Array.isArray(data.functions) ? data.functions : []
       const servicesData = Array.isArray(data.services) ? data.services : []
+      const techData = Array.isArray(data.tech) ? data.tech : []
       const prospectsData = Array.isArray(data.prospects) ? data.prospects : []
 
       if (
@@ -211,6 +213,7 @@ function DashboardContent() {
         centersData.length === 0 &&
         functionsData.length === 0 &&
         servicesData.length === 0 &&
+        techData.length === 0 &&
         prospectsData.length === 0
       ) {
         setError("No data found in database tables. Please check if your tables contain data.")
@@ -222,6 +225,7 @@ function DashboardContent() {
       setCenters(centersData as Center[])
       setFunctions(functionsData as Function[])
       setServices(servicesData as Service[])
+      setTech(techData as Tech[])
       setProspects(prospectsData as Prospect[])
 
       const revenues = accountsData
@@ -281,7 +285,7 @@ function DashboardContent() {
       }
 
       setConnectionStatus(
-        `Successfully loaded: ${accountsData.length} accounts, ${centersData.length} centers, ${functionsData.length} functions, ${servicesData.length} services, ${prospectsData.length} prospects`
+        `Successfully loaded: ${accountsData.length} accounts, ${centersData.length} centers, ${functionsData.length} functions, ${servicesData.length} services, ${techData.length} tech, ${prospectsData.length} prospects`
       )
     } catch (err) {
       console.error("Error loading data:", err)
@@ -1412,6 +1416,7 @@ function DashboardContent() {
                   centers={filteredData.filteredCenters}
                   prospects={filteredData.filteredProspects}
                   services={filteredData.filteredServices}
+                  tech={tech}
                   functions={functions}
                   accountChartData={accountChartData}
                   accountsView={accountsView}

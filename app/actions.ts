@@ -181,6 +181,31 @@ export async function getServices() {
   }
 }
 
+export async function getTech() {
+  try {
+    if (!sql) {
+      throw new Error("Database connection not initialized")
+    }
+
+    const cacheKey = "tech"
+    const cached = getCachedData(cacheKey)
+    if (cached) return cached
+
+    console.log("Fetching tech stack from database...")
+    const tech = await fetchWithRetry(
+      () => sql`SELECT * FROM tech ORDER BY account_global_legal_name, software_category, software_in_use`
+    )
+    console.log(`Successfully fetched ${tech.length} tech stack rows`)
+
+    setCachedData(cacheKey, tech)
+
+    return tech
+  } catch (error) {
+    console.error("Error fetching tech:", error)
+    return []
+  }
+}
+
 export async function getProspects() {
   try {
     if (!sql) {
@@ -339,6 +364,7 @@ export async function getAllData() {
         centers: [],
         functions: [],
         services: [],
+        tech: [],
         prospects: [],
         error: "Database configuration missing",
       }
@@ -351,6 +377,7 @@ export async function getAllData() {
         centers: [],
         functions: [],
         services: [],
+        tech: [],
         prospects: [],
         error: "Database connection failed",
       }
@@ -366,7 +393,7 @@ export async function getAllData() {
 
     // Fetch all data in parallel with retry logic
     console.time("getAllData parallel fetch")
-    const [accounts, centers, functions, services, prospects] = await Promise.all([
+    const [accounts, centers, functions, services, tech, prospects] = await Promise.all([
       (async () => {
         console.time("getAllData accounts")
         const result = await getAccounts()
@@ -392,6 +419,12 @@ export async function getAllData() {
         return result
       })(),
       (async () => {
+        console.time("getAllData tech")
+        const result = await getTech()
+        console.timeEnd("getAllData tech")
+        return result
+      })(),
+      (async () => {
         console.time("getAllData prospects")
         const result = await getProspects()
         console.timeEnd("getAllData prospects")
@@ -405,6 +438,7 @@ export async function getAllData() {
       centers: centers.length,
       functions: functions.length,
       services: services.length,
+      tech: tech.length,
       prospects: prospects.length,
     })
 
@@ -413,6 +447,7 @@ export async function getAllData() {
       centers,
       functions,
       services,
+      tech,
       prospects,
       error: null,
     }
@@ -429,6 +464,7 @@ export async function getAllData() {
       centers: [],
       functions: [],
       services: [],
+      tech: [],
       prospects: [],
       error: error instanceof Error ? error.message : "Unknown database error",
     }
