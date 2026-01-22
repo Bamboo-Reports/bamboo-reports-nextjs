@@ -29,24 +29,36 @@ export const ProspectGridCard = memo(({ prospect, onClick }: ProspectGridCardPro
             <span className="text-sm font-bold text-primary">{initials || "?"}</span>
           </div>
           <div className="min-w-0">
-            <h3 className="text-base font-semibold text-foreground leading-snug break-words">
+            <h3
+              className="text-base font-semibold text-foreground leading-snug truncate"
+              title={fullName || "Prospect"}
+            >
               {fullName || "Prospect"}
             </h3>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p
+              className="text-sm text-muted-foreground mt-1 truncate"
+              title={location || prospect.prospect_country || "-"}
+            >
               {location || prospect.prospect_country || "-"}
             </p>
           </div>
         </div>
         <div className="space-y-2 text-sm">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 min-w-0">
             <span className="text-muted-foreground">Job Title</span>
-            <span className="font-medium text-foreground text-right">
+            <span
+              className="font-medium text-foreground text-right truncate max-w-[160px]"
+              title={prospect.prospect_title || "-"}
+            >
               {prospect.prospect_title || "-"}
             </span>
           </div>
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 min-w-0">
             <span className="text-muted-foreground">Department</span>
-            <span className="font-medium text-foreground text-right">
+            <span
+              className="font-medium text-foreground text-right truncate max-w-[160px]"
+              title={prospect.prospect_department || "-"}
+            >
               {prospect.prospect_department || "-"}
             </span>
           </div>

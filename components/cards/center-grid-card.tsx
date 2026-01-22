@@ -26,31 +26,37 @@ export const CenterGridCard = memo(({ center, onClick }: CenterGridCardProps) =>
             theme="auto"
           />
           <div className="min-w-0">
-            <h3 className="text-base font-semibold text-foreground leading-snug break-words">
+            <h3
+              className="text-base font-semibold text-foreground leading-snug truncate"
+              title={centerName}
+            >
               {centerName}
             </h3>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p
+              className="text-sm text-muted-foreground mt-1 truncate"
+              title={location || center.center_country || "-"}
+            >
               {location || center.center_country || "-"}
             </p>
           </div>
         </div>
         <div className="space-y-2 text-sm">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 min-w-0">
             <span className="text-muted-foreground">Account</span>
-            <span className="font-medium text-foreground text-right">
+            <span
+              className="font-medium text-foreground text-right truncate max-w-[160px]"
+              title={accountName}
+            >
               {accountName}
             </span>
           </div>
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 min-w-0">
             <span className="text-muted-foreground">Center Type</span>
-            <span className="font-medium text-foreground text-right">
+            <span
+              className="font-medium text-foreground text-right truncate max-w-[160px]"
+              title={center.center_type || "-"}
+            >
               {center.center_type || "-"}
-            </span>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-muted-foreground">Employees</span>
-            <span className="font-medium text-foreground text-right">
-              {center.center_employees_range || "-"}
             </span>
           </div>
         </div>

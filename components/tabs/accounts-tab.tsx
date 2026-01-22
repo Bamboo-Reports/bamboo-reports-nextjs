@@ -232,19 +232,19 @@ export function AccountsTab({
           <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
             <div className="flex-1 overflow-auto">
               {dataLayout === "table" ? (
-                <Table>
+                <Table className="table-fixed">
                   <TableHeader>
                     <TableRow>
-                      <TableHead>
+                      <TableHead className="w-[280px]">
                         <SortButton label="Account Name" sortKey="name" />
                       </TableHead>
-                      <TableHead>
+                      <TableHead className="w-[200px]">
                         <SortButton label="Location" sortKey="location" />
                       </TableHead>
-                      <TableHead>
+                      <TableHead className="w-[220px]">
                         <SortButton label="Industry" sortKey="industry" />
                       </TableHead>
-                      <TableHead>
+                      <TableHead className="w-[140px]">
                         <SortButton label="Revenue Range" sortKey="revenue" />
                       </TableHead>
                     </TableRow>

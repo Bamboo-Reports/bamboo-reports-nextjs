@@ -36,8 +36,8 @@ const EnhancedSelectBadge = React.memo(({
       className={cn(
         "mr-1 mb-1 flex items-center gap-1 pr-1",
         isInclude
-          ? "bg-green-500/20 text-green-700 dark:bg-green-500/30 dark:text-green-300 border-green-500/50 hover:bg-green-500/30"
-          : "bg-red-500/20 text-red-700 dark:bg-red-500/30 dark:text-red-300 border-red-500/50 hover:bg-red-500/30"
+          ? "bg-green-500/20 text-green-700 dark:bg-green-500/30 dark:text-green-300 border-green-500/50 hover:bg-green-500/25"
+          : "bg-red-500/20 text-red-700 dark:bg-red-500/30 dark:text-red-300 border-red-500/50 hover:bg-red-500/25"
       )}
     >
       <button
@@ -49,8 +49,8 @@ const EnhancedSelectBadge = React.memo(({
         className={cn(
           "flex items-center justify-center w-4 h-4 rounded-sm",
           isInclude
-            ? "bg-green-600/30 hover:bg-green-600/50"
-            : "bg-red-600/30 hover:bg-red-600/50"
+            ? "bg-green-600/30 hover:bg-green-600/40"
+            : "bg-red-600/30 hover:bg-red-600/40"
         )}
         title={isInclude ? "Click to exclude" : "Click to include"}
       >
@@ -103,10 +103,10 @@ const EnhancedSelectItem = React.memo(({
       disabled={disabled}
       className={cn(
         "cursor-pointer",
-        disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-accent/50",
+        disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-accent/30",
         isSelected && (isInclude
-          ? "bg-green-500/10 hover:bg-green-500/20"
-          : "bg-red-500/10 hover:bg-red-500/20")
+          ? "bg-green-500/10 hover:bg-green-500/15"
+          : "bg-red-500/10 hover:bg-red-500/15")
       )}
     >
       <div className="flex items-center justify-between flex-1">
@@ -115,7 +115,7 @@ const EnhancedSelectItem = React.memo(({
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 w-6 p-0 hover:bg-green-100 dark:hover:bg-green-900/20"
+            className="h-6 w-6 p-0 hover:bg-green-100/60 dark:hover:bg-green-900/15 transition-colors duration-150"
             onClick={(e) => {
               e.stopPropagation()
               onSelectInclude()
@@ -127,7 +127,7 @@ const EnhancedSelectItem = React.memo(({
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 w-6 p-0 hover:bg-red-100 dark:hover:bg-red-900/20"
+            className="h-6 w-6 p-0 hover:bg-red-100/60 dark:hover:bg-red-900/15 transition-colors duration-150"
             onClick={(e) => {
               e.stopPropagation()
               onSelectExclude()
@@ -260,7 +260,7 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
               variant="outline"
               role="combobox"
               aria-expanded={open}
-              className="justify-between h-auto min-h-10 bg-transparent hover:bg-accent/30 flex-1"
+              className="justify-between h-auto min-h-10 bg-transparent hover:bg-accent/20 flex-1 transition-colors duration-150"
             >
               <div className="flex gap-1 flex-wrap items-center w-full">
                 {selected.length === 0 && <span className="text-muted-foreground">{placeholder}</span>}

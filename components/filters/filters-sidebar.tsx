@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Slider } from "@/components/ui/slider"
 import {
@@ -228,25 +229,24 @@ export function FiltersSidebar({
                     {/* Revenue Range */}
                     <div className="space-y-3 pt-4 mt-4 border-t border-border">
                       <div className="flex items-center justify-between">
-                        <Label className="text-xs font-medium">
-                          Revenue: {formatRevenueInMillions(pendingFilters.accountRevenueRange[0])} -{" "}
-                          {formatRevenueInMillions(pendingFilters.accountRevenueRange[1])}
-                        </Label>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
+                        <Label className="text-xs font-medium">Revenue</Label>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
                             id="include-null-revenue"
-                            checked={pendingFilters.includeNullRevenue || false}
-                            onChange={(e) =>
+                            checked={pendingFilters.includeNullRevenue}
+                            onCheckedChange={(checked) =>
                               setPendingFilters((prev) => ({
                                 ...prev,
-                                includeNullRevenue: e.target.checked,
+                                includeNullRevenue: checked === true,
                               }))
                             }
-                            className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-border rounded"
+                            className="h-3.5 w-3.5"
                           />
-                          <Label htmlFor="include-null-revenue" className="text-xs text-foreground cursor-pointer">
-                            Include null/zero
+                          <Label
+                            htmlFor="include-null-revenue"
+                            className="text-xs text-muted-foreground cursor-pointer select-none"
+                          >
+                            Include all
                           </Label>
                         </div>
                       </div>
@@ -295,25 +295,24 @@ export function FiltersSidebar({
                     {/* Total India Headcount Range */}
                     <div className="space-y-3 pt-4 mt-4 border-t border-border">
                       <div className="flex items-center justify-between">
-                        <Label className="text-xs font-medium">
-                          Total India Headcount: {pendingFilters.accountYearsInIndiaRange[0].toLocaleString()} -{" "}
-                          {pendingFilters.accountYearsInIndiaRange[1].toLocaleString()}
-                        </Label>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
+                        <Label className="text-xs font-medium">Total India Headcount</Label>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
                             id="include-null-years-in-india"
-                            checked={pendingFilters.includeNullYearsInIndia || false}
-                            onChange={(e) =>
+                            checked={pendingFilters.includeNullYearsInIndia}
+                            onCheckedChange={(checked) =>
                               setPendingFilters((prev) => ({
                                 ...prev,
-                                includeNullYearsInIndia: e.target.checked,
+                                includeNullYearsInIndia: checked === true,
                               }))
                             }
-                            className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-border rounded"
+                            className="h-3.5 w-3.5"
                           />
-                          <Label htmlFor="include-null-years-in-india" className="text-xs text-foreground cursor-pointer">
-                            Include null/zero
+                          <Label
+                            htmlFor="include-null-years-in-india"
+                            className="text-xs text-muted-foreground cursor-pointer select-none"
+                          >
+                            Include all
                           </Label>
                         </div>
                       </div>
@@ -362,25 +361,24 @@ export function FiltersSidebar({
                     {/* Years In India Range */}
                     <div className="space-y-3 pt-4 mt-4 border-t border-border">
                       <div className="flex items-center justify-between">
-                        <Label className="text-xs font-medium">
-                          Years In India: {pendingFilters.accountFirstCenterYearRange[0].toLocaleString()} -{" "}
-                          {pendingFilters.accountFirstCenterYearRange[1].toLocaleString()}
-                        </Label>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
+                        <Label className="text-xs font-medium">Years In India</Label>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
                             id="include-null-first-center-year"
-                            checked={pendingFilters.includeNullFirstCenterYear || false}
-                            onChange={(e) =>
+                            checked={pendingFilters.includeNullFirstCenterYear}
+                            onCheckedChange={(checked) =>
                               setPendingFilters((prev) => ({
                                 ...prev,
-                                includeNullFirstCenterYear: e.target.checked,
+                                includeNullFirstCenterYear: checked === true,
                               }))
                             }
-                            className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-border rounded"
+                            className="h-3.5 w-3.5"
                           />
-                          <Label htmlFor="include-null-first-center-year" className="text-xs text-foreground cursor-pointer">
-                            Include null/zero
+                          <Label
+                            htmlFor="include-null-first-center-year"
+                            className="text-xs text-muted-foreground cursor-pointer select-none"
+                          >
+                            Include all
                           </Label>
                         </div>
                       </div>
@@ -539,25 +537,24 @@ export function FiltersSidebar({
                     {/* Center Timeline Range */}
                     <div className="space-y-3 pt-4 mt-4 border-t border-border">
                       <div className="flex items-center justify-between">
-                        <Label className="text-xs font-medium">
-                          Timeline: {pendingFilters.centerIncYearRange[0].toLocaleString()} -{" "}
-                          {pendingFilters.centerIncYearRange[1].toLocaleString()}
-                        </Label>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
+                        <Label className="text-xs font-medium">Timeline</Label>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
                             id="include-null-center-inc-year"
-                            checked={pendingFilters.includeNullCenterIncYear || false}
-                            onChange={(e) =>
+                            checked={pendingFilters.includeNullCenterIncYear}
+                            onCheckedChange={(checked) =>
                               setPendingFilters((prev) => ({
                                 ...prev,
-                                includeNullCenterIncYear: e.target.checked,
+                                includeNullCenterIncYear: checked === true,
                               }))
                             }
-                            className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-border rounded"
+                            className="h-3.5 w-3.5"
                           />
-                          <Label htmlFor="include-null-center-inc-year" className="text-xs text-foreground cursor-pointer">
-                            Include null/zero
+                          <Label
+                            htmlFor="include-null-center-inc-year"
+                            className="text-xs text-muted-foreground cursor-pointer select-none"
+                          >
+                            Include all
                           </Label>
                         </div>
                       </div>
@@ -762,8 +759,8 @@ function TitleKeywordInput({
                 className={cn(
                   "flex items-center gap-1 pr-1",
                   isInclude
-                    ? "bg-green-500/20 text-green-700 dark:bg-green-500/30 dark:text-green-300 border-green-500/50 hover:bg-green-500/30"
-                    : "bg-red-500/20 text-red-700 dark:bg-red-500/30 dark:text-red-300 border-red-500/50 hover:bg-red-500/30"
+                    ? "bg-green-500/20 text-green-700 dark:bg-green-500/30 dark:text-green-300 border-green-500/50 hover:bg-green-500/25"
+                    : "bg-red-500/20 text-red-700 dark:bg-red-500/30 dark:text-red-300 border-red-500/50 hover:bg-red-500/25"
                 )}
               >
                 <button
@@ -771,8 +768,8 @@ function TitleKeywordInput({
                   className={cn(
                     "flex items-center justify-center w-4 h-4 rounded-sm",
                     isInclude
-                      ? "bg-green-600/30 hover:bg-green-600/50"
-                      : "bg-red-600/30 hover:bg-red-600/50"
+                      ? "bg-green-600/30 hover:bg-green-600/40"
+                      : "bg-red-600/30 hover:bg-red-600/40"
                   )}
                   title={isInclude ? "Click to exclude" : "Click to include"}
                   type="button"
@@ -786,7 +783,7 @@ function TitleKeywordInput({
                 <span className="text-xs">{keyword.value}</span>
                 <button
                   onClick={() => removeKeyword(keyword)}
-                  className="ml-1 rounded-sm opacity-70 hover:opacity-100 hover:bg-accent p-0.5"
+                  className="ml-1 rounded-sm opacity-70 hover:opacity-100 hover:bg-accent/40 p-0.5 transition-colors duration-150"
                   type="button"
                   title="Remove"
                 >

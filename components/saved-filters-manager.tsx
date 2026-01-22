@@ -121,11 +121,11 @@ const withFilterDefaults = (filters: Partial<Filters> | null | undefined): Filte
     accountEmployeesRanges: filters?.accountEmployeesRanges ?? [],
     accountCenterEmployees: filters?.accountCenterEmployees ?? [],
     accountRevenueRange: revenueRange,
-    includeNullRevenue: filters?.includeNullRevenue ?? false,
+    includeNullRevenue: filters?.includeNullRevenue ?? true,
     accountYearsInIndiaRange: yearsInIndiaRange,
-    includeNullYearsInIndia: filters?.includeNullYearsInIndia ?? false,
+    includeNullYearsInIndia: filters?.includeNullYearsInIndia ?? true,
     accountFirstCenterYearRange: firstCenterYearRange,
-    includeNullFirstCenterYear: filters?.includeNullFirstCenterYear ?? false,
+    includeNullFirstCenterYear: filters?.includeNullFirstCenterYear ?? true,
     accountNameKeywords: filters?.accountNameKeywords ?? [],
     centerTypes: filters?.centerTypes ?? [],
     centerFocus: filters?.centerFocus ?? [],
@@ -135,7 +135,7 @@ const withFilterDefaults = (filters: Partial<Filters> | null | undefined): Filte
     centerEmployees: filters?.centerEmployees ?? [],
     centerStatuses: filters?.centerStatuses ?? [],
     centerIncYearRange: centerIncYearRange,
-    includeNullCenterIncYear: filters?.includeNullCenterIncYear ?? false,
+    includeNullCenterIncYear: filters?.includeNullCenterIncYear ?? true,
     functionTypes: filters?.functionTypes ?? [],
     centerSoftwareInUseKeywords: filters?.centerSoftwareInUseKeywords ?? [],
     prospectDepartments: filters?.prospectDepartments ?? [],
@@ -518,7 +518,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 justify-between bg-background hover:bg-accent/50 border-input/50 h-9"
+              className="flex-1 justify-between bg-background hover:bg-accent/30 border-input/50 h-9 transition-colors duration-150"
             >
               <div className="flex items-center gap-2 truncate">
                 <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -540,7 +540,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
               savedFilters.map((filter) => (
                 <DropdownMenuItem key={filter.id} className="flex items-center justify-between p-0 group">
                   <button
-                    className="flex-1 flex items-center justify-between px-2 py-2 hover:bg-accent rounded-sm text-left transition-colors"
+                    className="flex-1 flex items-center justify-between px-2 py-2 hover:bg-accent/40 rounded-sm text-left transition-colors duration-150"
                     onClick={() => handleLoadFilter(filter)}
                   >
                     <span className="font-medium text-sm truncate max-w-[180px]">{filter.name}</span>
@@ -551,7 +551,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-foreground hover:text-destructive hover:bg-destructive/10 mr-1 transition-all"
+                    className="h-7 w-7 text-foreground hover:text-destructive hover:bg-destructive/5 mr-1 transition-colors duration-150"
                     onClick={(e) => {
                       e.stopPropagation()
                       handleDeleteFilter(filter)
@@ -588,7 +588,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
               variant="outline"
               size="icon"
               disabled={totalActiveFilters === 0}
-              className="h-9 w-9 rounded-full shrink-0 bg-background hover:bg-primary hover:text-primary-foreground border-input/50 transition-all shadow-sm"
+              className="h-9 w-9 rounded-full shrink-0 bg-background hover:bg-primary/90 hover:text-primary-foreground border-input/50 transition-colors duration-150 shadow-sm"
               title="Save current filters"
             >
               <Save className="h-4 w-4" />
@@ -643,7 +643,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
               variant="default"
               size="sm"
               onClick={onExport}
-              className="w-full h-8 text-xs font-medium shadow-none hover:shadow-sm transition-all"
+              className="w-full h-8 text-xs font-medium shadow-none transition-colors duration-150"
             >
               Export
             </Button>
