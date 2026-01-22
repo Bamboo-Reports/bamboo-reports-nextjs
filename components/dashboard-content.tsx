@@ -480,12 +480,12 @@ export function DashboardContent() {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 {filteredData.length > 0 ? (
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-420px)] min-h-[300px]">
                     <table className="w-full border-collapse border border-gray-300">
-                      <thead>
-                        <tr className="bg-gray-50">
+                      <thead className="sticky top-0 z-10 bg-gray-50">
+                        <tr>
                           <th className="border border-gray-300 px-4 py-2 text-left">Account</th>
                           <th className="border border-gray-300 px-4 py-2 text-left">Center</th>
                           <th className="border border-gray-300 px-4 py-2 text-left">Function</th>
