@@ -173,7 +173,7 @@ export function CentersTab({
 
       {/* Charts Section */}
       {centersView === "chart" && (
-        <div className="mb-6 animate-fade-in">
+        <div className="w-full mb-6 animate-fade-in">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <PieChartCard
               title="Center Type Distribution"
@@ -205,7 +205,7 @@ export function CentersTab({
 
       {/* Map Section */}
        {centersView === "map" && (
-         <Card className="flex flex-col h-[calc(100vh-19rem)] border shadow-sm animate-fade-in">
+         <Card className="w-full flex flex-col h-[calc(100vh-19.5rem)] border shadow-sm animate-fade-in">
            <CardHeader className="shrink-0 px-6 py-4">
              <div className="flex items-center gap-3">
                <CardTitle className="text-lg">Centers Map</CardTitle>
@@ -242,7 +242,7 @@ export function CentersTab({
 
        {/* Data Table */}
        {centersView === "data" && (
-         <Card className="flex flex-col h-[calc(100vh-19rem)] border shadow-sm animate-fade-in">
+         <Card className="w-full flex flex-col h-[calc(100vh-19.5rem)] border shadow-sm animate-fade-in">
            <CardHeader className="shrink-0 px-6 py-4">
              <div className="flex flex-wrap items-center gap-3">
                <CardTitle className="text-lg">Centers Data</CardTitle>

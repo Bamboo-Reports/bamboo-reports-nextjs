@@ -156,7 +156,7 @@ export function ProspectsTab({
 
       {/* Charts Section */}
       {prospectsView === "chart" && (
-        <div className="mb-6 animate-fade-in">
+        <div className="w-full mb-6 animate-fade-in">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <PieChartCard
               title="Department Split"
@@ -176,7 +176,7 @@ export function ProspectsTab({
 
        {/* Data Table */}
        {prospectsView === "data" && (
-         <Card className="flex flex-col h-[calc(100vh-19rem)] border shadow-sm animate-fade-in">
+         <Card className="w-full flex flex-col h-[calc(100vh-19.5rem)] border shadow-sm animate-fade-in">
            <CardHeader className="shrink-0 px-6 py-4">
              <div className="flex flex-wrap items-center gap-3">
                <CardTitle className="text-lg">Prospects Data</CardTitle>

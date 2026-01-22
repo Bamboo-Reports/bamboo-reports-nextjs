@@ -6,6 +6,11 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Prevent layout shift when scrollbar appears/disappears */
+  .scrollbar-gutter-stable {
+    scrollbar-gutter: stable;
+  }
 }
 
 @layer base {
