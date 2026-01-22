@@ -1430,7 +1430,7 @@ function DashboardContent() {
           {/* Right Side - Data View (70%) */}
           <div className="flex-1 bg-background overflow-hidden flex flex-col">
             <div className="flex-1 overflow-y-auto">
-              <div className="p-6 pb-[3px]">
+              <div className="p-6 pb-0">
                 <SummaryCards
                 filteredAccountsCount={filteredData.filteredAccounts.length}
                 totalAccountsCount={accounts.length}

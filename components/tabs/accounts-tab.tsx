@@ -146,9 +146,6 @@ export function AccountsTab({
       <div className="flex items-center gap-2 mb-4">
         <PieChartIcon className="h-5 w-5 text-[hsl(var(--chart-1))]" />
         <h2 className="text-lg font-semibold text-foreground">Account Analytics</h2>
-        <Badge variant="secondary" className="ml-2">
-          {accounts.length} Accounts
-        </Badge>
         <ViewSwitcher
           value={accountsView}
           onValueChange={(value) => setAccountsView(value as "chart" | "data")}

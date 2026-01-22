@@ -141,9 +141,6 @@ export function CentersTab({
       <div className="flex items-center gap-2 mb-4">
         <PieChartIcon className="h-5 w-5 text-[hsl(var(--chart-2))]" />
         <h2 className="text-lg font-semibold text-foreground">Center Analytics</h2>
-        <Badge variant="secondary" className="ml-2">
-          {centers.length} Centers
-        </Badge>
         <ViewSwitcher
           value={centersView}
           onValueChange={(value) => setCentersView(value as "chart" | "data" | "map")}

@@ -131,9 +131,6 @@ export function ProspectsTab({
       <div className="flex items-center gap-2 mb-4">
         <PieChartIcon className="h-5 w-5 text-[hsl(var(--chart-1))]" />
         <h2 className="text-lg font-semibold text-foreground">Prospect Analytics</h2>
-        <Badge variant="secondary" className="ml-2">
-          {prospects.length} Prospects
-        </Badge>
         <ViewSwitcher
           value={prospectsView}
           onValueChange={(value) => setProspectsView(value as "chart" | "data")}

@@ -630,10 +630,10 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
         <div className="grid grid-cols-2 gap-2 w-full">
           {onReset && (
             <Button
-              variant="secondary"
+              variant="outline"
               size="sm"
               onClick={onReset}
-              className="w-full h-8 text-xs font-medium bg-secondary/50 hover:bg-secondary/80 text-secondary-foreground border border-transparent hover:border-border/50 transition-all"
+              className="w-full h-8 text-xs font-medium border-[1.5px]"
             >
               Reset
             </Button>

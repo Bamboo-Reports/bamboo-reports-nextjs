@@ -118,10 +118,10 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
   }, [seriesData, total, countLabel, showBigPercentage])
 
   return (
-    <Card>
+    <Card className="border shadow-sm">
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
-          <PieChartIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <PieChartIcon className="h-4 w-4 text-[hsl(var(--chart-1))]" />
           {title}
         </CardTitle>
       </CardHeader>

@@ -88,7 +88,7 @@ export function FiltersSidebar({
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
 
   return (
-    <div className="border-r bg-sidebar overflow-y-auto overflow-x-hidden w-[350px] shrink-0 relative">
+    <div className="bg-sidebar overflow-y-auto overflow-x-hidden w-[320px] shrink-0 relative ml-3 mt-3 mb-3 rounded-lg border shadow-sm">
       <div className="p-3 space-y-3">
           {/* Filter Actions */}
           <div className="flex flex-col gap-2 mb-3 pb-3 border-b border-sidebar-border">
@@ -114,7 +114,7 @@ export function FiltersSidebar({
               <AccordionTrigger className="text-sm font-semibold">
                 <div className="flex items-center gap-2">
                   <Building className="h-4 w-4 text-[hsl(var(--chart-1))]" />
-                  Accounts
+                  <span className="uppercase tracking-wider">Account Attributes</span>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
@@ -436,7 +436,7 @@ export function FiltersSidebar({
               <AccordionTrigger className="text-sm font-semibold">
                 <div className="flex items-center gap-2">
                   <Briefcase className="h-4 w-4 text-[hsl(var(--chart-2))]" />
-                  Centers
+                  <span className="uppercase tracking-wider">Center Attributes</span>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
@@ -638,7 +638,7 @@ export function FiltersSidebar({
               <AccordionTrigger className="text-sm font-semibold">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-[hsl(var(--chart-3))]" />
-                  Prospects
+                  <span className="uppercase tracking-wider">Prospect Attributes</span>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
