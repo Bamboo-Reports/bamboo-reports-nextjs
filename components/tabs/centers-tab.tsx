@@ -208,7 +208,7 @@ export function CentersTab({
 
       {/* Map Section */}
        {centersView === "map" && (
-         <Card className="flex flex-col h-[calc(100vh-22.5rem)] border shadow-sm animate-fade-in">
+         <Card className="flex flex-col h-[calc(100vh-19rem)] border shadow-sm animate-fade-in">
            <CardHeader className="shrink-0 px-6 py-4">
              <div className="flex items-center gap-3">
                <CardTitle className="text-lg">Centers Map</CardTitle>
@@ -245,7 +245,7 @@ export function CentersTab({
 
        {/* Data Table */}
        {centersView === "data" && (
-         <Card className="flex flex-col h-[calc(100vh-22.5rem)] border shadow-sm animate-fade-in">
+         <Card className="flex flex-col h-[calc(100vh-19rem)] border shadow-sm animate-fade-in">
            <CardHeader className="shrink-0 px-6 py-4">
              <div className="flex flex-wrap items-center gap-3">
                <CardTitle className="text-lg">Centers Data</CardTitle>
