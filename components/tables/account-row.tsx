@@ -1,5 +1,5 @@
 import { memo } from "react"
-import { CircleCheck } from "lucide-react"
+import { CircleCheck, CircleX } from "lucide-react"
 import { TableRow, TableCell } from "@/components/ui/table"
 import type { Account } from "@/lib/types"
 import { CompanyLogo } from "@/components/ui/company-logo"
@@ -20,7 +20,7 @@ export const AccountRow = memo(({ account, onClick }: AccountRowProps) => {
       className="cursor-pointer hover:bg-muted/50 transition-colors"
       onClick={onClick}
     >
-      <TableCell className="font-medium">
+      <TableCell className="font-medium max-w-[280px]">
         <div className="flex items-center gap-3">
           <CompanyLogo
             domain={account.account_hq_website}
@@ -29,19 +29,42 @@ export const AccountRow = memo(({ account, onClick }: AccountRowProps) => {
             theme="auto"
           />
           <div className="min-w-0">
-            <div className="truncate">{account.account_global_legal_name}</div>
-            {isNasscomVerified && (
-              <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-[#c23630]/10 px-2 py-0.5 text-[11px] font-semibold text-[#c23630]">
+            <div className="truncate" title={account.account_global_legal_name}>
+              {account.account_global_legal_name}
+            </div>
+            <div
+              className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                isNasscomVerified
+                  ? "bg-green-500/15 text-green-700 dark:text-green-300"
+                  : "bg-red-500/15 text-red-700 dark:text-red-300"
+              }`}
+              title={isNasscomVerified ? "NASSCOM listed" : "Not listed in NASSCOM"}
+            >
+              {isNasscomVerified ? (
                 <CircleCheck className="h-3 w-3" aria-hidden="true" />
-                NASSCOM
-              </div>
-            )}
+              ) : (
+                <CircleX className="h-3 w-3" aria-hidden="true" />
+              )}
+              NASSCOM
+            </div>
           </div>
         </div>
       </TableCell>
-      <TableCell>{location || account.account_hq_country}</TableCell>
-      <TableCell>{account.account_hq_industry}</TableCell>
-      <TableCell>{account.account_hq_revenue_range}</TableCell>
+      <TableCell className="max-w-[200px]">
+        <div className="truncate" title={location || account.account_hq_country || "N/A"}>
+          {location || account.account_hq_country || "N/A"}
+        </div>
+      </TableCell>
+      <TableCell className="max-w-[220px]">
+        <div className="truncate" title={account.account_hq_industry || "N/A"}>
+          {account.account_hq_industry || "N/A"}
+        </div>
+      </TableCell>
+      <TableCell className="max-w-[140px]">
+        <div className="truncate" title={account.account_hq_revenue_range || "N/A"}>
+          {account.account_hq_revenue_range || "N/A"}
+        </div>
+      </TableCell>
     </TableRow>
   )
 })

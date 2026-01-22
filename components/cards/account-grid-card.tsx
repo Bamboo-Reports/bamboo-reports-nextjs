@@ -1,5 +1,5 @@
 import { memo } from "react"
-import { ArrowUpRight, CircleCheck } from "lucide-react"
+import { ArrowUpRight, CircleCheck, CircleX } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CompanyLogo } from "@/components/ui/company-logo"
@@ -28,30 +28,51 @@ export const AccountGridCard = memo(({ account, onClick }: AccountGridCardProps)
             theme="auto"
           />
           <div className="min-w-0">
-            <h3 className="text-base font-semibold text-foreground leading-snug break-words">
+            <h3
+              className="text-base font-semibold text-foreground leading-snug truncate"
+              title={accountName}
+            >
               {accountName}
             </h3>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p
+              className="text-sm text-muted-foreground mt-1 truncate"
+              title={location || account.account_hq_country || "-"}
+            >
               {location || account.account_hq_country || "-"}
             </p>
-            {isNasscomVerified && (
-              <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-[#c23630]/10 px-2 py-0.5 text-[11px] font-semibold text-[#c23630]">
+            <div
+              className={`mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                isNasscomVerified
+                  ? "bg-green-500/15 text-green-700 dark:text-green-300"
+                  : "bg-red-500/15 text-red-700 dark:text-red-300"
+              }`}
+              title={isNasscomVerified ? "NASSCOM listed" : "Not listed in NASSCOM"}
+            >
+              {isNasscomVerified ? (
                 <CircleCheck className="h-3 w-3" aria-hidden="true" />
-                NASSCOM
-              </div>
-            )}
+              ) : (
+                <CircleX className="h-3 w-3" aria-hidden="true" />
+              )}
+              NASSCOM
+            </div>
           </div>
         </div>
         <div className="space-y-2 text-sm">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 min-w-0">
             <span className="text-muted-foreground">Industry</span>
-            <span className="font-medium text-foreground text-right">
+            <span
+              className="font-medium text-foreground text-right truncate max-w-[160px]"
+              title={account.account_hq_industry || "-"}
+            >
               {account.account_hq_industry || "-"}
             </span>
           </div>
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 min-w-0">
             <span className="text-muted-foreground">Revenue</span>
-            <span className="font-medium text-foreground text-right">
+            <span
+              className="font-medium text-foreground text-right truncate max-w-[160px]"
+              title={account.account_hq_revenue_range || "-"}
+            >
               {account.account_hq_revenue_range || "-"}
             </span>
           </div>

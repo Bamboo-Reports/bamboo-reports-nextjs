@@ -205,20 +205,20 @@ export function ProspectsTab({
             <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
               <div className="flex-1 overflow-auto">
                 {dataLayout === "table" ? (
-                  <Table>
+                  <Table className="table-fixed">
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-16"></TableHead>
-                        <TableHead>
+                        <TableHead className="w-[220px]">
                           <SortButton label="Name" sortKey="name" />
                         </TableHead>
-                        <TableHead>
+                        <TableHead className="w-[200px]">
                           <SortButton label="Location" sortKey="location" />
                         </TableHead>
-                        <TableHead>
+                        <TableHead className="w-[220px]">
                           <SortButton label="Job Title" sortKey="title" />
                         </TableHead>
-                        <TableHead>
+                        <TableHead className="w-[180px]">
                           <SortButton label="Department" sortKey="department" />
                         </TableHead>
                       </TableRow>

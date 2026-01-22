@@ -30,12 +30,29 @@ export const ProspectRow = memo(({ prospect, onClick }: ProspectRowProps) => {
           </span>
         </div>
       </TableCell>
-      <TableCell className="font-medium">{fullName || "N/A"}</TableCell>
-      <TableCell>
-        {[prospect.prospect_city, prospect.prospect_country].filter(Boolean).join(", ") || "N/A"}
+      <TableCell className="font-medium max-w-[220px]">
+        <div className="truncate" title={fullName || "N/A"}>
+          {fullName || "N/A"}
+        </div>
       </TableCell>
-      <TableCell>{prospect.prospect_title}</TableCell>
-      <TableCell>{prospect.prospect_department}</TableCell>
+      <TableCell className="max-w-[200px]">
+        <div
+          className="truncate"
+          title={[prospect.prospect_city, prospect.prospect_country].filter(Boolean).join(", ") || "N/A"}
+        >
+          {[prospect.prospect_city, prospect.prospect_country].filter(Boolean).join(", ") || "N/A"}
+        </div>
+      </TableCell>
+      <TableCell className="max-w-[220px]">
+        <div className="truncate" title={prospect.prospect_title || "N/A"}>
+          {prospect.prospect_title || "N/A"}
+        </div>
+      </TableCell>
+      <TableCell className="max-w-[180px]">
+        <div className="truncate" title={prospect.prospect_department || "N/A"}>
+          {prospect.prospect_department || "N/A"}
+        </div>
+      </TableCell>
     </TableRow>
   )
 })
