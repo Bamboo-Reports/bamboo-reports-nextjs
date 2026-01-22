@@ -414,7 +414,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         <div className="absolute top-4 right-4 z-10">
           <button
             onClick={handleRecenter}
-            className="bg-background hover:bg-muted border rounded-lg shadow-lg px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2"
+            className="bg-background hover:bg-muted border rounded-md shadow-lg px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2"
             title="Recenter map"
           >
             <svg

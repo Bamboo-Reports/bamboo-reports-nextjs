@@ -298,22 +298,6 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
             </Command>
           </PopoverContent>
         </Popover>
-
-        {/* Status Chips */}
-        {isApplying && (
-          <div className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-medium animate-pulse shrink-0">
-            <div className="w-1.5 h-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: '0ms' }} />
-            <div className="w-1.5 h-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: '150ms' }} />
-            <div className="w-1.5 h-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: '300ms' }} />
-            <span className="ml-1">Applying</span>
-          </div>
-        )}
-
-        {!isApplying && showSuccess && (
-          <div className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-full text-xs font-medium animate-in fade-in zoom-in duration-300 shrink-0">
-            <span>Applied</span>
-          </div>
-        )}
       </div>
     </div>
   )
