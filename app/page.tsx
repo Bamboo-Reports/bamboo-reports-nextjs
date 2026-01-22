@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useRef, useEffect, useLayoutEffect, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs } from "@/components/ui/tabs"
 import { getAllData, testConnection, getDatabaseStatus, clearCache } from "./actions"
 import { LoadingState } from "@/components/states/loading-state"
 import { ErrorState } from "@/components/states/error-state"
@@ -115,6 +115,7 @@ function DashboardContent() {
   const [accountsView, setAccountsView] = useState<"chart" | "data">("chart")
   const [centersView, setCentersView] = useState<"chart" | "data" | "map">("chart")
   const [prospectsView, setProspectsView] = useState<"chart" | "data">("chart")
+  const [activeSection, setActiveSection] = useState<"accounts" | "centers" | "prospects">("accounts")
   const [, startFilterTransition] = useTransition()
   const [authReady, setAuthReady] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
@@ -1369,6 +1370,11 @@ function DashboardContent() {
   const dataLoaded =
     !loading && accounts.length > 0 && centers.length > 0 && services.length > 0 && prospects.length > 0
 
+  const activeSectionLabel =
+    activeSection === "accounts" ? "Accounts" : activeSection === "centers" ? "Centers" : "Prospects"
+  const activeSectionAccent =
+    activeSection === "accounts" ? "--chart-1" : activeSection === "centers" ? "--chart-2" : "--chart-3"
+
   if (!authReady) {
     return null
   }
@@ -1432,16 +1438,12 @@ function DashboardContent() {
                 totalCentersCount={centers.length}
                 filteredProspectsCount={filteredData.filteredProspects.length}
                 totalProspectsCount={prospects.length}
+                activeView={activeSection}
+                onSelect={setActiveSection}
               />
 
               {/* Data Tables */}
-              <Tabs defaultValue="accounts" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="accounts">Accounts ({filteredData.filteredAccounts.length})</TabsTrigger>
-                  <TabsTrigger value="centers">Centers ({filteredData.filteredCenters.length})</TabsTrigger>
-                  <TabsTrigger value="prospects">Prospects ({filteredData.filteredProspects.length})</TabsTrigger>
-                </TabsList>
-
+              <Tabs value={activeSection} className="space-y-4">
                 <AccountsTab
                   accounts={filteredData.filteredAccounts}
                   centers={filteredData.filteredCenters}
