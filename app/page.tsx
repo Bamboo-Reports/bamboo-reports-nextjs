@@ -74,8 +74,8 @@ function DashboardContent() {
 
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(50)
-  const [accountsView, setAccountsView] = useState<"chart" | "data">("chart")
-  const [centersView, setCentersView] = useState<"chart" | "data" | "map">("chart")
+  const [accountsView, setAccountsView] = useState<"chart" | "data" | "map">("map")
+  const [centersView, setCentersView] = useState<"chart" | "data" | "map">("map")
   const [prospectsView, setProspectsView] = useState<"chart" | "data">("chart")
   const [activeSection, setActiveSection] = useState<"accounts" | "centers" | "prospects">("accounts")
 

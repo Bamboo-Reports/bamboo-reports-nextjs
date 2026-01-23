@@ -12,14 +12,20 @@ import {
   ArrowUpDown,
   Download,
   LayoutGrid,
+  MapIcon,
+  MapPin,
   PieChartIcon,
   Table as TableIcon,
+  Layers,
 } from "lucide-react"
 import { AccountRow } from "@/components/tables"
 import { AccountGridCard } from "@/components/cards/account-grid-card"
 import { PieChartCard } from "@/components/charts/pie-chart-card"
 import { EmptyState } from "@/components/states/empty-state"
 import { AccountDetailsDialog } from "@/components/dialogs/account-details-tabbed-dialog"
+import { CentersMap } from "@/components/maps/centers-map"
+import { CentersChoroplethMap } from "@/components/maps/centers-choropleth-map"
+import { MapErrorBoundary } from "@/components/maps/map-error-boundary"
 import { ViewSwitcher } from "@/components/ui/view-switcher"
 import { SortButton } from "@/components/ui/sort-button"
 import { PaginationControls } from "@/components/ui/pagination-controls"
@@ -40,8 +46,8 @@ interface AccountsTabProps {
     revenueRangeData: Array<{ name: string; value: number; fill?: string }>
     employeesRangeData: Array<{ name: string; value: number; fill?: string }>
   }
-  accountsView: "chart" | "data"
-  setAccountsView: (view: "chart" | "data") => void
+  accountsView: "chart" | "data" | "map"
+  setAccountsView: (view: "chart" | "data" | "map") => void
   currentPage: number
   setCurrentPage: (page: number | ((prev: number) => number)) => void
   itemsPerPage: number
@@ -70,6 +76,7 @@ export function AccountsTab({
     direction: null,
   })
   const [dataLayout, setDataLayout] = useState<"table" | "grid">("table")
+  const [mapMode, setMapMode] = useState<"city" | "state">("city")
 
   const handleAccountClick = (account: Account) => {
     setSelectedAccount(account)
@@ -127,13 +134,20 @@ export function AccountsTab({
         <h2 className="text-lg font-semibold text-foreground">Account Analytics</h2>
         <ViewSwitcher
           value={accountsView}
-          onValueChange={(value) => setAccountsView(value as "chart" | "data")}
+          onValueChange={(value) => setAccountsView(value as "chart" | "data" | "map")}
           options={[
             {
               value: "chart",
               label: <span className="text-[hsl(var(--chart-1))]">Charts</span>,
               icon: (
                 <PieChartIcon className="h-4 w-4 text-[hsl(var(--chart-1))]" />
+              ),
+            },
+            {
+              value: "map",
+              label: <span className="text-[hsl(var(--chart-4))]">Map</span>,
+              icon: (
+                <MapIcon className="h-4 w-4 text-[hsl(var(--chart-4))]" />
               ),
             },
             {
@@ -178,6 +192,43 @@ export function AccountsTab({
             />
           </div>
         </div>
+      )}
+
+      {/* Map Section */}
+      {accountsView === "map" && (
+        <Card className="w-full flex flex-col h-[calc(100vh-19.5rem)] border shadow-sm animate-fade-in">
+          <CardHeader className="shrink-0 px-6 py-4">
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-lg">Accounts Map</CardTitle>
+              <ViewSwitcher
+                value={mapMode}
+                onValueChange={(value) => setMapMode(value as "city" | "state")}
+                options={[
+                  {
+                    value: "city",
+                    label: <span className="text-[hsl(var(--chart-4))]">City</span>,
+                    icon: <MapPin className="h-4 w-4 text-[hsl(var(--chart-4))]" />,
+                  },
+                  {
+                    value: "state",
+                    label: <span className="text-[hsl(var(--chart-3))]">State</span>,
+                    icon: <Layers className="h-4 w-4 text-[hsl(var(--chart-3))]" />,
+                  },
+                ]}
+                className="ml-auto"
+              />
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
+            <MapErrorBoundary>
+              {mapMode === "city" ? (
+                <CentersMap centers={centers} heightClass="h-full" />
+              ) : (
+                <CentersChoroplethMap centers={centers} heightClass="h-full" />
+              )}
+            </MapErrorBoundary>
+          </CardContent>
+        </Card>
       )}
 
       {/* Data View */}
