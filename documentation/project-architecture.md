@@ -9,12 +9,9 @@ The application uses the **Next.js App Router** with a heavy reliance on **Serve
 ### Data Flow Diagram
 
 1.  **User Interaction** (e.g., Selects "Region: North America")
-2.  **State Update** (React State in `filters-sidebar.tsx` updates)
-3.  **Effect Trigger** (Parent component detects filter change)
-4.  **Server Action Call** (Invokes `getFilteredAccounts()` in `app/actions.ts`)
-5.  **DB Query** (Server Action connects to Neon DB, runs SQL)
-6.  **Response** (JSON data returned to Client)
-7.  **UI Render** (Tables/Charts update with new props)
+2.  **State Update** (React state in `useDashboardFilters` updates)
+3.  **Derived Data** (Client-side filtering + chart aggregation in `lib/dashboard/*`)
+4.  **UI Render** (Tables/Charts update with new props)
 
 ---
 
@@ -25,11 +22,10 @@ The application uses the **Next.js App Router** with a heavy reliance on **Serve
     -   Contains all direct SQL queries using `@neondatabase/serverless`.
     -   Implements retries and in-memory caching (`dataCache` Map).
     -   **Rule:** Database connection logic lives ONLY here. Components should never import DB drivers directly.
--   **`page.tsx`**: The entry point. Fetches initial data (often in parallel) and passes it to the client-side `DashboardContent`.
+-   **`page.tsx`**: The entry point and UI orchestrator. Wires auth, data loading, filtering hooks, and layout composition.
 
 ### 2.2 `components/` (UI Composition)
--   **`dashboard-content.tsx`**: The main orchestrator. It holds the "State" of the dashboard (which tab is active, which filters are applied).
--   **`filters/filters-sidebar.tsx`**: Manages the complex filter state. It accepts `currentFilters` and `onFilterChange` props, making it a "Controlled Component".
+-   **`filters/filters-sidebar.tsx`**: Composes filter sections and saved-filter controls; state lives in hooks at the page level.
 -   **`saved-filters-manager.tsx`**: Encapsulates all Supabase interaction for saving/loading user preferences.
 
 ### 2.3 `lib/` (Utilities)

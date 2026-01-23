@@ -69,7 +69,7 @@ To add a new filter (e.g., "Founded Year") to the sidebar:
     ```
 
 3.  **Integrate:**
-    Import and place the chart in `components/dashboard/dashboard-content.tsx` or a specific tab file.
+    Import and place the chart in `app/page.tsx` or a specific tab file.
 
 ### 2.3 Database Schema Changes
 If you modify the database schema (e.g., rename a column):
