@@ -1,4 +1,4 @@
-import type { Account, Center, Function, ChartData } from "../types"
+import type { Account, Center, Function, Prospect, ChartData } from "../types"
 
 // Color palette for charts
 export const CHART_COLORS = [
@@ -20,13 +20,17 @@ export const CHART_COLORS = [
 ]
 
 /**
- * Calculate chart data from accounts
+ * Calculate chart data from accounts or prospects
  */
-export const calculateChartData = (accounts: Account[], field: keyof Account): ChartData[] => {
+export function calculateChartData<T extends Account | Prospect>(
+  items: T[],
+  field: keyof T
+): ChartData[] {
   const counts = new Map<string, number>()
 
-  accounts.forEach((account) => {
-    const value = account[field] || "Unknown"
+  items.forEach((item) => {
+    const rawValue = item[field]
+    const value = String(rawValue ?? "Unknown")
     counts.set(value, (counts.get(value) || 0) + 1)
   })
 
@@ -43,7 +47,8 @@ export const calculateCenterChartData = (centers: Center[], field: keyof Center)
   const counts = new Map<string, number>()
 
   centers.forEach((center) => {
-    const value = center[field] || "Unknown"
+    const rawValue = center[field]
+    const value = String(rawValue ?? "Unknown")
     counts.set(value, (counts.get(value) || 0) + 1)
   })
 
