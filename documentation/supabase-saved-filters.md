@@ -86,7 +86,7 @@ interface Filters {
 }
 ```
 
-> **Migration Note:** If the frontend filter keys change (e.g., renaming `accountCountries` to `countries`), existing JSON blobs in this table will remain in the old format. The application logic (`withFilterDefaults` in `saved-filters-manager.tsx`) MUST handle parsing and normalizing these legacy keys to prevent crashes.
+> **Migration Note:** If the frontend filter keys change (e.g., renaming `accountCountries` to `countries`), existing JSON blobs in this table will remain in the old format. The application logic (`withFilterDefaults` in `lib/dashboard/filter-summary.ts`) MUST handle parsing and normalizing these legacy keys to prevent crashes.
 
 ---
 
@@ -144,3 +144,6 @@ for each row execute function public.set_updated_at();
 ### 4.2 Application Integration
 - **Saving:** The frontend serializes the entire `filters` state object to JSON and sends it to Supabase.
 - **Loading:** The frontend fetches the JSON, parses it, and runs it through a normalization function (`withFilterDefaults`) to ensure all required keys exist, filling in defaults for any missing fields (crucial for backward compatibility).
+
+
+

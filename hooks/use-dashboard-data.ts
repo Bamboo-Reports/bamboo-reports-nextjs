@@ -1,42 +1,24 @@
-import { useState, useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { getAllData, testConnection, getDatabaseStatus, clearCache } from "@/app/actions"
-import { parseRevenue } from "@/lib/utils/helpers"
-import type { Account, Center, Function, Service, Tech, Filters } from "@/lib/types"
+import type { Account, Center, Function, Service, Tech, Prospect } from "@/lib/types"
 
-interface UseDataLoaderReturn {
-  accounts: Account[]
-  centers: Center[]
-  functions: Function[]
-  services: Service[]
-  tech: Tech[]
-  loading: boolean
-  error: string | null
-  connectionStatus: string
-  dbStatus: any
-  revenueRange: { min: number; max: number }
-  setRevenueRange: (range: { min: number; max: number }) => void
-  setFilters: React.Dispatch<React.SetStateAction<Filters>>
-  setPendingFilters: React.Dispatch<React.SetStateAction<Filters>>
-  loadData: () => Promise<void>
-  handleClearCache: () => Promise<void>
+interface UseDashboardDataOptions {
+  enabled: boolean
 }
 
-export function useDataLoader(
-  setFilters: React.Dispatch<React.SetStateAction<Filters>>,
-  setPendingFilters: React.Dispatch<React.SetStateAction<Filters>>
-): UseDataLoaderReturn {
+export function useDashboardData({ enabled }: UseDashboardDataOptions) {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [centers, setCenters] = useState<Center[]>([])
   const [functions, setFunctions] = useState<Function[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [tech, setTech] = useState<Tech[]>([])
+  const [prospects, setProspects] = useState<Prospect[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [connectionStatus, setConnectionStatus] = useState<string>("")
   const [dbStatus, setDbStatus] = useState<any>(null)
-  const [revenueRange, setRevenueRange] = useState<{ min: number; max: number }>({ min: 0, max: 1000000 })
 
-  const checkDatabaseStatus = async () => {
+  const checkDatabaseStatus = useCallback(async () => {
     try {
       const status = await getDatabaseStatus()
       setDbStatus(status)
@@ -46,9 +28,9 @@ export function useDataLoader(
       console.error("Failed to check database status:", err)
       return null
     }
-  }
+  }, [])
 
-  const testDatabaseConnection = async () => {
+  const testDatabaseConnection = useCallback(async () => {
     try {
       const result = await testConnection()
       setConnectionStatus(result.message)
@@ -58,9 +40,9 @@ export function useDataLoader(
       setConnectionStatus(errorMessage)
       return false
     }
-  }
+  }, [])
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -80,7 +62,6 @@ export function useDataLoader(
       }
 
       setConnectionStatus("Testing database connection...")
-
       const connectionOk = await testDatabaseConnection()
       if (!connectionOk) {
         setError("Database connection test failed. Please check your database configuration.")
@@ -101,13 +82,15 @@ export function useDataLoader(
       const functionsData = Array.isArray(data.functions) ? data.functions : []
       const servicesData = Array.isArray(data.services) ? data.services : []
       const techData = Array.isArray(data.tech) ? data.tech : []
+      const prospectsData = Array.isArray(data.prospects) ? data.prospects : []
 
       if (
         accountsData.length === 0 &&
         centersData.length === 0 &&
         functionsData.length === 0 &&
         servicesData.length === 0 &&
-        techData.length === 0
+        techData.length === 0 &&
+        prospectsData.length === 0
       ) {
         setError("No data found in database tables. Please check if your tables contain data.")
         setConnectionStatus("No data available")
@@ -119,23 +102,10 @@ export function useDataLoader(
       setFunctions(functionsData as Function[])
       setServices(servicesData as Service[])
       setTech(techData as Tech[])
-
-      const revenues = accountsData
-        .map((account: Account) => parseRevenue(account.account_hq_revenue))
-        .filter((rev: number) => rev > 0)
-
-      if (revenues.length > 0) {
-        const minRevenue = Math.min(...revenues)
-        const maxRevenue = Math.max(...revenues)
-        setRevenueRange({ min: minRevenue, max: maxRevenue })
-
-        const newRange: [number, number] = [minRevenue, maxRevenue]
-        setFilters((prev) => ({ ...prev, accountRevenueRange: newRange }))
-        setPendingFilters((prev) => ({ ...prev, accountRevenueRange: newRange }))
-      }
+      setProspects(prospectsData as Prospect[])
 
       setConnectionStatus(
-        `Successfully loaded: ${accountsData.length} accounts, ${centersData.length} centers, ${functionsData.length} functions, ${servicesData.length} services, ${techData.length} tech`
+        `Successfully loaded: ${accountsData.length} accounts, ${centersData.length} centers, ${functionsData.length} functions, ${servicesData.length} services, ${techData.length} tech, ${prospectsData.length} prospects`
       )
     } catch (err) {
       console.error("Error loading data:", err)
@@ -145,9 +115,9 @@ export function useDataLoader(
     } finally {
       setLoading(false)
     }
-  }
+  }, [checkDatabaseStatus, testDatabaseConnection])
 
-  const handleClearCache = async () => {
+  const handleClearCache = useCallback(async () => {
     try {
       setConnectionStatus("Clearing cache...")
       await clearCache()
@@ -156,11 +126,12 @@ export function useDataLoader(
       console.error("Error clearing cache:", err)
       setError("Failed to clear cache")
     }
-  }
+  }, [loadData])
 
   useEffect(() => {
+    if (!enabled) return
     loadData()
-  }, [])
+  }, [enabled, loadData])
 
   return {
     accounts,
@@ -168,14 +139,11 @@ export function useDataLoader(
     functions,
     services,
     tech,
+    prospects,
     loading,
     error,
     connectionStatus,
     dbStatus,
-    revenueRange,
-    setRevenueRange,
-    setFilters,
-    setPendingFilters,
     loadData,
     handleClearCache,
   }

@@ -35,6 +35,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Save, FolderOpen, Settings, Trash2, Edit, Calendar, Filter, X, ChevronDown } from "lucide-react"
 import type { Filters, FilterValue } from "@/lib/types"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
+import {
+  DEFAULT_CENTER_INC_YEAR_RANGE,
+  DEFAULT_FIRST_CENTER_YEAR_RANGE,
+  DEFAULT_REVENUE_RANGE,
+  DEFAULT_YEARS_IN_INDIA_RANGE,
+} from "@/lib/dashboard/defaults"
+import { calculateActiveFilters, withFilterDefaults } from "@/lib/dashboard/filter-summary"
 
 interface SavedFilter {
   id: string
@@ -46,105 +53,6 @@ interface SavedFilter {
 
 type FilterValueLike = FilterValue | string | null | undefined
 
-const DEFAULT_REVENUE_RANGE: [number, number] = [0, 1000000]
-const DEFAULT_YEARS_IN_INDIA_RANGE: [number, number] = [0, 1000000]
-const DEFAULT_FIRST_CENTER_YEAR_RANGE: [number, number] = [0, 1000000]
-const DEFAULT_CENTER_INC_YEAR_RANGE: [number, number] = [0, 1000000]
-
-const calculateActiveFilters = (filters: Filters) => {
-  const [minRevenue, maxRevenue] = filters.accountRevenueRange || DEFAULT_REVENUE_RANGE
-  const revenueFilterActive = minRevenue !== DEFAULT_REVENUE_RANGE[0] || maxRevenue !== DEFAULT_REVENUE_RANGE[1]
-  const [minYearsInIndia, maxYearsInIndia] = filters.accountYearsInIndiaRange || DEFAULT_YEARS_IN_INDIA_RANGE
-  const yearsInIndiaFilterActive =
-    minYearsInIndia !== DEFAULT_YEARS_IN_INDIA_RANGE[0] || maxYearsInIndia !== DEFAULT_YEARS_IN_INDIA_RANGE[1]
-  const [minFirstCenterYear, maxFirstCenterYear] =
-    filters.accountFirstCenterYearRange || DEFAULT_FIRST_CENTER_YEAR_RANGE
-  const firstCenterYearFilterActive =
-    minFirstCenterYear !== DEFAULT_FIRST_CENTER_YEAR_RANGE[0] || maxFirstCenterYear !== DEFAULT_FIRST_CENTER_YEAR_RANGE[1]
-  const [minCenterIncYear, maxCenterIncYear] = filters.centerIncYearRange || DEFAULT_CENTER_INC_YEAR_RANGE
-  const centerIncYearFilterActive =
-    minCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[0] || maxCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[1]
-
-  return (
-    filters.accountCountries.length +
-    filters.accountIndustries.length +
-    filters.accountPrimaryCategories.length +
-    filters.accountPrimaryNatures.length +
-    filters.accountNasscomStatuses.length +
-    filters.accountEmployeesRanges.length +
-    filters.accountCenterEmployees.length +
-    (revenueFilterActive ? 1 : 0) +
-    (filters.includeNullRevenue ? 1 : 0) +
-    (yearsInIndiaFilterActive ? 1 : 0) +
-    (filters.includeNullYearsInIndia ? 1 : 0) +
-    (firstCenterYearFilterActive ? 1 : 0) +
-    (filters.includeNullFirstCenterYear ? 1 : 0) +
-    filters.accountNameKeywords.length +
-    filters.centerTypes.length +
-    filters.centerFocus.length +
-    filters.centerCities.length +
-    filters.centerStates.length +
-    filters.centerCountries.length +
-    filters.centerEmployees.length +
-    filters.centerStatuses.length +
-    (centerIncYearFilterActive ? 1 : 0) +
-    (filters.includeNullCenterIncYear ? 1 : 0) +
-    filters.functionTypes.length +
-    filters.centerSoftwareInUseKeywords.length +
-    filters.prospectDepartments.length +
-    filters.prospectLevels.length +
-    filters.prospectCities.length +
-    filters.prospectTitleKeywords.length
-  )
-}
-
-const withFilterDefaults = (filters: Partial<Filters> | null | undefined): Filters => {
-  const revenueRange = Array.isArray(filters?.accountRevenueRange) && filters?.accountRevenueRange.length === 2
-    ? filters.accountRevenueRange.map(Number) as [number, number]
-    : DEFAULT_REVENUE_RANGE
-  const yearsInIndiaRange = Array.isArray(filters?.accountYearsInIndiaRange) && filters?.accountYearsInIndiaRange.length === 2
-    ? filters.accountYearsInIndiaRange.map(Number) as [number, number]
-    : DEFAULT_YEARS_IN_INDIA_RANGE
-  const firstCenterYearRange = Array.isArray(filters?.accountFirstCenterYearRange) && filters?.accountFirstCenterYearRange.length === 2
-    ? filters.accountFirstCenterYearRange.map(Number) as [number, number]
-    : DEFAULT_FIRST_CENTER_YEAR_RANGE
-  const centerIncYearRange = Array.isArray(filters?.centerIncYearRange) && filters?.centerIncYearRange.length === 2
-    ? filters.centerIncYearRange.map(Number) as [number, number]
-    : DEFAULT_CENTER_INC_YEAR_RANGE
-
-  return {
-    accountCountries: filters?.accountCountries ?? [],
-    accountIndustries: filters?.accountIndustries ?? [],
-    accountPrimaryCategories: filters?.accountPrimaryCategories ?? [],
-    accountPrimaryNatures: filters?.accountPrimaryNatures ?? [],
-    accountNasscomStatuses: filters?.accountNasscomStatuses ?? [],
-    accountEmployeesRanges: filters?.accountEmployeesRanges ?? [],
-    accountCenterEmployees: filters?.accountCenterEmployees ?? [],
-    accountRevenueRange: revenueRange,
-    includeNullRevenue: filters?.includeNullRevenue ?? true,
-    accountYearsInIndiaRange: yearsInIndiaRange,
-    includeNullYearsInIndia: filters?.includeNullYearsInIndia ?? true,
-    accountFirstCenterYearRange: firstCenterYearRange,
-    includeNullFirstCenterYear: filters?.includeNullFirstCenterYear ?? true,
-    accountNameKeywords: filters?.accountNameKeywords ?? [],
-    centerTypes: filters?.centerTypes ?? [],
-    centerFocus: filters?.centerFocus ?? [],
-    centerCities: filters?.centerCities ?? [],
-    centerStates: filters?.centerStates ?? [],
-    centerCountries: filters?.centerCountries ?? [],
-    centerEmployees: filters?.centerEmployees ?? [],
-    centerStatuses: filters?.centerStatuses ?? [],
-    centerIncYearRange: centerIncYearRange,
-    includeNullCenterIncYear: filters?.includeNullCenterIncYear ?? true,
-    functionTypes: filters?.functionTypes ?? [],
-    centerSoftwareInUseKeywords: filters?.centerSoftwareInUseKeywords ?? [],
-    prospectDepartments: filters?.prospectDepartments ?? [],
-    prospectLevels: filters?.prospectLevels ?? [],
-    prospectCities: filters?.prospectCities ?? [],
-    prospectTitleKeywords: filters?.prospectTitleKeywords ?? [],
-  }
-}
-
 interface SavedFiltersManagerProps {
   currentFilters: Filters
   onLoadFilters: (filters: Filters) => void
@@ -153,7 +61,6 @@ interface SavedFiltersManagerProps {
   onExport?: () => void
 }
 
-// Safely extract label/mode from saved filter values (handles legacy string arrays too)
 const normalizeFilterValue = (value: FilterValueLike) => {
   if (!value) return null
   if (typeof value === "string") return { label: value, mode: "include" as FilterValue["mode"] }
@@ -161,7 +68,6 @@ const normalizeFilterValue = (value: FilterValueLike) => {
   return { label: String(value), mode: "include" as FilterValue["mode"] }
 }
 
-// Memoized FilterBadge component to prevent re-renders
 const FilterBadge = memo((
   { filterKey, value, mode }: { filterKey: string; value: string; mode?: FilterValue["mode"] }
 ) => (
@@ -187,7 +93,6 @@ const renderFilterValues = (values: FilterValueLike[] = [], label: string) =>
     )
   })
 
-// Memoized SavedFilterCard component to prevent re-renders
 const SavedFilterCard = memo(({
   filter,
   onLoad,
@@ -199,10 +104,10 @@ const SavedFilterCard = memo(({
   onEdit: (filter: SavedFilter) => void
   onDelete: (filter: SavedFilter) => void
 }) => {
-  // Memoize filter count calculation
   const filterCount = useCallback(() => {
     return calculateActiveFilters(filter.filters)
   }, [filter.filters])
+
   const [minRevenue, maxRevenue] = filter.filters.accountRevenueRange || DEFAULT_REVENUE_RANGE
   const revenueFilterActive = minRevenue !== DEFAULT_REVENUE_RANGE[0] || maxRevenue !== DEFAULT_REVENUE_RANGE[1]
   const [minYearsInIndia, maxYearsInIndia] = filter.filters.accountYearsInIndiaRange || DEFAULT_YEARS_IN_INDIA_RANGE
@@ -328,7 +233,6 @@ const SavedFilterCard = memo(({
 })
 SavedFilterCard.displayName = "SavedFilterCard"
 
-// Main component wrapped in memo to prevent unnecessary re-renders
 export const SavedFiltersManager = memo(function SavedFiltersManager({
   currentFilters,
   onLoadFilters,
@@ -369,7 +273,6 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
     }
   }, [supabase])
 
-  // Memoize loadSavedFilters to prevent recreation
   const loadSavedFilters = useCallback(async () => {
     if (!userId) {
       setSavedFilters([])
@@ -409,13 +312,11 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
     }
   }, [supabase, userId])
 
-  // Load saved filters on component mount
   useEffect(() => {
     if (!authReady) return
     loadSavedFilters()
   }, [authReady, loadSavedFilters, userId])
 
-  // Memoize handleSaveFilter
   const handleSaveFilter = useCallback(async () => {
     if (!filterName.trim() || !userId) return
 
@@ -437,18 +338,15 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
     }
   }, [currentFilters, filterName, loadSavedFilters, supabase, userId])
 
-  // Memoize handleLoadFilter
   const handleLoadFilter = useCallback((savedFilter: SavedFilter) => {
     onLoadFilters(savedFilter.filters)
   }, [onLoadFilters])
 
-  // Memoize handleDeleteFilter
   const handleDeleteFilter = useCallback((filter: SavedFilter) => {
     setFilterToDelete(filter)
     setDeleteConfirmOpen(true)
   }, [])
 
-  // Memoize confirmDeleteFilter
   const confirmDeleteFilter = useCallback(async () => {
     if (!filterToDelete) return
 
@@ -471,7 +369,6 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
     }
   }, [filterToDelete, loadSavedFilters, supabase])
 
-  // Memoize handleUpdateFilter
   const handleUpdateFilter = useCallback(async () => {
     if (!editingFilter || !editName.trim()) return
 
@@ -498,12 +395,10 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
     }
   }, [editingFilter, editName, loadSavedFilters, supabase])
 
-  // Memoize getFilterSummary
   const getFilterSummary = useCallback((filters: Filters) => {
     return calculateActiveFilters(filters)
   }, [])
 
-  // Memoize edit handler
   const handleEdit = useCallback((filter: SavedFilter) => {
     setEditingFilter(filter)
     setEditName(filter.name)
@@ -512,7 +407,6 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
   return (
     <div className="flex flex-col gap-3 w-full bg-sidebar-accent/5 p-3 rounded-lg border border-sidebar-border/50">
       <div className="flex items-center gap-2 w-full">
-        {/* Load Saved Filters Dropdown - Takes full width minus button */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -581,7 +475,6 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Save Current Filters - Circular Button */}
         <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
           <DialogTrigger asChild>
             <Button
@@ -625,7 +518,6 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
         </Dialog>
       </div>
 
-      {/* Action Buttons Row */}
       {(onReset || onExport) && (
         <div className="grid grid-cols-2 gap-2 w-full">
           {onReset && (
@@ -651,9 +543,6 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
         </div>
       )}
 
-      {/* Logic for Managing and Deleting Filters (unchanged usually but included for completeness in single file) */}
-
-      {/* Manage Saved Filters */}
       <Dialog open={manageDialogOpen} onOpenChange={setManageDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -681,7 +570,6 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -692,14 +580,17 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setFilterToDelete(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteFilter} className="bg-destructive hover:bg-destructive/90" disabled={loading}>
+            <AlertDialogAction
+              onClick={confirmDeleteFilter}
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={loading}
+            >
               {loading ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Edit Filter Dialog */}
       <Dialog
         open={!!editingFilter}
         onOpenChange={(open) => {
