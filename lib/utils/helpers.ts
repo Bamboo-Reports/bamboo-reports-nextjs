@@ -16,23 +16,6 @@ export const formatRevenueInMillions = (value: number): string => {
 }
 
 /**
- * Debounce function for search and other delayed actions
- */
-export function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null
-
-  return function executedFunction(...args: Parameters<T>) {
-    const later = () => {
-      timeout = null
-      func(...args)
-    }
-
-    if (timeout) clearTimeout(timeout)
-    timeout = setTimeout(later, wait)
-  }
-}
-
-/**
  * Get paginated data
  */
 export const getPaginatedData = (data: any[], page: number, itemsPerPage: number) => {

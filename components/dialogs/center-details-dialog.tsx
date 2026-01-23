@@ -27,6 +27,7 @@ import {
 } from "lucide-react"
 import type { Center, Service } from "@/lib/types"
 import { CompanyLogo } from "@/components/ui/company-logo"
+import { InfoRow } from "@/components/ui/info-row"
 
 interface CenterDetailsDialogProps {
   center: Center | null
@@ -61,46 +62,6 @@ export function CenterDetailsDialog({
     if (status === "Upcoming") return "shadow-[0_0_10px_rgba(234,179,8,0.5)]"
     if (status === "Non Operational") return "shadow-[0_0_10px_rgba(239,68,68,0.5)]"
     return ""
-  }
-
-  const InfoRow = ({
-    icon: Icon,
-    label,
-    value,
-    link
-  }: {
-    icon: any
-    label: string
-    value: string | number | null | undefined
-    link?: string
-  }) => {
-    if (value === null || value === undefined) return null
-
-    const displayValue = typeof value === "number" ? value.toString() : value
-    if (displayValue === "") return null
-
-    return (
-      <div className="flex items-start gap-3 p-3 rounded-lg bg-background/40 backdrop-blur-sm border border-border/50 hover:border-border transition-colors dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-md dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
-        <div className="mt-0.5">
-          <Icon className="h-4 w-4 text-muted-foreground" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-muted-foreground mb-1">{label}</p>
-          {link ? (
-            <a
-              href={link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm font-medium text-primary hover:underline break-words"
-            >
-              {displayValue}
-            </a>
-          ) : (
-            <p className="text-sm font-medium break-words whitespace-pre-line">{displayValue}</p>
-          )}
-        </div>
-      </div>
-    )
   }
 
   const isPresent = (value: string | number | null | undefined) => {

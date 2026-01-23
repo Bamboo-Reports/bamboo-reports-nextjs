@@ -1,6 +1,7 @@
 "use server"
 
-import { neon } from "@neondatabase/serverless"
+import { neon, type NeonQueryFunction } from "@neondatabase/serverless"
+import type { Account, Center, Function, Service, Tech, Prospect } from "@/lib/types"
 
 // ============================================
 // CONFIGURATION & SETUP
@@ -8,10 +9,17 @@ import { neon } from "@neondatabase/serverless"
 
 // Cache configuration
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
-const dataCache = new Map<string, { data: any; timestamp: number }>()
 
-// Initialize the SQL client with error handling and connection pooling
-let sql: any = null
+interface CachedData<T> {
+  data: T
+  timestamp: number
+}
+
+const dataCache = new Map<string, CachedData<unknown>>()
+
+type SqlClient = ReturnType<typeof neon> | null
+
+let sql: SqlClient = null
 
 try {
   if (!process.env.DATABASE_URL) {
@@ -19,7 +27,7 @@ try {
   }
   sql = neon(process.env.DATABASE_URL, {
     fetchOptions: {
-      cache: "no-store", // Disable caching for dynamic data
+      cache: "no-store",
     },
   })
 } catch (error) {
@@ -61,7 +69,7 @@ function getCachedData<T>(key: string): T | null {
 /**
  * Set data in cache
  */
-function setCachedData(key: string, data: any): void {
+function setCachedData<T>(key: string, data: T): void {
   dataCache.set(key, { data, timestamp: Date.now() })
   console.log(`Cache set for: ${key}`)
 }

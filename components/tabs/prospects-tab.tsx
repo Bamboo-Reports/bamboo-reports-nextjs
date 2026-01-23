@@ -15,6 +15,8 @@ import { ProspectDetailsDialog } from "@/components/dialogs/prospect-details-dia
 import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
 import { exportToExcel } from "@/lib/utils/export-helpers"
 import { ViewSwitcher } from "@/components/ui/view-switcher"
+import { SortButton } from "@/components/ui/sort-button"
+import { PaginationControls } from "@/components/ui/pagination-controls"
 import type { Prospect } from "@/lib/types"
 
 interface ProspectsTabProps {
@@ -92,29 +94,6 @@ export function ProspectsTab({
     const sorted = [...prospects].sort((a, b) => compare(getValue(a), getValue(b)))
     return sort.direction === "asc" ? sorted : sorted.reverse()
   }, [prospects, sort])
-
-  const SortButton = ({
-    label,
-    sortKey,
-  }: {
-    label: string
-    sortKey: typeof sort.key
-  }) => (
-    <button
-      type="button"
-      onClick={() => handleSort(sortKey)}
-      className="inline-flex items-center gap-1 font-medium text-foreground"
-    >
-      <span>{label}</span>
-      {sort.key !== sortKey || sort.direction === null ? (
-        <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
-      ) : sort.direction === "asc" ? (
-        <ArrowUpAZ className="h-3.5 w-3.5 text-muted-foreground" />
-      ) : (
-        <ArrowDownAZ className="h-3.5 w-3.5 text-muted-foreground" />
-      )}
-    </button>
-  )
 
   // Show empty state when no prospects
   if (prospects.length === 0) {
@@ -210,16 +189,16 @@ export function ProspectsTab({
                       <TableRow>
                         <TableHead className="w-16"></TableHead>
                         <TableHead className="w-[220px]">
-                          <SortButton label="Name" sortKey="name" />
+                          <SortButton label="Name" sortKey="name" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                         </TableHead>
                         <TableHead className="w-[200px]">
-                          <SortButton label="Location" sortKey="location" />
+                          <SortButton label="Location" sortKey="location" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                         </TableHead>
                         <TableHead className="w-[220px]">
-                          <SortButton label="Job Title" sortKey="title" />
+                          <SortButton label="Job Title" sortKey="title" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                         </TableHead>
                         <TableHead className="w-[180px]">
-                          <SortButton label="Department" sortKey="department" />
+                          <SortButton label="Department" sortKey="department" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -269,55 +248,16 @@ export function ProspectsTab({
                 )}
               </div>
                   {prospects.length > 0 && (
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-4 border-t shrink-0 bg-muted/20">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <p className="text-sm text-muted-foreground">
-                          {getPageInfo(currentPage, prospects.length, itemsPerPage).startItem}-{getPageInfo(currentPage, prospects.length, itemsPerPage).endItem} of{" "}
-                          {prospects.length}
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => exportToExcel(sortedProspects, "prospects-export", "Prospects")}
-                          className="flex items-center gap-2 h-8"
-                        >
-                      <Download className="h-4 w-4" />
-                      Export
-                    </Button>
-                  </div>
-                  {getTotalPages(prospects.length, itemsPerPage) > 1 && (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="h-8"
-                      >
-                        Previous
-                      </Button>
-                      <span className="text-sm text-muted-foreground min-w-[60px] text-center">
-                        {currentPage}/{getTotalPages(prospects.length, itemsPerPage)}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentPage((prev) =>
-                            Math.min(prev + 1, getTotalPages(prospects.length, itemsPerPage))
-                          )
-                        }
-                        disabled={
-                          currentPage === getTotalPages(prospects.length, itemsPerPage)
-                        }
-                        className="h-8"
-                      >
-                        Next
-                      </Button>
-                    </div>
+                    <PaginationControls
+                      currentPage={currentPage}
+                      totalItems={prospects.length}
+                      itemsPerPage={itemsPerPage}
+                      onPageChange={setCurrentPage}
+                      dataLength={prospects.length}
+                      onExport={() => exportToExcel(sortedProspects, "prospects-export", "Prospects")}
+                      exportLabel="Export"
+                    />
                   )}
-                </div>
-              )}
             </CardContent>
          </Card>
        )}

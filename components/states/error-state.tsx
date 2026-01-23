@@ -4,9 +4,19 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, Info, Database, RefreshCw, ExternalLink, Copy } from "lucide-react"
 import { copyToClipboard } from "@/lib/utils/helpers"
 
+interface DatabaseStatus {
+  hasUrl: boolean
+  hasConnection: boolean
+  urlLength: number
+  environment: string
+  cacheSize: number
+  cacheKeys: string[]
+  error?: string
+}
+
 interface ErrorStateProps {
   error: string
-  dbStatus?: any
+  dbStatus?: DatabaseStatus | null
   onRetry: () => void
   onClearCache: () => void
 }
