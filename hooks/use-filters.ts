@@ -77,6 +77,10 @@ function createRangeHandlers(
 }
 
 export function useFilters(
+  filters: Filters,
+  setFilters: React.Dispatch<React.SetStateAction<Filters>>,
+  pendingFilters: Filters,
+  setPendingFilters: React.Dispatch<React.SetStateAction<Filters>>,
   ranges: {
     revenue: RangeState
     yearsInIndia: RangeState
@@ -85,8 +89,6 @@ export function useFilters(
   },
   accounts: Account[]
 ): UseFiltersReturn {
-  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
-  const [pendingFilters, setPendingFilters] = useState<Filters>(DEFAULT_FILTERS)
   const [isApplying, setIsApplying] = useState(false)
   const [, startFilterTransition] = useTransition()
   const [revenueRange, setRevenueRange] = useState<RangeState>(ranges.revenue)

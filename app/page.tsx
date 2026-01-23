@@ -35,8 +35,14 @@ function DashboardContent() {
   } = useDashboardData(authReady, userId)
 
   // Filter management - single source of truth
-  const filterState = useFilters(ranges, data.accounts)
-  const { filters, pendingFilters } = filterState
+  const filterState = useFilters(
+    filters,
+    setFilters,
+    pendingFilters,
+    setPendingFilters,
+    ranges,
+    data.accounts
+  )
 
   // Filtered data computation
   const filteredData = useFilteredData(data, filters)
