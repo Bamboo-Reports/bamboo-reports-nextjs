@@ -251,22 +251,41 @@ export function CentersChoroplethMap({
 
   useEffect(() => {
     let isMounted = true
-    fetch("/data/admin-1.geojson")
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to load admin-1 boundaries")
+    const loadGeojson = async () => {
+      try {
+        const baseHref = document.baseURI.endsWith("/") ? document.baseURI : `${document.baseURI}/`
+        const candidates = [
+          new URL("data/admin-1.geojson", baseHref).toString(),
+          "/data/admin-1.geojson",
+          "data/admin-1.geojson",
+        ]
+
+        let lastError: unknown = null
+        for (const url of candidates) {
+          try {
+            const res = await fetch(url)
+            if (!res.ok) {
+              lastError = new Error(`Failed to load admin-1 boundaries (${res.status})`)
+              continue
+            }
+            const data = (await res.json()) as Admin1FeatureCollection
+            if (!isMounted) return
+            setGeojson(data)
+            return
+          } catch (err) {
+            lastError = err
+          }
         }
-        return res.json()
-      })
-      .then((data: Admin1FeatureCollection) => {
-        if (!isMounted) return
-        setGeojson(data)
-      })
-      .catch((err) => {
+
+        throw lastError ?? new Error("Failed to load admin-1 boundaries")
+      } catch (err) {
         console.error("[CentersChoroplethMap] Boundary load error:", err)
         if (!isMounted) return
         setError(err instanceof Error ? err.message : "Failed to load boundaries")
-      })
+      }
+    }
+
+    loadGeojson()
 
     return () => {
       isMounted = false
