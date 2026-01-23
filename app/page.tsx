@@ -28,7 +28,7 @@ function DashboardContent() {
     loading,
     error,
     connectionStatus,
-    dbStatus,
+    databaseStatus,
     loadData,
     handleClearCache,
   } = useDashboardData({ enabled: authReady && !!userId })
@@ -104,11 +104,11 @@ function DashboardContent() {
   }
 
   if (loading) {
-    return <LoadingState connectionStatus={connectionStatus} dbStatus={dbStatus} />
+    return <LoadingState connectionStatus={connectionStatus} dbStatus={databaseStatus} />
   }
 
   if (error) {
-    return <ErrorState error={error} dbStatus={dbStatus} onRetry={loadData} onClearCache={handleClearCache} />
+    return <ErrorState error={error} dbStatus={databaseStatus} onRetry={loadData} onClearCache={handleClearCache} />
   }
 
   return (

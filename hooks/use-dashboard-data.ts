@@ -6,6 +6,26 @@ interface UseDashboardDataOptions {
   enabled: boolean
 }
 
+interface DatabaseStatus {
+  hasUrl: boolean
+  hasConnection: boolean
+  urlLength: number
+  environment: string
+  cacheSize: number
+  cacheKeys: string[]
+  error?: string
+}
+
+interface AllDataResult {
+  accounts: unknown[]
+  centers: unknown[]
+  functions: unknown[]
+  services: unknown[]
+  tech: unknown[]
+  prospects: unknown[]
+  error?: string
+}
+
 export function useDashboardData({ enabled }: UseDashboardDataOptions) {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [centers, setCenters] = useState<Center[]>([])
@@ -16,12 +36,12 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [connectionStatus, setConnectionStatus] = useState<string>("")
-  const [dbStatus, setDbStatus] = useState<any>(null)
+  const [databaseStatus, setDatabaseStatus] = useState<DatabaseStatus | null>(null)
 
   const checkDatabaseStatus = useCallback(async () => {
     try {
       const status = await getDatabaseStatus()
-      setDbStatus(status)
+      setDatabaseStatus(status)
       console.log("Database status:", status)
       return status
     } catch (err) {
@@ -69,7 +89,7 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
       }
 
       setConnectionStatus("Loading data from database...")
-      const data = await getAllData()
+      const data = await getAllData() as AllDataResult
 
       if (data.error) {
         setError(`Database error: ${data.error}`)
@@ -143,7 +163,7 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
     loading,
     error,
     connectionStatus,
-    dbStatus,
+    databaseStatus,
     loadData,
     handleClearCache,
   }

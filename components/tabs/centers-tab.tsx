@@ -18,6 +18,8 @@ import { CentersMap } from "@/components/maps/centers-map"
 import { CentersChoroplethMap } from "@/components/maps/centers-choropleth-map"
 import { MapErrorBoundary } from "@/components/maps/map-error-boundary"
 import { ViewSwitcher } from "@/components/ui/view-switcher"
+import { SortButton } from "@/components/ui/sort-button"
+import { PaginationControls } from "@/components/ui/pagination-controls"
 import type { Center, Function, Service } from "@/lib/types"
 
 interface CentersTabProps {
@@ -102,29 +104,6 @@ export function CentersTab({
     const sorted = [...centers].sort((a, b) => compare(getValue(a), getValue(b)))
     return sort.direction === "asc" ? sorted : sorted.reverse()
   }, [centers, sort])
-
-  const SortButton = ({
-    label,
-    sortKey,
-  }: {
-    label: string
-    sortKey: typeof sort.key
-  }) => (
-    <button
-      type="button"
-      onClick={() => handleSort(sortKey)}
-      className="inline-flex items-center gap-1 font-medium text-foreground"
-    >
-      <span>{label}</span>
-      {sort.key !== sortKey || sort.direction === null ? (
-        <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
-      ) : sort.direction === "asc" ? (
-        <ArrowUpAZ className="h-3.5 w-3.5 text-muted-foreground" />
-      ) : (
-        <ArrowDownAZ className="h-3.5 w-3.5 text-muted-foreground" />
-      )}
-    </button>
-  )
 
   // Show empty state when no centers
   if (centers.length === 0) {
@@ -275,16 +254,16 @@ export function CentersTab({
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-[260px]">
-                          <SortButton label="Center Name" sortKey="name" />
+                          <SortButton label="Center Name" sortKey="name" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                         </TableHead>
                         <TableHead className="w-[200px]">
-                          <SortButton label="Location" sortKey="location" />
+                          <SortButton label="Location" sortKey="location" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                         </TableHead>
                         <TableHead className="w-[200px]">
-                          <SortButton label="Center Type" sortKey="type" />
+                          <SortButton label="Center Type" sortKey="type" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                         </TableHead>
                         <TableHead className="w-[160px]">
-                          <SortButton label="Employee Range" sortKey="employees" />
+                          <SortButton label="Employee Range" sortKey="employees" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -334,55 +313,16 @@ export function CentersTab({
                 )}
               </div>
                   {centers.length > 0 && (
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-4 border-t shrink-0 bg-muted/20">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <p className="text-sm text-muted-foreground">
-                          {getPageInfo(currentPage, centers.length, itemsPerPage).startItem}-{getPageInfo(currentPage, centers.length, itemsPerPage).endItem} of{" "}
-                          {centers.length}
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => exportToExcel(sortedCenters, "centers-export", "Centers")}
-                          className="flex items-center gap-2 h-8"
-                        >
-                      <Download className="h-4 w-4" />
-                      Export
-                    </Button>
-                  </div>
-                  {getTotalPages(centers.length, itemsPerPage) > 1 && (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="h-8"
-                      >
-                        Previous
-                      </Button>
-                      <span className="text-sm text-muted-foreground min-w-[60px] text-center">
-                        {currentPage}/{getTotalPages(centers.length, itemsPerPage)}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentPage((prev) =>
-                            Math.min(prev + 1, getTotalPages(centers.length, itemsPerPage))
-                          )
-                        }
-                        disabled={
-                          currentPage === getTotalPages(centers.length, itemsPerPage)
-                        }
-                        className="h-8"
-                      >
-                        Next
-                      </Button>
-                    </div>
+                    <PaginationControls
+                      currentPage={currentPage}
+                      totalItems={centers.length}
+                      itemsPerPage={itemsPerPage}
+                      onPageChange={setCurrentPage}
+                      dataLength={centers.length}
+                      onExport={() => exportToExcel(sortedCenters, "centers-export", "Centers")}
+                      exportLabel="Export"
+                    />
                   )}
-                </div>
-              )}
             </CardContent>
          </Card>
        )}

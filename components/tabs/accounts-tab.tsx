@@ -21,6 +21,8 @@ import { PieChartCard } from "@/components/charts/pie-chart-card"
 import { EmptyState } from "@/components/states/empty-state"
 import { AccountDetailsDialog } from "@/components/dialogs/account-details-tabbed-dialog"
 import { ViewSwitcher } from "@/components/ui/view-switcher"
+import { SortButton } from "@/components/ui/sort-button"
+import { PaginationControls } from "@/components/ui/pagination-controls"
 import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
 import { exportToExcel } from "@/lib/utils/export-helpers"
 import type { Account, Center, Prospect, Service, Function, Tech } from "@/lib/types"
@@ -108,29 +110,6 @@ export function AccountsTab({
     const sorted = [...accounts].sort((a, b) => compare(getValue(a), getValue(b)))
     return sort.direction === "asc" ? sorted : sorted.reverse()
   }, [accounts, sort])
-
-  const SortButton = ({
-    label,
-    sortKey,
-  }: {
-    label: string
-    sortKey: typeof sort.key
-  }) => (
-    <button
-      type="button"
-      onClick={() => handleSort(sortKey)}
-      className="inline-flex items-center gap-1 font-medium text-foreground"
-    >
-      <span>{label}</span>
-      {sort.key !== sortKey || sort.direction === null ? (
-        <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
-      ) : sort.direction === "asc" ? (
-        <ArrowUpAZ className="h-3.5 w-3.5 text-muted-foreground" />
-      ) : (
-        <ArrowDownAZ className="h-3.5 w-3.5 text-muted-foreground" />
-      )}
-    </button>
-  )
 
   if (accounts.length === 0) {
     return (
@@ -236,16 +215,16 @@ export function AccountsTab({
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-[280px]">
-                        <SortButton label="Account Name" sortKey="name" />
+                        <SortButton label="Account Name" sortKey="name" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                       </TableHead>
                       <TableHead className="w-[200px]">
-                        <SortButton label="Location" sortKey="location" />
+                        <SortButton label="Location" sortKey="location" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                       </TableHead>
                       <TableHead className="w-[220px]">
-                        <SortButton label="Industry" sortKey="industry" />
+                        <SortButton label="Industry" sortKey="industry" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                       </TableHead>
                       <TableHead className="w-[140px]">
-                        <SortButton label="Revenue Range" sortKey="revenue" />
+                        <SortButton label="Revenue Range" sortKey="revenue" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -295,54 +274,15 @@ export function AccountsTab({
               )}
             </div>
             {accounts.length > 0 && (
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-4 border-t shrink-0 bg-muted/20">
-                <div className="flex flex-wrap items-center gap-3">
-                  <p className="text-sm text-muted-foreground">
-                    {getPageInfo(currentPage, accounts.length, itemsPerPage).startItem}-{getPageInfo(currentPage, accounts.length, itemsPerPage).endItem} of{" "}
-                    {accounts.length}
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => exportToExcel(sortedAccounts, "accounts-export", "Accounts")}
-                    className="flex items-center gap-2 h-8"
-                  >
-                    <Download className="h-4 w-4" />
-                    Export
-                  </Button>
-                </div>
-                {getTotalPages(accounts.length, itemsPerPage) > 1 && (
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                      className="h-8"
-                    >
-                      Previous
-                    </Button>
-                    <span className="text-sm text-muted-foreground min-w-[60px] text-center">
-                      {currentPage}/{getTotalPages(accounts.length, itemsPerPage)}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((prev) =>
-                          Math.min(prev + 1, getTotalPages(accounts.length, itemsPerPage))
-                        )
-                      }
-                      disabled={
-                        currentPage === getTotalPages(accounts.length, itemsPerPage)
-                      }
-                      className="h-8"
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
-              </div>
+              <PaginationControls
+                currentPage={currentPage}
+                totalItems={accounts.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+                dataLength={accounts.length}
+                onExport={() => exportToExcel(sortedAccounts, "accounts-export", "Accounts")}
+                exportLabel="Export"
+              />
             )}
           </CardContent>
         </Card>

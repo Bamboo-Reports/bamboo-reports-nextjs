@@ -31,6 +31,7 @@ import {
   Layers,
 } from "lucide-react"
 import { formatRevenueInMillions, parseRevenue } from "@/lib/utils/helpers"
+import { InfoRow } from "@/components/ui/info-row"
 import type { Account, Center, Prospect, Service, Tech } from "@/lib/types"
 import { CompanyLogo } from "@/components/ui/company-logo"
 import { CenterDetailsDialog } from "./center-details-dialog"
@@ -79,33 +80,6 @@ export function AccountDetailsDialog({
   const location = [account.account_hq_city, account.account_hq_country]
     .filter(Boolean)
     .join(", ")
-
-  const InfoRow = ({
-    icon: Icon,
-    label,
-    value,
-  }: {
-    icon: any
-    label: string
-    value: string | number | null | undefined
-  }) => {
-    if (value === null || value === undefined) return null
-
-    const displayValue = typeof value === "number" ? value.toString() : value
-    if (displayValue.trim() === "") return null
-
-    return (
-      <div className="flex items-start gap-3 p-3 rounded-lg bg-background/40 backdrop-blur-sm border border-border/50 hover:border-border transition-colors dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-md dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
-        <div className="mt-0.5">
-          <Icon className="h-4 w-4 text-muted-foreground" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-muted-foreground mb-1">{label}</p>
-          <p className="text-sm font-medium break-words whitespace-pre-line">{displayValue}</p>
-        </div>
-      </div>
-    )
-  }
 
   const handleCenterClick = (center: Center) => {
     setSelectedCenter(center)
