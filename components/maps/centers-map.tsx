@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState, useEffect, useCallback } from "react"
+import React, { useMemo, useState, useEffect, useCallback, useLayoutEffect } from "react"
 import { Map as MapGL, Source, Layer, NavigationControl, FullscreenControl } from "@vis.gl/react-maplibre"
 import type { Center } from "@/lib/types"
 import "maplibre-gl/dist/maplibre-gl.css"
@@ -56,8 +56,10 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
   const [isClient, setIsClient] = useState(false)
   const [isMapReady, setIsMapReady] = useState(false)
   const [visibleGeojsonData, setVisibleGeojsonData] = useState<CityFeatureCollection | null>(null)
+  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null)
   const mapRef = React.useRef<any>(null)
   const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const tooltipRef = React.useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     setIsClient(true)
@@ -65,6 +67,33 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     console.log("[CentersMap] Centers count:", centers?.length)
     console.log("[CentersMap] MapTiler key exists:", !!process.env.NEXT_PUBLIC_MAPTILER_KEY)
   }, [centers])
+
+  useLayoutEffect(() => {
+    if (!mousePosition || !containerRef.current || !tooltipRef.current) return
+    const containerRect = containerRef.current.getBoundingClientRect()
+    const tooltipRect = tooltipRef.current.getBoundingClientRect()
+    const margin = 8
+    const offset = 15
+
+    let x = mousePosition.x + offset
+    let y = mousePosition.y + offset
+
+    if (x + tooltipRect.width + margin > containerRect.width) {
+      x = mousePosition.x - tooltipRect.width - offset
+    }
+    if (x < margin) {
+      x = margin
+    }
+
+    if (y + tooltipRect.height + margin > containerRect.height) {
+      y = mousePosition.y - tooltipRect.height - offset
+    }
+    if (y < margin) {
+      y = margin
+    }
+
+    setTooltipPosition({ x, y })
+  }, [mousePosition, hoveredCity])
 
   // Fallback to ensure the map shows even if onLoad is delayed
   useEffect(() => {
@@ -364,14 +393,11 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     return (
       <div
         ref={containerRef}
-        className={`relative w-full ${heightClass} rounded-lg overflow-hidden outline-none`}
+        className={`relative w-full ${heightClass} rounded-lg overflow-hidden outline-none bg-muted`}
       >
-        {!isMapReady && (
-          <div className="absolute inset-0 bg-muted/70 animate-pulse pointer-events-none" />
-        )}
         <MapGL
         ref={mapRef}
-        style={{ width: "100%", height: "100%", opacity: isMapReady ? 1 : 0, transition: "opacity 150ms ease-out" }}
+        style={{ width: "100%", height: "100%" }}
         initialViewState={initialViewState}
         mapStyle={mapStyle}
         projection="mercator"
@@ -489,9 +515,12 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
           return (
             <div
               className="absolute z-50 pointer-events-none"
+              ref={tooltipRef}
               style={{
-                left: `${mousePosition.x + 15}px`,
-                top: `${mousePosition.y + 15}px`,
+                left: `${(tooltipPosition?.x ?? mousePosition.x + 15)}px`,
+                top: `${(tooltipPosition?.y ?? mousePosition.y + 15)}px`,
+                fontFamily:
+                  "'Google Sans', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
               }}
             >
               <div className="bg-background border-2 border-orange-500/20 rounded-xl shadow-2xl min-w-[280px] overflow-hidden">

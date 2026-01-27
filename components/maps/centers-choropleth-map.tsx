@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState, useEffect } from "react"
+import React, { useMemo, useState, useEffect, useLayoutEffect } from "react"
 import { Map as MapGL, Source, Layer, NavigationControl, FullscreenControl } from "@vis.gl/react-maplibre"
 import type { Center } from "@/lib/types"
 import "maplibre-gl/dist/maplibre-gl.css"
@@ -174,12 +174,41 @@ export function CentersChoroplethMap({
     accountsCount: number
     headcount: number
   } | null>(null)
+  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null)
   const mapRef = React.useRef<any>(null)
   const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const tooltipRef = React.useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     setIsClient(true)
   }, [])
+
+  useLayoutEffect(() => {
+    if (!hoverInfo || !containerRef.current || !tooltipRef.current) return
+    const containerRect = containerRef.current.getBoundingClientRect()
+    const tooltipRect = tooltipRef.current.getBoundingClientRect()
+    const margin = 8
+    const offset = 15
+
+    let x = hoverInfo.x + offset
+    let y = hoverInfo.y + offset
+
+    if (x + tooltipRect.width + margin > containerRect.width) {
+      x = hoverInfo.x - tooltipRect.width - offset
+    }
+    if (x < margin) {
+      x = margin
+    }
+
+    if (y + tooltipRect.height + margin > containerRect.height) {
+      y = hoverInfo.y - tooltipRect.height - offset
+    }
+    if (y < margin) {
+      y = margin
+    }
+
+    setTooltipPosition({ x, y })
+  }, [hoverInfo])
 
   useEffect(() => {
     const fallback = setTimeout(() => setIsMapReady(true), 700)
@@ -215,6 +244,13 @@ export function CentersChoroplethMap({
     () => Array.from(scaleAggregates.countsByState.values()).filter((value) => value > 0),
     [scaleAggregates]
   )
+  const countRange = useMemo(() => {
+    if (countValues.length === 0) return { min: 0, max: 0 }
+    return {
+      min: Math.min(...countValues),
+      max: Math.max(...countValues),
+    }
+  }, [countValues])
 
   const featureKeyExpression = useMemo(
     () => (["concat", ["get", "level_0"], "|", ["downcase", ["coalesce", ["get", "name"], ""]]] as any),
@@ -241,7 +277,7 @@ export function CentersChoroplethMap({
     return expression
   }, [featureKeyExpression, stateAggregates, stateKeysWithCounts])
 
-  const { expression: fillColorExpression, legend } = useMemo(
+  const { expression: fillColorExpression } = useMemo(
     () => buildColorScale(countValues, countExpression),
     [countValues, countExpression]
   )
@@ -354,14 +390,11 @@ export function CentersChoroplethMap({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full ${heightClass} rounded-lg overflow-hidden outline-none`}
+      className={`relative w-full ${heightClass} rounded-lg overflow-hidden outline-none bg-muted`}
     >
-      {!isMapReady && (
-        <div className="absolute inset-0 bg-muted/70 animate-pulse pointer-events-none" />
-      )}
       <MapGL
         ref={mapRef}
-        style={{ width: "100%", height: "100%", opacity: isMapReady ? 1 : 0, transition: "opacity 150ms ease-out" }}
+        style={{ width: "100%", height: "100%" }}
         initialViewState={{
           latitude: 15,
           longitude: 0,
@@ -458,12 +491,35 @@ export function CentersChoroplethMap({
           />
         </Source>
 
+        <div
+          className="absolute bottom-4 left-4 z-10 rounded-lg border bg-background/35 backdrop-blur-md p-3 shadow-sm min-w-[220px]"
+          style={{
+            fontFamily:
+              "'Google Sans', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+          }}
+        >
+          <div className="text-sm font-semibold text-muted-foreground dark:text-white mb-2 text-center">Total Centers</div>
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground dark:text-white">
+            <span className="tabular-nums">{countRange.min.toLocaleString()}</span>
+            <div
+              className="h-2 flex-1 rounded-full"
+              style={{
+                background: `linear-gradient(90deg, ${COLOR_SCALE.join(", ")})`,
+              }}
+            />
+            <span className="tabular-nums">{countRange.max.toLocaleString()}</span>
+          </div>
+        </div>
+
         {hoverInfo && (
           <div
             className="absolute z-50 pointer-events-none"
+            ref={tooltipRef}
             style={{
-              left: `${hoverInfo.x + 15}px`,
-              top: `${hoverInfo.y + 15}px`,
+              left: `${(tooltipPosition?.x ?? hoverInfo.x + 15)}px`,
+              top: `${(tooltipPosition?.y ?? hoverInfo.y + 15)}px`,
+              fontFamily:
+                "'Google Sans', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
             }}
           >
             <div className="bg-background border-2 border-orange-500/20 rounded-xl shadow-2xl min-w-[280px] overflow-hidden">
@@ -511,19 +567,6 @@ export function CentersChoroplethMap({
           </div>
         )}
 
-        {legend.length > 0 && (
-          <div className="absolute bottom-4 left-4 z-10 rounded-lg border bg-background/95 p-3 shadow-sm">
-            <div className="text-xs font-semibold text-muted-foreground mb-2">Centers per State</div>
-            <div className="space-y-1">
-              {legend.map((entry) => (
-                <div key={`${entry.label}-${entry.color}`} className="flex items-center gap-2 text-xs">
-                  <span className="h-3 w-3 rounded-sm border" style={{ backgroundColor: entry.color }} />
-                  <span className="text-muted-foreground">{entry.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </MapGL>
     </div>
   )
