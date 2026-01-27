@@ -61,7 +61,7 @@ Bamboo Reports provides a unified view of business entities (**Accounts**, **Cen
 - **Type Safety:** Shared TypeScript definitions ensuring consistency from DB to UI.
 
 ### Export and Integrations
-- **Excel Exports:** Native `.xlsx` generation using `xlsx`.
+- **Excel Exports:** Native `.xlsx` generation using `exceljs`.
 - **Multi-Sheet Support:** Export all filtered entities into separate sheets in a single file.
 - **Logo Integration:** Automated company logo fetching via Logo.dev API.
 

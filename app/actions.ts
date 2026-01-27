@@ -614,7 +614,7 @@ export async function loadData(filters: any) {
 export async function exportToExcel(data: any[]) {
   try {
     // This function handles the Excel export
-    // The actual Excel generation happens on the client side with the xlsx library
+    // The actual Excel generation happens on the client side with the exceljs library
     return { success: true, downloadUrl: "#" }
   } catch (error) {
     console.error("Error in exportToExcel:", error)

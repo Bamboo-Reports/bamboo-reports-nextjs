@@ -2,18 +2,15 @@
 
 import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { TabsContent } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, Download, PieChartIcon, Table as TableIcon, MapIcon, LayoutGrid, Layers, MapPin } from "lucide-react"
+import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, PieChartIcon, Table as TableIcon, MapIcon, LayoutGrid, Layers, MapPin } from "lucide-react"
 import { CenterRow } from "@/components/tables"
 import { CenterGridCard } from "@/components/cards/center-grid-card"
 import { PieChartCard } from "@/components/charts/pie-chart-card"
 import { EmptyState } from "@/components/states/empty-state"
 import { CenterDetailsDialog } from "@/components/dialogs/center-details-dialog"
-import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
-import { exportToExcel } from "@/lib/utils/export-helpers"
+import { getPaginatedData } from "@/lib/utils/helpers"
 import { CentersMap } from "@/components/maps/centers-map"
 import { CentersChoroplethMap } from "@/components/maps/centers-choropleth-map"
 import { MapErrorBoundary } from "@/components/maps/map-error-boundary"
@@ -319,8 +316,6 @@ export function CentersTab({
                       itemsPerPage={itemsPerPage}
                       onPageChange={setCurrentPage}
                       dataLength={centers.length}
-                      onExport={() => exportToExcel(sortedCenters, "centers-export", "Centers")}
-                      exportLabel="Export"
                     />
                   )}
             </CardContent>

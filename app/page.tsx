@@ -10,7 +10,7 @@ import { SummaryCards } from "@/components/dashboard/summary-cards"
 import { AccountsTab, CentersTab } from "@/components/tabs"
 import { ProspectsTab } from "@/components/tabs/prospects-tab"
 import { formatRevenueInMillions } from "@/lib/utils/helpers"
-import { exportAllData as exportAll } from "@/lib/utils/export-helpers"
+import { ExportDialog } from "@/components/export/export-dialog"
 import { useAuthGuard } from "@/hooks/use-auth-guard"
 import { useDashboardData } from "@/hooks/use-dashboard-data"
 import { useDashboardFilters } from "@/hooks/use-dashboard-filters"
@@ -78,19 +78,15 @@ function DashboardContent() {
   const [centersView, setCentersView] = useState<"chart" | "data" | "map">("map")
   const [prospectsView, setProspectsView] = useState<"chart" | "data">("chart")
   const [activeSection, setActiveSection] = useState<"accounts" | "centers" | "prospects">("accounts")
+  const [exportDialogOpen, setExportDialogOpen] = useState(false)
 
   useEffect(() => {
     setCurrentPage(1)
   }, [filters])
 
   const handleExportAll = useCallback(() => {
-    exportAll(
-      filteredData.filteredAccounts,
-      filteredData.filteredCenters,
-      filteredData.filteredFunctions,
-      filteredData.filteredServices
-    )
-  }, [filteredData])
+    setExportDialogOpen(true)
+  }, [])
 
   const dataLoaded =
     !loading && accounts.length > 0 && centers.length > 0 && services.length > 0 && prospects.length > 0
@@ -117,6 +113,17 @@ function DashboardContent() {
 
       {dataLoaded && (
         <div className="flex flex-1 overflow-hidden">
+          <ExportDialog
+            open={exportDialogOpen}
+            onOpenChange={setExportDialogOpen}
+            data={{
+              accounts: filteredData.filteredAccounts,
+              centers: filteredData.filteredCenters,
+              services: filteredData.filteredServices,
+              prospects: filteredData.filteredProspects,
+            }}
+            isFiltered={getTotalActiveFilters() > 0}
+          />
           <FiltersSidebar
             filters={filters}
             pendingFilters={pendingFilters}
