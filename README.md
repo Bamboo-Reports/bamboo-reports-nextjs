@@ -46,7 +46,7 @@ Bamboo Reports provides a unified view of business entities (**Accounts**, **Cen
 - **Smart Summary Cards:** Real-time filtered vs. total counts per entity.
 - **Interactive Charts:** Recharts-powered Pie and Donut charts for categorical breakdowns (Region, Nature, Revenue, Employees).
 - **Tabbed Navigation:** Seamless switching between Accounts, Centers, and Prospects contexts.
-- **Geospatial Analytics:** Mapbox GL map with clustering for center locations, optimized for 5000+ points.
+- **Geospatial Analytics:** MapTiler (MapLibre) map with clustering for center locations, optimized for 5000+ points.
 
 ### Advanced Filtering Engine
 - **Multi-Select Filters:** Country, Region, Industry, Category, Nature, and more.
@@ -81,7 +81,7 @@ graph TD
     end
     
     subgraph External APIs
-        Client -->|Map Tiles| Mapbox[Mapbox GL API]
+        Client -->|Map Tiles| MapTiler[MapTiler Maps API]
         Client -->|Images| LogoDev[Logo.dev API]
     end
 ```
@@ -135,7 +135,7 @@ bamboo-reports-nextjs/
 │   ├── dashboard/              # Summary Cards & Hero Stats
 │   ├── dialogs/                # Detail Views (Modal Popups)
 │   ├── filters/                # Sidebar Filter Logic
-│   ├── maps/                   # Mapbox Integration
+│   ├── maps/                   # MapTiler + MapLibre Integration
 │   ├── saved-filters/          # Saved Filter CRUD Components
 │   ├── tables/                 # Data Grid Components
 │   └── ui/                     # Shared Design System (shadcn)
@@ -159,7 +159,7 @@ bamboo-reports-nextjs/
 - **npm** (v9+) or **pnpm**
 - **Neon PostgreSQL:** Connection string for the data warehouse.
 - **Supabase Project:** For Authentication and User State.
-- **Mapbox Token:** For the geospatial view.
+- **MapTiler API Key:** For the geospatial view.
 
 ### Installation
 
@@ -197,7 +197,7 @@ bamboo-reports-nextjs/
 | `DATABASE_URL` | **Yes** | Neon PostgreSQL connection string (Postgres protocol). |
 | `NEXT_PUBLIC_SUPABASE_URL` | **Yes** | Your Supabase Project URL. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **Yes** | Supabase Public Anon Key (safe for client). |
-| `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` | **Yes** | Mapbox public token for rendering map tiles. |
+| `NEXT_PUBLIC_MAPTILER_KEY` | **Yes** | MapTiler public key for rendering map tiles. |
 | `NEXT_PUBLIC_LOGO_DEV_TOKEN` | No | Token for fetching company logos (optional). |
 
 ---
@@ -249,7 +249,7 @@ This project is optimized for Vercel.
 
 | Issue | Possible Cause | Solution |
 | :--- | :--- | :--- |
-| **Map not loading** | Invalid Mapbox Token | Check `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`. Ensure the token has `styles:read` scope. |
+| **Map not loading** | Invalid MapTiler Key | Check `NEXT_PUBLIC_MAPTILER_KEY`. Ensure the key is active and has map tile access. |
 | **"Database connection failed"** | Neon Scaling / Network | The Neon instance might be sleeping. Retry after 5 seconds. Check `DATABASE_URL`. |
 | **Auth Errors (401/403)** | Supabase Config | Verify `NEXT_PUBLIC_SUPABASE_URL` and `ANON_KEY`. Check RLS policies in Supabase dashboard. |
 | **Missing Logos** | Logo.dev Token | Ensure `NEXT_PUBLIC_LOGO_DEV_TOKEN` is set. If omitted, fallback initials are used. |

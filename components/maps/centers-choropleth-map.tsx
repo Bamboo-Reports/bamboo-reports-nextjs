@@ -1,9 +1,9 @@
 "use client"
 
 import React, { useMemo, useState, useEffect } from "react"
-import { Map as MapGL, Source, Layer, NavigationControl, FullscreenControl } from "react-map-gl/mapbox"
+import { Map as MapGL, Source, Layer, NavigationControl, FullscreenControl } from "react-map-gl/maplibre"
 import type { Center } from "@/lib/types"
-import "mapbox-gl/dist/mapbox-gl.css"
+import "maplibre-gl/dist/maplibre-gl.css"
 
 interface CentersChoroplethMapProps {
   centers: Center[]
@@ -13,30 +13,18 @@ interface CentersChoroplethMapProps {
 
 interface Admin1Properties {
   name?: string
-  name_en?: string
-  admin?: string
-  iso_3166_2?: string
-  stateName?: string
-  countryName?: string
-  stateKey?: string
-  count?: number
-  accountsCount?: number
-  headcount?: number
+  level_0?: string
+  level?: number
   [key: string]: unknown
 }
 
 interface Admin1Feature {
-  type: "Feature"
-  properties: Admin1Properties
-  geometry: {
+  type?: "Feature"
+  properties?: Admin1Properties
+  geometry?: {
     type: "Polygon" | "MultiPolygon"
     coordinates: any
   }
-}
-
-interface Admin1FeatureCollection {
-  type: "FeatureCollection"
-  features: Admin1Feature[]
 }
 
 const COLOR_SCALE = [
@@ -52,56 +40,21 @@ const COLOR_SCALE = [
   "#FF8000",
 ]
 
-const COUNTRY_ALIASES: Record<string, string> = {
-  "usa": "united states of america",
-  "us": "united states of america",
-  "u s a": "united states of america",
-  "united states": "united states of america",
-  "uk": "united kingdom",
-  "u k": "united kingdom",
-  "uae": "united arab emirates",
-  "russia": "russian federation",
-  "czech republic": "czechia",
-  "south korea": "republic of korea",
-  "north korea": "democratic people's republic of korea",
-  "viet nam": "vietnam",
-}
-
-const normalizeValue = (value?: string | null) => {
-  if (!value) return ""
-  return value
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/&/g, "and")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim()
-}
-
-const normalizeCountry = (value?: string | null) => {
-  const normalized = normalizeValue(value)
-  return COUNTRY_ALIASES[normalized] ?? normalized
-}
-
-const normalizeState = (value?: string | null) => {
-  return normalizeValue(value)
-    .replace(/\s+state$/g, "")
-    .replace(/\s+province$/g, "")
-    .trim()
-}
-
-const makeKey = (country: string, state: string) => `${country}|${state}`
+const normalizeIso2 = (value?: string | null) => (value || "").trim().toUpperCase()
+const normalizeStateKey = (value?: string | null) => (value || "").trim().toLowerCase()
+const makeKey = (countryIso2: string, stateKey: string) => `${countryIso2}|${stateKey}`
 
 const buildStateAggregates = (centers: Center[]) => {
   const countsByState = new Map<string, number>()
   const accountsByState = new Map<string, Set<string>>()
   const headcountByState = new Map<string, number>()
+  const countryNamesByIso = new Map<string, string>()
 
   centers.forEach((center) => {
-    const state = normalizeState(center.center_state)
-    const country = normalizeCountry(center.center_country)
-    if (!state || !country) return
-    const key = makeKey(country, state)
+    const state = normalizeStateKey(center.center_state)
+    const countryIso2 = normalizeIso2(center.center_country_iso2)
+    if (!state || !countryIso2) return
+    const key = makeKey(countryIso2, state)
     countsByState.set(key, (countsByState.get(key) || 0) + 1)
 
     const accountName = center.account_global_legal_name
@@ -113,20 +66,24 @@ const buildStateAggregates = (centers: Center[]) => {
 
     const employees = center.center_employees ?? 0
     headcountByState.set(key, (headcountByState.get(key) || 0) + employees)
+
+    if (center.center_country) {
+      countryNamesByIso.set(countryIso2, center.center_country)
+    }
   })
 
-  return { countsByState, accountsByState, headcountByState }
+  return { countsByState, accountsByState, headcountByState, countryNamesByIso }
 }
 
-const buildColorScale = (values: number[], maxOverride?: number) => {
+const buildColorScale = (values: number[], countExpression: any) => {
   const computedMax = values.length > 0 ? Math.max(...values) : 0
   const computedMin = values.length > 0 ? Math.min(...values) : 0
-  const maxValue = Math.max(maxOverride ?? 0, computedMax)
+  const maxValue = Math.max(0, computedMax)
   const minValue = computedMin > 0 ? computedMin : 1
 
   if (maxValue <= 0) {
     return {
-      expression: ["step", ["get", "count"], COLOR_SCALE[0], 1, COLOR_SCALE[1]] as any,
+      expression: ["step", countExpression, COLOR_SCALE[0], 1, COLOR_SCALE[1]] as any,
       legend: [
         { label: "0", color: COLOR_SCALE[0] },
         { label: "1+", color: COLOR_SCALE[1] },
@@ -137,7 +94,7 @@ const buildColorScale = (values: number[], maxOverride?: number) => {
   if (minValue >= maxValue) {
     const color = COLOR_SCALE[COLOR_SCALE.length - 1]
     return {
-      expression: ["case", [">", ["get", "count"], 0], color, COLOR_SCALE[0]] as any,
+      expression: ["case", [">", countExpression, 0], color, COLOR_SCALE[0]] as any,
       legend: [
         { label: minValue.toLocaleString(), color },
       ],
@@ -166,7 +123,7 @@ const buildColorScale = (values: number[], maxOverride?: number) => {
     const step = maxColorIndex / (bucketCount - 1)
     return COLOR_SCALE[Math.round(index * step)]
   })
-  const expression: any[] = ["step", ["get", "count"], colors[0]]
+  const expression: any[] = ["step", countExpression, colors[0]]
   uniqueThresholds.forEach((threshold, index) => {
     expression.push(threshold, colors[index + 1])
   })
@@ -205,7 +162,6 @@ export function CentersChoroplethMap({
   allCenters,
   heightClass = "h-[750px]",
 }: CentersChoroplethMapProps) {
-  const [geojson, setGeojson] = useState<Admin1FeatureCollection | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
   const [isMapReady, setIsMapReady] = useState(false)
@@ -249,113 +205,53 @@ export function CentersChoroplethMap({
     return () => observer.disconnect()
   }, [isClient])
 
-  useEffect(() => {
-    let isMounted = true
-    const loadGeojson = async () => {
-      try {
-        const baseHref = document.baseURI.endsWith("/") ? document.baseURI : `${document.baseURI}/`
-        const candidates = [
-          new URL("data/admin-1.geojson", baseHref).toString(),
-          "/data/admin-1.geojson",
-          "data/admin-1.geojson",
-        ]
-
-        let lastError: unknown = null
-        for (const url of candidates) {
-          try {
-            const res = await fetch(url)
-            if (!res.ok) {
-              lastError = new Error(`Failed to load admin-1 boundaries (${res.status})`)
-              continue
-            }
-            const data = (await res.json()) as Admin1FeatureCollection
-            if (!isMounted) return
-            setGeojson(data)
-            return
-          } catch (err) {
-            lastError = err
-          }
-        }
-
-        throw lastError ?? new Error("Failed to load admin-1 boundaries")
-      } catch (err) {
-        console.error("[CentersChoroplethMap] Boundary load error:", err)
-        if (!isMounted) return
-        setError(err instanceof Error ? err.message : "Failed to load boundaries")
-      }
-    }
-
-    loadGeojson()
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
-
   const stateAggregates = useMemo(() => buildStateAggregates(centers), [centers])
   const scaleAggregates = useMemo(() => {
     const centersForScale = allCenters && allCenters.length > 0 ? allCenters : centers
     return buildStateAggregates(centersForScale)
   }, [allCenters, centers])
 
-  const allowedCountries = useMemo(() => {
-    const set = new Set<string>()
-    centers.forEach((center) => {
-      const country = normalizeCountry(center.center_country)
-      if (country) {
-        set.add(country)
-      }
-    })
-    return set
-  }, [centers])
-
   const countValues = useMemo(
     () => Array.from(scaleAggregates.countsByState.values()).filter((value) => value > 0),
     [scaleAggregates]
   )
-  const { expression: fillColorExpression, legend } = useMemo(
-    () => buildColorScale(countValues),
-    [countValues]
+
+  const featureKeyExpression = useMemo(
+    () => (["concat", ["get", "level_0"], "|", ["downcase", ["coalesce", ["get", "name"], ""]]] as any),
+    []
   )
 
-  const geojsonWithCounts = useMemo<Admin1FeatureCollection | null>(() => {
-    if (!geojson) return null
-    return {
-      ...geojson,
-      features: geojson.features
-        .filter((feature) => {
-          if (allowedCountries.size === 0) return true
-          const countryName = (feature.properties?.admin || "").toString()
-          const normalizedCountryName = normalizeCountry(countryName)
-          if (!allowedCountries.has(normalizedCountryName)) return false
-          const stateName = (feature.properties?.name_en || feature.properties?.name || "").toString()
-          const stateKey = makeKey(normalizedCountryName, normalizeState(stateName))
-          return (stateAggregates.countsByState.get(stateKey) || 0) > 0
-        })
-        .map((feature) => {
-        const properties = feature.properties || {}
-        const stateName = (properties.name_en || properties.name || "").toString()
-        const countryName = (properties.admin || "").toString()
-        const normalizedCountryName = normalizeCountry(countryName)
-        const stateKey = makeKey(normalizedCountryName, normalizeState(stateName))
-        const count = stateAggregates.countsByState.get(stateKey) || 0
-        const accountsCount = stateAggregates.accountsByState.get(stateKey)?.size || 0
-        const headcount = stateAggregates.headcountByState.get(stateKey) || 0
-        return {
-          ...feature,
-          properties: {
-            ...properties,
-            stateName,
-            countryName,
-            stateKey,
-            count,
-            accountsCount,
-            headcount,
-          },
-        }
-      }),
+  const stateKeysWithCounts = useMemo(() => {
+    const keys: string[] = []
+    stateAggregates.countsByState.forEach((value, key) => {
+      if (value > 0) keys.push(key)
+    })
+    return keys
+  }, [stateAggregates])
+
+  const countExpression = useMemo(() => {
+    if (stateKeysWithCounts.length === 0) return ["literal", 0] as any
+    const expression: any[] = ["match", featureKeyExpression]
+    stateAggregates.countsByState.forEach((value, key) => {
+      if (value > 0) {
+        expression.push(key, value)
+      }
+    })
+    expression.push(0)
+    return expression
+  }, [featureKeyExpression, stateAggregates, stateKeysWithCounts])
+
+  const { expression: fillColorExpression, legend } = useMemo(
+    () => buildColorScale(countValues, countExpression),
+    [countValues, countExpression]
+  )
+
+  const layerFilter = useMemo(() => {
+    if (stateKeysWithCounts.length === 0) {
+      return ["==", 0, 1] as any
     }
-  }, [geojson, stateAggregates, allowedCountries])
+    return ["all", ["==", ["get", "level"], 1], ["in", featureKeyExpression, ["literal", stateKeysWithCounts]]] as any
+  }, [featureKeyExpression, stateKeysWithCounts])
 
   const bounds = useMemo(() => {
     const coords = centers
@@ -387,7 +283,14 @@ export function CentersChoroplethMap({
     }
   }, [centers])
 
-  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+  const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY
+  const maptilerStyleId = process.env.NEXT_PUBLIC_MAPTILER_STYLE_ID || "streets"
+  const mapStyle = maptilerKey
+    ? `https://api.maptiler.com/maps/${maptilerStyleId}/style.json?key=${maptilerKey}`
+    : ""
+  const countriesTileUrl = maptilerKey
+    ? `https://api.maptiler.com/tiles/countries/tiles.json?key=${maptilerKey}`
+    : ""
 
   const handleRecenter = () => {
     const mapInstance = mapRef.current?.getMap?.() ?? mapRef.current
@@ -433,27 +336,27 @@ export function CentersChoroplethMap({
     )
   }
 
-  if (!mapboxToken) {
-    console.error("[CentersChoroplethMap] Mapbox token is missing")
+  if (!maptilerKey) {
+    console.error("[CentersChoroplethMap] MapTiler key is missing")
     return (
       <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
         <div className="text-center">
           <p className="text-lg font-semibold text-muted-foreground mb-2">
-            Mapbox Access Token Missing
+            MapTiler API Key Missing
           </p>
           <p className="text-sm text-muted-foreground">
-            Please set NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN in your environment variables
+            Please set NEXT_PUBLIC_MAPTILER_KEY in your environment variables
           </p>
         </div>
       </div>
     )
   }
 
-  if (!geojsonWithCounts) {
+  if (stateKeysWithCounts.length === 0) {
     return (
       <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
         <div className="text-center">
-          <p className="text-sm text-muted-foreground">Loading boundaries...</p>
+          <p className="text-sm text-muted-foreground">No state boundaries to display.</p>
         </div>
       </div>
     )
@@ -475,8 +378,7 @@ export function CentersChoroplethMap({
           longitude: 0,
           zoom: 1.6,
         }}
-        mapStyle="mapbox://styles/abhishekfx/cltyaz9ek00nx01p783ygdi9z"
-        mapboxAccessToken={mapboxToken}
+        mapStyle={mapStyle}
         projection="mercator"
         onLoad={(e) => {
           setTimeout(() => {
@@ -501,14 +403,21 @@ export function CentersChoroplethMap({
             return
           }
           const props = feature.properties || {}
+          const stateName = (props.name || "").toString()
+          const iso2 = (props.level_0 || "").toString()
+          const key = makeKey(iso2, normalizeStateKey(stateName))
+          const count = stateAggregates.countsByState.get(key) || 0
+          const accountsCount = stateAggregates.accountsByState.get(key)?.size || 0
+          const headcount = stateAggregates.headcountByState.get(key) || 0
+          const countryName = stateAggregates.countryNamesByIso.get(iso2) || iso2
           setHoverInfo({
             x: e.point.x,
             y: e.point.y,
-            state: (props.stateName || props.name || "").toString(),
-            country: (props.countryName || props.admin || "").toString(),
-            count: Number(props.count) || 0,
-            accountsCount: Number(props.accountsCount) || 0,
-            headcount: Number(props.headcount) || 0,
+            state: stateName || "Unknown State",
+            country: countryName || "Unknown Country",
+            count,
+            accountsCount,
+            headcount,
           })
         }}
         onMouseLeave={() => setHoverInfo(null)}
@@ -544,10 +453,12 @@ export function CentersChoroplethMap({
           </button>
         </div>
 
-        <Source id="admin1" type="geojson" data={geojsonWithCounts}>
+        <Source id="admin1" type="vector" url={countriesTileUrl}>
           <Layer
             id="admin1-fill"
             type="fill"
+            source-layer="administrative"
+            filter={layerFilter}
             paint={{
               "fill-color": fillColorExpression,
               "fill-opacity": 0.75,
@@ -556,6 +467,8 @@ export function CentersChoroplethMap({
           <Layer
             id="admin1-outline"
             type="line"
+            source-layer="administrative"
+            filter={layerFilter}
             paint={{
               "line-color": "#ffffff",
               "line-width": 0.7,

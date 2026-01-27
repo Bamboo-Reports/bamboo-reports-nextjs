@@ -51,7 +51,7 @@
     "highcharts-react-official": "^3.2.1",
     "input-otp": "latest",
     "lucide-react": "^0.454.0",
-    "mapbox-gl": "^3.16.0",
+    "maplibre-gl": "^4.7.1",
     "next": "14.2.25",
     "next-themes": "latest",
     "react": "^18.2.0",
