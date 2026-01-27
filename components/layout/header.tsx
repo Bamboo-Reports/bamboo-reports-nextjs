@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, UserRound } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -84,7 +83,7 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps) {
 
   return (
     <div className="bg-background border-b shadow-sm sticky top-0 z-10 backdrop-blur-sm bg-background/95">
-      <div className="max-w-full mx-auto px-6 py-5">
+      <div className="max-w-full mx-auto px-6 py-4">
         <div className="flex items-center justify-end gap-3">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={onRefresh} className="h-8 px-3 group" title="Refresh">

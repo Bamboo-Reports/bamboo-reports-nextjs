@@ -101,9 +101,29 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
       },
       plotOptions: {
         pie: {
-          innerSize: "55%",
-          size: "70%",
-          dataLabels: { enabled: false },
+          innerSize: "65%",
+          size: "68%",
+          dataLabels: {
+            enabled: true,
+            distance: 12,
+            allowOverlap: false,
+            connectorWidth: 1,
+            connectorColor: "hsl(var(--border))",
+            style: {
+              color: "hsl(var(--foreground))",
+              fontSize: "11px",
+              fontWeight: "600",
+              fontFamily: "Google Sans, ui-sans-serif, system-ui, sans-serif",
+              textOutline: "none",
+            },
+            formatter: function () {
+              const point = this.point as Point
+              const value = typeof point.y === "number" ? point.y : 0
+              if (value <= 0 || total <= 0) return ""
+              const percent = Math.round((value / total) * 100)
+              return `${point.name}: ${percent}%`
+            },
+          },
           showInLegend: false,
           borderWidth: 0,
         },
