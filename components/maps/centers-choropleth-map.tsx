@@ -296,20 +296,9 @@ export function CentersChoroplethMap({
     const mapInstance = mapRef.current?.getMap?.() ?? mapRef.current
     if (!mapInstance) return
 
-    if (bounds) {
-      mapInstance.fitBounds(
-        [
-          [bounds.minLng, bounds.minLat],
-          [bounds.maxLng, bounds.maxLat],
-        ],
-        { padding: 60, duration: 800 }
-      )
-      return
-    }
-
     mapInstance.flyTo({
-      center: [0, 15],
-      zoom: 1.6,
+      center: [78.9629, 20.5937],
+      zoom: 3.5,
       duration: 800,
     })
   }
@@ -383,15 +372,7 @@ export function CentersChoroplethMap({
         onLoad={(e) => {
           setTimeout(() => {
             e.target.resize()
-            if (bounds) {
-              e.target.fitBounds(
-                [
-                  [bounds.minLng, bounds.minLat],
-                  [bounds.maxLng, bounds.maxLat],
-                ],
-                { padding: 60, duration: 0 }
-              )
-            }
+            handleRecenter()
             setIsMapReady(true)
           }, 200)
         }}

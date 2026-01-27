@@ -298,7 +298,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     if (mapRef.current) {
       mapRef.current.flyTo({
         center: [78.9629, 20.5937], // Center of India
-        zoom: 4.5,
+        zoom: 3.5,
         duration: 1000,
       })
     }
@@ -375,13 +375,14 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         initialViewState={initialViewState}
         mapStyle={mapStyle}
         projection="mercator"
-        onLoad={(e) => {
+        onLoad={() => {
           // Force a resize calculation after map loads to ensure it fills container
           setTimeout(() => {
             const mapInstance = mapRef.current?.getMap?.() ?? mapRef.current
             if (mapInstance?.resize) {
               mapInstance.resize()
             }
+            handleRecenter()
             setIsMapReady(true)
           }, 200)
         }}
