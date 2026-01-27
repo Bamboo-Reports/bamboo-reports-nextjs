@@ -75,7 +75,7 @@ export function FiltersSidebar({
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
 
   return (
-    <div className="bg-sidebar overflow-y-auto overflow-x-hidden w-[320px] shrink-0 relative ml-6 mt-6 mb-3 rounded-lg border shadow-sm">
+    <div className="bg-sidebar overflow-y-auto overflow-x-hidden w-[320px] shrink-0 relative ml-6 mt-6 mb-5 rounded-lg border shadow-sm transition-colors hover:bg-muted/50">
       <div className="p-4 space-y-3">
         <div className="flex flex-col gap-2 mb-3 pb-3 border-b border-sidebar-border">
           <div className="flex items-center gap-2">
