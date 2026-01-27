@@ -19,12 +19,14 @@ export function Logo({ className = "" }: { className?: string }) {
   return (
     <div className={`flex items-center ${className}`}>
       <Image
-        src={resolvedTheme === "dark" ? "/logos/bamboo-logo-white.svg" : "/logos/bamboo-logo-dark.svg"}
+        src={
+          resolvedTheme === "dark" ? "/logos/bamboo-logo-light.svg" : "/logos/bamboo-logo-dark.svg"
+        }
         alt="Bamboo Reports"
-        width={180}
-        height={40}
+        width={200}
+        height={44}
         priority
-        className="h-10 w-auto"
+        className="h-11 w-auto"
       />
     </div>
   )
