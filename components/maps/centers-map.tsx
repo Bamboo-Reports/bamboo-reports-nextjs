@@ -1,9 +1,9 @@
 "use client"
 
 import React, { useMemo, useState, useEffect, useCallback } from "react"
-import { Map as MapGL, Source, Layer, NavigationControl, FullscreenControl } from "react-map-gl/mapbox"
+import { Map as MapGL, Source, Layer, NavigationControl, FullscreenControl } from "react-map-gl/maplibre"
 import type { Center } from "@/lib/types"
-import "mapbox-gl/dist/mapbox-gl.css"
+import "maplibre-gl/dist/maplibre-gl.css"
 
 interface CentersMapProps {
   centers: Center[]
@@ -63,7 +63,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     setIsClient(true)
     console.log("[CentersMap] Component mounted")
     console.log("[CentersMap] Centers count:", centers?.length)
-    console.log("[CentersMap] Mapbox token exists:", !!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN)
+    console.log("[CentersMap] MapTiler key exists:", !!process.env.NEXT_PUBLIC_MAPTILER_KEY)
   }, [centers])
 
   // Fallback to ensure the map shows even if onLoad is delayed
@@ -287,7 +287,11 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     [coreRadiusExpression]
   )
 
-  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+  const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY
+  const maptilerStyleId = process.env.NEXT_PUBLIC_MAPTILER_STYLE_ID || "streets"
+  const mapStyle = maptilerKey
+    ? `https://api.maptiler.com/maps/${maptilerStyleId}/style.json?key=${maptilerKey}`
+    : ""
 
   // Handler to recenter the map to India
   const handleRecenter = () => {
@@ -324,16 +328,16 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     )
   }
 
-  if (!mapboxToken) {
-    console.error("[CentersMap] Mapbox token is missing")
+  if (!maptilerKey) {
+    console.error("[CentersMap] MapTiler key is missing")
     return (
       <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
         <div className="text-center">
           <p className="text-lg font-semibold text-muted-foreground mb-2">
-            Mapbox Access Token Missing
+            MapTiler API Key Missing
           </p>
           <p className="text-sm text-muted-foreground">
-            Please set NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN in your environment variables
+            Please set NEXT_PUBLIC_MAPTILER_KEY in your environment variables
           </p>
         </div>
       </div>
@@ -369,8 +373,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         ref={mapRef}
         style={{ width: "100%", height: "100%", opacity: isMapReady ? 1 : 0, transition: "opacity 150ms ease-out" }}
         initialViewState={initialViewState}
-        mapStyle="mapbox://styles/abhishekfx/cltyaz9ek00nx01p783ygdi9z"
-        mapboxAccessToken={mapboxToken}
+        mapStyle={mapStyle}
         projection="mercator"
         onLoad={(e) => {
           // Force a resize calculation after map loads to ensure it fills container

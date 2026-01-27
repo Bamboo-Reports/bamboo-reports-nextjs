@@ -76,7 +76,7 @@ const results = await fetchWithRetry(() => sql`
 
 ## 5. External Integrations
 
-### 5.1 Mapbox GL
+### 5.1 MapTiler + MapLibre
 -   Used in `components/maps/centers-map.tsx`.
 -   **Rendering:** Client-side only. Requires a `useEffect` to initialize the map instance on the DOM node.
 -   **Data:** Receives a list of `{ lat, lng, name }` objects from the parent.

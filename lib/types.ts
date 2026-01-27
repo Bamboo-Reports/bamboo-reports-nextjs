@@ -36,6 +36,7 @@ export interface Center {
   center_city: string | null
   center_state: string | null
   center_country: string | null
+  center_country_iso2?: string | null
   center_employees?: number | null
   center_employees_range?: string | null
   center_business_segment?: string | null
