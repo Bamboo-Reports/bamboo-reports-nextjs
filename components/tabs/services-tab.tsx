@@ -2,14 +2,12 @@
 
 import React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { TabsContent } from "@/components/ui/tabs"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Download } from "lucide-react"
 import { ServiceRow } from "@/components/tables"
 import { EmptyState } from "@/components/states/empty-state"
 import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
-import { exportToExcel } from "@/lib/utils/export-helpers"
+import { Button } from "@/components/ui/button"
 import type { Service } from "@/lib/types"
 
 interface ServicesTabProps {
@@ -79,15 +77,6 @@ export function ServicesTab({
                   {getPageInfo(currentPage, services.length, itemsPerPage).endItem} of{" "}
                   {services.length} results
                 </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => exportToExcel(services, "services-export", "Services")}
-                  className="flex items-center gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  Export Services
-                </Button>
               </div>
               {getTotalPages(services.length, itemsPerPage) > 1 && (
                 <div className="flex items-center space-x-2">

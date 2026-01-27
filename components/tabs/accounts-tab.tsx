@@ -2,15 +2,12 @@
 
 import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { TabsContent } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   ArrowDownAZ,
   ArrowUpAZ,
   ArrowUpDown,
-  Download,
   LayoutGrid,
   MapIcon,
   MapPin,
@@ -29,8 +26,7 @@ import { MapErrorBoundary } from "@/components/maps/map-error-boundary"
 import { ViewSwitcher } from "@/components/ui/view-switcher"
 import { SortButton } from "@/components/ui/sort-button"
 import { PaginationControls } from "@/components/ui/pagination-controls"
-import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
-import { exportToExcel } from "@/lib/utils/export-helpers"
+import { getPaginatedData } from "@/lib/utils/helpers"
 import type { Account, Center, Prospect, Service, Function, Tech } from "@/lib/types"
 
 interface AccountsTabProps {
@@ -331,8 +327,6 @@ export function AccountsTab({
                 itemsPerPage={itemsPerPage}
                 onPageChange={setCurrentPage}
                 dataLength={accounts.length}
-                onExport={() => exportToExcel(sortedAccounts, "accounts-export", "Accounts")}
-                exportLabel="Export"
               />
             )}
           </CardContent>

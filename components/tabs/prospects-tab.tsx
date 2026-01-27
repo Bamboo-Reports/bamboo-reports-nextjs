@@ -2,18 +2,15 @@
 
 import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { TabsContent } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, Download, PieChartIcon, Table as TableIcon, LayoutGrid } from "lucide-react"
+import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, PieChartIcon, Table as TableIcon, LayoutGrid } from "lucide-react"
 import { ProspectRow } from "@/components/tables/prospect-row"
 import { ProspectGridCard } from "@/components/cards/prospect-grid-card"
 import { PieChartCard } from "@/components/charts/pie-chart-card"
 import { EmptyState } from "@/components/states/empty-state"
 import { ProspectDetailsDialog } from "@/components/dialogs/prospect-details-dialog"
-import { getPaginatedData, getTotalPages, getPageInfo } from "@/lib/utils/helpers"
-import { exportToExcel } from "@/lib/utils/export-helpers"
+import { getPaginatedData } from "@/lib/utils/helpers"
 import { ViewSwitcher } from "@/components/ui/view-switcher"
 import { SortButton } from "@/components/ui/sort-button"
 import { PaginationControls } from "@/components/ui/pagination-controls"
@@ -254,8 +251,6 @@ export function ProspectsTab({
                       itemsPerPage={itemsPerPage}
                       onPageChange={setCurrentPage}
                       dataLength={prospects.length}
-                      onExport={() => exportToExcel(sortedProspects, "prospects-export", "Prospects")}
-                      exportLabel="Export"
                     />
                   )}
             </CardContent>
