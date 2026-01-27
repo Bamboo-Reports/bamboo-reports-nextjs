@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useMemo, useState, useEffect, useCallback } from "react"
-import { Map as MapGL, Source, Layer, NavigationControl, FullscreenControl } from "react-map-gl/maplibre"
+import { Map as MapGL, Source, Layer, NavigationControl, FullscreenControl } from "@vis.gl/react-maplibre"
 import type { Center } from "@/lib/types"
 import "maplibre-gl/dist/maplibre-gl.css"
 

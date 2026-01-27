@@ -101,6 +101,9 @@ importers:
       '@vercel/analytics':
         specifier: 1.3.1
         version: 1.3.1(next@14.2.25(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
+      '@vis.gl/react-maplibre':
+        specifier: ^8.1.0
+        version: 8.1.0(maplibre-gl@4.7.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.5.0)
@@ -155,9 +158,6 @@ importers:
       react-hook-form:
         specifier: latest
         version: 7.71.1(react@18.3.1)
-      react-map-gl:
-        specifier: ^8.1.0
-        version: 8.1.0(mapbox-gl@3.16.0)(maplibre-gl@4.7.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-resizable-panels:
         specifier: latest
         version: 4.5.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -306,14 +306,8 @@ packages:
     resolution: {integrity: sha512-rY0o9A5ECsTQRVhv7tL/OyDpGAoUB4tTvLiW1DSzQGq4bvTPhNw1VpSNjDJc5GFZ2XuyOtSWSVN05qOtcD71qQ==}
     engines: {node: '>= 0.6'}
 
-  '@mapbox/mapbox-gl-supported@3.0.0':
-    resolution: {integrity: sha512-2XghOwu16ZwPJLOFVuIOaLbN0iKMn867evzXFyf0P22dqugezfJwLmdanAgU25ITvz1TvOfVP4jsDImlDJzcWg==}
-
   '@mapbox/point-geometry@0.1.0':
     resolution: {integrity: sha512-6j56HdLTwWGO0fJPlrZtdU/B13q8Uwmo18Ck2GnGgN9PCFyKTZ3UbXeEdRFh18i9XQ92eH2VdtpJHpBD3aripQ==}
-
-  '@mapbox/point-geometry@1.1.0':
-    resolution: {integrity: sha512-YGcBz1cg4ATXDCM/71L9xveh4dynfGmcLDqufR+nQQy3fKwsAZsWd/x4621/6uJaeB9mwOHE6hPeDgXz9uViUQ==}
 
   '@mapbox/tiny-sdf@2.0.7':
     resolution: {integrity: sha512-25gQLQMcpivjOSA40g3gO6qgiFPDpWRoMfd+G/GoppPIeP6JDaMMkMrEJnMZhKyyS6iKwVt5YKu02vCUyJM3Ug==}
@@ -323,9 +317,6 @@ packages:
 
   '@mapbox/vector-tile@1.3.1':
     resolution: {integrity: sha512-MCEddb8u44/xfQ3oD+Srl/tNcQoqTw3goGk2oLsrFxOTc3dUp+kAnby3PvAeeBYSMSjSPD1nd1AJA6W49WnoUw==}
-
-  '@mapbox/vector-tile@2.0.4':
-    resolution: {integrity: sha512-AkOLcbgGTdXScosBWwmmD7cDlvOjkg/DetGva26pIRiZPdeJYjYKarIlb4uxVzi6bwHO6EWH82eZ5Nuv4T5DUg==}
 
   '@mapbox/whoots-js@3.1.0':
     resolution: {integrity: sha512-Es6WcD0nO5l+2BOQS4uLfNPYQaNDfbot3X1XUoloz+x0mPDS3eeORZJl06HXjwBG1fOGwCRnzK88LMdxKRrd6Q==}
@@ -1364,16 +1355,6 @@ packages:
       react:
         optional: true
 
-  '@vis.gl/react-mapbox@8.1.0':
-    resolution: {integrity: sha512-FwvH822oxEjWYOr+pP2L8hpv+7cZB2UsQbHHHT0ryrkvvqzmTgt7qHDhamv0EobKw86e1I+B4ojENdJ5G5BkyQ==}
-    peerDependencies:
-      mapbox-gl: '>=3.5.0'
-      react: '>=16.3.0'
-      react-dom: '>=16.3.0'
-    peerDependenciesMeta:
-      mapbox-gl:
-        optional: true
-
   '@vis.gl/react-maplibre@8.1.0':
     resolution: {integrity: sha512-PkAK/gp3mUfhCLhUuc+4gc3PN9zCtVGxTF2hB6R5R5yYUw+hdg84OZ770U5MU4tPMTCG6fbduExuIW6RRKN6qQ==}
     peerDependencies:
@@ -1571,9 +1552,6 @@ packages:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
     engines: {node: '>=10'}
 
-  cheap-ruler@4.0.0:
-    resolution: {integrity: sha512-0BJa8f4t141BYKQyn9NSQt1PguFQXMXwZiA5shfoaBYHAb2fFk2RAX+tiWMoQU+Agtzt3mdt0JtuyshAXqZ+Vw==}
-
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
     engines: {node: '>= 8.10.0'}
@@ -1620,9 +1598,6 @@ packages:
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
-
-  csscolorparser@1.0.3:
-    resolution: {integrity: sha512-umPSgYwZkdFoUrH5hIq5kf0wPSXiro51nPw0j2K/c83KflkPSTBGMz6NJvMB+07VlL0y7VPo6QJcDjcgKTTm3w==}
 
   cssesc@3.0.0:
     resolution: {integrity: sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==}
@@ -2109,9 +2084,6 @@ packages:
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
 
-  grid-index@1.1.0:
-    resolution: {integrity: sha512-HZRwumpOGUrHyxO5bqKZL0B0GlUpwtCAzZ42sgxUPniu33R1LSFH5yrIcBCHjkctCAh3mtWKcKd9J4vDDdeVHA==}
-
   has-bigints@1.1.0:
     resolution: {integrity: sha512-R3pbpkcIqv2Pm3dUwgjclDRVmWpTJW2DcMzcIhEXEx1oh/CEMObMm3KLmRJOdvhM7o4uQBnwr8pzRK2sJWIqfg==}
     engines: {node: '>= 0.4'}
@@ -2440,15 +2412,9 @@ packages:
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0-rc
 
-  mapbox-gl@3.16.0:
-    resolution: {integrity: sha512-rluV1Zp/0oHf1Y9BV+nePRNnKyTdljko3E19CzO5rBqtQaNUYS0ePCMPRtxOuWRwSdKp3f9NWJkOCjemM8nmjw==}
-
   maplibre-gl@4.7.1:
     resolution: {integrity: sha512-lgL7XpIwsgICiL82ITplfS7IGwrB1OJIw/pCvprDp2dhmSSEBgmPzYRvwYYYvJGJD7fxUv1Tvpih4nZ6VrLuaA==}
     engines: {node: '>=16.14.0', npm: '>=8.1.0'}
-
-  martinez-polygon-clipping@0.7.4:
-    resolution: {integrity: sha512-jBEwrKtA0jTagUZj2bnmb4Yg2s4KnJGRePStgI7bAVjtcipKiF39R4LZ2V/UT61jMYWrTcBhPazexeqd6JAVtw==}
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -2618,10 +2584,6 @@ packages:
     resolution: {integrity: sha512-XDF38WCH3z5OV/OVa8GKUNtLAyneuzbCisx7QUCF8Q6Nutx0WnJrQe5O+kOtBlLfRNUws98Y58Lblp+NJG5T4Q==}
     hasBin: true
 
-  pbf@4.0.1:
-    resolution: {integrity: sha512-SuLdBvS42z33m8ejRbInMapQe8n0D3vN/Xd5fmWM3tufNgRQFBpaW2YVJxQZV4iPNqb0vEFvssMEo5w9c6BTIA==}
-    hasBin: true
-
   pg-int8@1.0.1:
     resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
     engines: {node: '>=4.0.0'}
@@ -2766,19 +2728,6 @@ packages:
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
 
-  react-map-gl@8.1.0:
-    resolution: {integrity: sha512-vDx/QXR3Tb+8/ap/z6gdMjJQ8ZEyaZf6+uMSPz7jhWF5VZeIsKsGfPvwHVPPwGF43Ryn+YR4bd09uEFNR5OPdg==}
-    peerDependencies:
-      mapbox-gl: '>=1.13.0'
-      maplibre-gl: '>=1.13.0'
-      react: '>=16.3.0'
-      react-dom: '>=16.3.0'
-    peerDependenciesMeta:
-      mapbox-gl:
-        optional: true
-      maplibre-gl:
-        optional: true
-
   react-remove-scroll-bar@2.3.8:
     resolution: {integrity: sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==}
     engines: {node: '>=10'}
@@ -2884,9 +2833,6 @@ packages:
     deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
-  robust-predicates@2.0.4:
-    resolution: {integrity: sha512-l4NwboJM74Ilm4VKfbAtFeGq7aEjWL+5kVFcmgFA2MrdnQWx9iE/tUGvxY5HyMI7o/WpSIUFLbC5fbeaHgSCYg==}
-
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
 
@@ -2916,10 +2862,6 @@ packages:
     resolution: {integrity: sha512-SdsKMrI9TdgjdweUSR9MweHA4EJ8YxHn8DFaDisvhVlUOe4BF1tLD7GAj0lIqWVl+dPb/rExr0Btby5loQm20Q==}
     engines: {node: '>=10'}
     hasBin: true
-
-  serialize-to-js@3.1.2:
-    resolution: {integrity: sha512-owllqNuDDEimQat7EPG0tH7JjO090xKNzUtYz6X+Sk2BXDnOCilDdNLwjWeFywG9xkJul1ULvtUQa9O4pUaY0w==}
-    engines: {node: '>=4.0.0'}
 
   server-only@0.0.1:
     resolution: {integrity: sha512-qepMx2JxAa5jjfzxG79yPPq+8BuFToHd1hm7kI+Z4zAq1ftQiP7HcxMhDDItrbtwVeLg/cY2JnKnrcFkmiswNA==}
@@ -2989,9 +2931,6 @@ packages:
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
-
-  splaytree@0.1.4:
-    resolution: {integrity: sha512-D50hKrjZgBzqD3FT2Ek53f2dcDLAQT8SSGrzj3vidNH5ISRgceeGVJ2dQIthKOuayqFXfFjXheHNo4bbt9LhRQ==}
 
   split-string@3.1.0:
     resolution: {integrity: sha512-NzNVhJDYpwceVVii8/Hu6DKfD2G+NrQHlS/V/qgv763EYudVwEcMQNxd2lh+0VrUByXN/oJkl5grOhYWvQUYiw==}
@@ -3117,9 +3056,6 @@ packages:
   tinyglobby@0.2.15:
     resolution: {integrity: sha512-j2Zq4NyQYG5XMST4cbs02Ak8iJUdxRM0XI5QyxXuZOzKOINmWurp3smXu3y5wDcJrptwpSjgXHzIQxR0omXljQ==}
     engines: {node: '>=12.0.0'}
-
-  tinyqueue@1.2.3:
-    resolution: {integrity: sha512-Qz9RgWuO9l8lT+Y9xvbzhPT2efIUIFd69N7eF7tJ9lnQl0iLj1M7peK7IoUGZL9DJHw9XftqLreccfxcQgYLxA==}
 
   tinyqueue@3.0.0:
     resolution: {integrity: sha512-gRa9gwYU3ECmQYv3lslts5hxuIa90veaEcxDYuu3QGOIAEM2mOZkVHp48ANJuu1CURtRdHKUBY5Lm1tHV+sD4g==}
@@ -3436,13 +3372,7 @@ snapshots:
 
   '@mapbox/jsonlint-lines-primitives@2.0.2': {}
 
-  '@mapbox/mapbox-gl-supported@3.0.0':
-    optional: true
-
   '@mapbox/point-geometry@0.1.0': {}
-
-  '@mapbox/point-geometry@1.1.0':
-    optional: true
 
   '@mapbox/tiny-sdf@2.0.7': {}
 
@@ -3451,13 +3381,6 @@ snapshots:
   '@mapbox/vector-tile@1.3.1':
     dependencies:
       '@mapbox/point-geometry': 0.1.0
-
-  '@mapbox/vector-tile@2.0.4':
-    dependencies:
-      '@mapbox/point-geometry': 1.1.0
-      '@types/geojson': 7946.0.16
-      pbf: 4.0.1
-    optional: true
 
   '@mapbox/whoots-js@3.1.0': {}
 
@@ -4530,13 +4453,6 @@ snapshots:
       next: 14.2.25(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react: 18.3.1
 
-  '@vis.gl/react-mapbox@8.1.0(mapbox-gl@3.16.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-    optionalDependencies:
-      mapbox-gl: 3.16.0
-
   '@vis.gl/react-maplibre@8.1.0(maplibre-gl@4.7.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@maplibre/maplibre-gl-style-spec': 19.3.3
@@ -4753,9 +4669,6 @@ snapshots:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
 
-  cheap-ruler@4.0.0:
-    optional: true
-
   chokidar@3.6.0:
     dependencies:
       anymatch: 3.1.3
@@ -4807,9 +4720,6 @@ snapshots:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
-
-  csscolorparser@1.0.3:
-    optional: true
 
   cssesc@3.0.0: {}
 
@@ -5437,9 +5347,6 @@ snapshots:
 
   graphemer@1.4.0: {}
 
-  grid-index@1.1.0:
-    optional: true
-
   has-bigints@1.1.0: {}
 
   has-flag@4.0.0: {}
@@ -5735,37 +5642,6 @@ snapshots:
     dependencies:
       react: 18.3.1
 
-  mapbox-gl@3.16.0:
-    dependencies:
-      '@mapbox/jsonlint-lines-primitives': 2.0.2
-      '@mapbox/mapbox-gl-supported': 3.0.0
-      '@mapbox/point-geometry': 1.1.0
-      '@mapbox/tiny-sdf': 2.0.7
-      '@mapbox/unitbezier': 0.0.1
-      '@mapbox/vector-tile': 2.0.4
-      '@mapbox/whoots-js': 3.1.0
-      '@types/geojson': 7946.0.16
-      '@types/geojson-vt': 3.2.5
-      '@types/mapbox__point-geometry': 0.1.4
-      '@types/pbf': 3.0.5
-      '@types/supercluster': 7.1.3
-      cheap-ruler: 4.0.0
-      csscolorparser: 1.0.3
-      earcut: 3.0.2
-      geojson-vt: 4.0.2
-      gl-matrix: 3.4.4
-      grid-index: 1.1.0
-      kdbush: 4.0.2
-      martinez-polygon-clipping: 0.7.4
-      murmurhash-js: 1.0.0
-      pbf: 4.0.1
-      potpack: 2.1.0
-      quickselect: 3.0.0
-      serialize-to-js: 3.1.2
-      supercluster: 8.0.1
-      tinyqueue: 3.0.0
-    optional: true
-
   maplibre-gl@4.7.1:
     dependencies:
       '@mapbox/geojson-rewind': 0.5.2
@@ -5794,13 +5670,6 @@ snapshots:
       supercluster: 8.0.1
       tinyqueue: 3.0.0
       vt-pbf: 3.1.3
-
-  martinez-polygon-clipping@0.7.4:
-    dependencies:
-      robust-predicates: 2.0.4
-      splaytree: 0.1.4
-      tinyqueue: 1.2.3
-    optional: true
 
   math-intrinsics@1.1.0: {}
 
@@ -5970,11 +5839,6 @@ snapshots:
       ieee754: 1.2.1
       resolve-protobuf-schema: 2.1.0
 
-  pbf@4.0.1:
-    dependencies:
-      resolve-protobuf-schema: 2.1.0
-    optional: true
-
   pg-int8@1.0.1: {}
 
   pg-protocol@1.10.3: {}
@@ -6092,16 +5956,6 @@ snapshots:
   react-is@16.13.1: {}
 
   react-is@18.3.1: {}
-
-  react-map-gl@8.1.0(mapbox-gl@3.16.0)(maplibre-gl@4.7.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
-    dependencies:
-      '@vis.gl/react-mapbox': 8.1.0(mapbox-gl@3.16.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@vis.gl/react-maplibre': 8.1.0(maplibre-gl@4.7.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-    optionalDependencies:
-      mapbox-gl: 3.16.0
-      maplibre-gl: 4.7.1
 
   react-remove-scroll-bar@2.3.8(@types/react@18.0.0)(react@18.3.1):
     dependencies:
@@ -6227,9 +6081,6 @@ snapshots:
     dependencies:
       glob: 7.2.3
 
-  robust-predicates@2.0.4:
-    optional: true
-
   run-parallel@1.2.0:
     dependencies:
       queue-microtask: 1.2.3
@@ -6262,9 +6113,6 @@ snapshots:
   semver@6.3.1: {}
 
   semver@7.7.3: {}
-
-  serialize-to-js@3.1.2:
-    optional: true
 
   server-only@0.0.1: {}
 
@@ -6352,9 +6200,6 @@ snapshots:
       union-value: 1.0.1
 
   source-map-js@1.2.1: {}
-
-  splaytree@0.1.4:
-    optional: true
 
   split-string@3.1.0:
     dependencies:
@@ -6521,9 +6366,6 @@ snapshots:
     dependencies:
       fdir: 6.5.0(picomatch@4.0.3)
       picomatch: 4.0.3
-
-  tinyqueue@1.2.3:
-    optional: true
 
   tinyqueue@3.0.0: {}
 
