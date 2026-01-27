@@ -43,6 +43,11 @@ const COLOR_SCALE = [
 const normalizeIso2 = (value?: string | null) => (value || "").trim().toUpperCase()
 const normalizeStateKey = (value?: string | null) => (value || "").trim().toLowerCase()
 const makeKey = (countryIso2: string, stateKey: string) => `${countryIso2}|${stateKey}`
+const INDIA_CENTER = { latitude: 20.5937, longitude: 78.9629, zoom: 4.5 }
+const INDIA_BOUNDS: [[number, number], [number, number]] = [
+  [68.176645, 6.554607],
+  [97.402561, 35.674545],
+]
 
 const buildStateAggregates = (centers: Center[]) => {
   const countsByState = new Map<string, number>()
@@ -253,36 +258,6 @@ export function CentersChoroplethMap({
     return ["all", ["==", ["get", "level"], 1], ["in", featureKeyExpression, ["literal", stateKeysWithCounts]]] as any
   }, [featureKeyExpression, stateKeysWithCounts])
 
-  const bounds = useMemo(() => {
-    const coords = centers
-      .map((center) => ({ lat: center.lat, lng: center.lng }))
-      .filter((c) => typeof c.lat === "number" && typeof c.lng === "number") as Array<{
-      lat: number
-      lng: number
-    }>
-
-    if (coords.length === 0) return null
-
-    let minLat = coords[0].lat
-    let maxLat = coords[0].lat
-    let minLng = coords[0].lng
-    let maxLng = coords[0].lng
-
-    coords.forEach((coord) => {
-      minLat = Math.min(minLat, coord.lat)
-      maxLat = Math.max(maxLat, coord.lat)
-      minLng = Math.min(minLng, coord.lng)
-      maxLng = Math.max(maxLng, coord.lng)
-    })
-
-    return {
-      minLat,
-      maxLat,
-      minLng,
-      maxLng,
-    }
-  }, [centers])
-
   const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY
   const maptilerStyleId = process.env.NEXT_PUBLIC_MAPTILER_STYLE_ID || "streets"
   const mapStyle = maptilerKey
@@ -296,20 +271,9 @@ export function CentersChoroplethMap({
     const mapInstance = mapRef.current?.getMap?.() ?? mapRef.current
     if (!mapInstance) return
 
-    if (bounds) {
-      mapInstance.fitBounds(
-        [
-          [bounds.minLng, bounds.minLat],
-          [bounds.maxLng, bounds.maxLat],
-        ],
-        { padding: 60, duration: 800 }
-      )
-      return
-    }
-
     mapInstance.flyTo({
-      center: [0, 15],
-      zoom: 1.6,
+      center: [INDIA_CENTER.longitude, INDIA_CENTER.latitude],
+      zoom: INDIA_CENTER.zoom,
       duration: 800,
     })
   }
@@ -373,25 +337,13 @@ export function CentersChoroplethMap({
       <MapGL
         ref={mapRef}
         style={{ width: "100%", height: "100%", opacity: isMapReady ? 1 : 0, transition: "opacity 150ms ease-out" }}
-        initialViewState={{
-          latitude: 15,
-          longitude: 0,
-          zoom: 1.6,
-        }}
+        initialViewState={INDIA_CENTER}
         mapStyle={mapStyle}
+        maxBounds={INDIA_BOUNDS}
         projection="mercator"
         onLoad={(e) => {
           setTimeout(() => {
             e.target.resize()
-            if (bounds) {
-              e.target.fitBounds(
-                [
-                  [bounds.minLng, bounds.minLat],
-                  [bounds.maxLng, bounds.maxLat],
-                ],
-                { padding: 60, duration: 0 }
-              )
-            }
             setIsMapReady(true)
           }, 200)
         }}

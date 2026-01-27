@@ -48,6 +48,11 @@ interface CityFeatureCollection {
 
 const HALO_RADIUS_SCALE = 1.5
 const OVERLAP_PADDING = 0.5
+const INDIA_CENTER = { latitude: 20.5937, longitude: 78.9629, zoom: 4.5 }
+const INDIA_BOUNDS: [[number, number], [number, number]] = [
+  [68.176645, 6.554607],
+  [97.402561, 35.674545],
+]
 
 export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapProps) {
   const [hoveredCity, setHoveredCity] = useState<string | null>(null)
@@ -145,35 +150,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
     }
   }, [centers])
 
-  // Calculate center of all points for initial view
-  const initialViewState = useMemo(() => {
-    if (cityData.length === 0) {
-      return {
-        latitude: 20.5937,
-        longitude: 78.9629,
-        zoom: 4,
-      }
-    }
-
-    const avgLat = cityData.reduce((sum, city) => sum + city.lat, 0) / cityData.length
-    const avgLng = cityData.reduce((sum, city) => sum + city.lng, 0) / cityData.length
-
-    // Dynamically adjust zoom based on number of centers
-    let zoom = 4
-    if (cityData.length === 1) {
-      zoom = 8
-    } else if (cityData.length <= 3) {
-      zoom = 6
-    } else if (cityData.length <= 10) {
-      zoom = 5
-    }
-
-    return {
-      latitude: avgLat,
-      longitude: avgLng,
-      zoom,
-    }
-  }, [cityData])
+  const initialViewState = useMemo(() => INDIA_CENTER, [])
 
   const getCoreRadiusForCount = useCallback((count: number) => {
     const minCount = 1
@@ -297,8 +274,8 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
   const handleRecenter = () => {
     if (mapRef.current) {
       mapRef.current.flyTo({
-        center: [78.9629, 20.5937], // Center of India
-        zoom: 4.5,
+        center: [INDIA_CENTER.longitude, INDIA_CENTER.latitude],
+        zoom: INDIA_CENTER.zoom,
         duration: 1000,
       })
     }
@@ -374,6 +351,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         style={{ width: "100%", height: "100%", opacity: isMapReady ? 1 : 0, transition: "opacity 150ms ease-out" }}
         initialViewState={initialViewState}
         mapStyle={mapStyle}
+        maxBounds={INDIA_BOUNDS}
         projection="mercator"
         onLoad={(e) => {
           // Force a resize calculation after map loads to ensure it fills container
