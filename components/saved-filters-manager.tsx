@@ -53,6 +53,11 @@ interface SavedFilter {
 
 type FilterValueLike = FilterValue | string | null | undefined
 
+type NormalizedFilterValue = {
+  label: string
+  mode: FilterValue["mode"]
+}
+
 interface SavedFiltersManagerProps {
   currentFilters: Filters
   onLoadFilters: (filters: Filters) => void
@@ -61,24 +66,24 @@ interface SavedFiltersManagerProps {
   onExport?: () => void
 }
 
-const normalizeFilterValue = (value: FilterValueLike) => {
+const normalizeFilterValue = (value: FilterValueLike): NormalizedFilterValue | null => {
   if (!value) return null
-  if (typeof value === "string") return { label: value, mode: "include" as FilterValue["mode"] }
+  if (typeof value === "string") return { label: value, mode: "include" }
   if (typeof value === "object" && "value" in value) return { label: value.value, mode: value.mode }
-  return { label: String(value), mode: "include" as FilterValue["mode"] }
+  return { label: String(value), mode: "include" }
 }
 
-const FilterBadge = memo((
-  { filterKey, value, mode }: { filterKey: string; value: string; mode?: FilterValue["mode"] }
-) => (
-  <Badge variant={mode === "exclude" ? "destructive" : "outline"} className="text-xs">
-    {filterKey}: {value}
-    {mode === "exclude" ? " (excluded)" : ""}
-  </Badge>
-))
+const FilterBadge = memo(
+  ({ filterKey, value, mode }: { filterKey: string; value: string; mode?: FilterValue["mode"] }): JSX.Element => (
+    <Badge variant={mode === "exclude" ? "destructive" : "outline"} className="text-xs">
+      {filterKey}: {value}
+      {mode === "exclude" ? " (excluded)" : ""}
+    </Badge>
+  )
+)
 FilterBadge.displayName = "FilterBadge"
 
-const renderFilterValues = (values: FilterValueLike[] = [], label: string) =>
+const renderFilterValues = (values: FilterValueLike[] = [], label: string): Array<JSX.Element | null> =>
   values.map((item, index) => {
     const normalized = normalizeFilterValue(item)
     if (!normalized) return null
@@ -93,144 +98,139 @@ const renderFilterValues = (values: FilterValueLike[] = [], label: string) =>
     )
   })
 
-const SavedFilterCard = memo(({
-  filter,
-  onLoad,
-  onEdit,
-  onDelete
-}: {
-  filter: SavedFilter
-  onLoad: (filter: SavedFilter) => void
-  onEdit: (filter: SavedFilter) => void
-  onDelete: (filter: SavedFilter) => void
-}) => {
-  const filterCount = useCallback(() => {
-    return calculateActiveFilters(filter.filters)
-  }, [filter.filters])
+const SavedFilterCard = memo(
+  ({
+    filter,
+    onLoad,
+    onEdit,
+    onDelete,
+  }: {
+    filter: SavedFilter
+    onLoad: (filter: SavedFilter) => void
+    onEdit: (filter: SavedFilter) => void
+    onDelete: (filter: SavedFilter) => void
+  }): JSX.Element => {
+    const activeFilterCount = calculateActiveFilters(filter.filters)
 
-  const [minRevenue, maxRevenue] = filter.filters.accountRevenueRange || DEFAULT_REVENUE_RANGE
-  const revenueFilterActive = minRevenue !== DEFAULT_REVENUE_RANGE[0] || maxRevenue !== DEFAULT_REVENUE_RANGE[1]
-  const [minYearsInIndia, maxYearsInIndia] = filter.filters.accountYearsInIndiaRange || DEFAULT_YEARS_IN_INDIA_RANGE
-  const yearsInIndiaFilterActive =
-    minYearsInIndia !== DEFAULT_YEARS_IN_INDIA_RANGE[0] || maxYearsInIndia !== DEFAULT_YEARS_IN_INDIA_RANGE[1]
-  const [minFirstCenterYear, maxFirstCenterYear] =
-    filter.filters.accountFirstCenterYearRange || DEFAULT_FIRST_CENTER_YEAR_RANGE
-  const firstCenterYearFilterActive =
-    minFirstCenterYear !== DEFAULT_FIRST_CENTER_YEAR_RANGE[0] || maxFirstCenterYear !== DEFAULT_FIRST_CENTER_YEAR_RANGE[1]
-  const [minCenterIncYear, maxCenterIncYear] = filter.filters.centerIncYearRange || DEFAULT_CENTER_INC_YEAR_RANGE
-  const centerIncYearFilterActive =
-    minCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[0] || maxCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[1]
+    const [minRevenue, maxRevenue] = filter.filters.accountRevenueRange || DEFAULT_REVENUE_RANGE
+    const revenueFilterActive = minRevenue !== DEFAULT_REVENUE_RANGE[0] || maxRevenue !== DEFAULT_REVENUE_RANGE[1]
+    const [minYearsInIndia, maxYearsInIndia] = filter.filters.accountYearsInIndiaRange || DEFAULT_YEARS_IN_INDIA_RANGE
+    const yearsInIndiaFilterActive =
+      minYearsInIndia !== DEFAULT_YEARS_IN_INDIA_RANGE[0] || maxYearsInIndia !== DEFAULT_YEARS_IN_INDIA_RANGE[1]
+    const [minFirstCenterYear, maxFirstCenterYear] =
+      filter.filters.accountFirstCenterYearRange || DEFAULT_FIRST_CENTER_YEAR_RANGE
+    const firstCenterYearFilterActive =
+      minFirstCenterYear !== DEFAULT_FIRST_CENTER_YEAR_RANGE[0] || maxFirstCenterYear !== DEFAULT_FIRST_CENTER_YEAR_RANGE[1]
+    const [minCenterIncYear, maxCenterIncYear] = filter.filters.centerIncYearRange || DEFAULT_CENTER_INC_YEAR_RANGE
+    const centerIncYearFilterActive =
+      minCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[0] || maxCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[1]
 
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{filter.name}</CardTitle>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary">{filterCount()} filters</Badge>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit(filter)}
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-red-600 hover:text-red-700"
-              onClick={() => onDelete(filter)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+    const valueBadges = [
+      { label: "Account Name", values: filter.filters.accountNameKeywords },
+      { label: "Country", values: filter.filters.accountCountries },
+      { label: "Industry", values: filter.filters.accountIndustries },
+      { label: "Category", values: filter.filters.accountPrimaryCategories },
+      { label: "Nature", values: filter.filters.accountPrimaryNatures },
+      { label: "NASSCOM", values: filter.filters.accountNasscomStatuses },
+      { label: "Emp Range", values: filter.filters.accountEmployeesRanges },
+      { label: "Center Emp", values: filter.filters.accountCenterEmployees },
+      { label: "Type", values: filter.filters.centerTypes },
+      { label: "Focus", values: filter.filters.centerFocus },
+      { label: "City", values: filter.filters.centerCities },
+      { label: "State", values: filter.filters.centerStates },
+      { label: "Center Country", values: filter.filters.centerCountries },
+      { label: "Center Employees", values: filter.filters.centerEmployees },
+      { label: "Center Status", values: filter.filters.centerStatuses },
+      { label: "Function", values: filter.filters.functionTypes },
+      { label: "Software In Use", values: filter.filters.centerSoftwareInUseKeywords },
+      { label: "Department", values: filter.filters.prospectDepartments },
+      { label: "Prospect Level", values: filter.filters.prospectLevels },
+      { label: "Prospect City", values: filter.filters.prospectCities },
+      { label: "Job Title", values: filter.filters.prospectTitleKeywords },
+    ]
+
+    const rangeBadges = [
+      revenueFilterActive
+        ? { key: "Revenue", value: `${minRevenue.toLocaleString()} - ${maxRevenue.toLocaleString()}` }
+        : null,
+      filter.filters.includeNullRevenue ? { key: "Revenue", value: "Include null revenue" } : null,
+      yearsInIndiaFilterActive
+        ? {
+            key: "India Headcount",
+            value: `${minYearsInIndia.toLocaleString()} - ${maxYearsInIndia.toLocaleString()}`,
+          }
+        : null,
+      filter.filters.includeNullYearsInIndia ? { key: "India Headcount", value: "Include null/zero" } : null,
+      firstCenterYearFilterActive
+        ? {
+            key: "Years In India",
+            value: `${minFirstCenterYear.toLocaleString()} - ${maxFirstCenterYear.toLocaleString()}`,
+          }
+        : null,
+      filter.filters.includeNullFirstCenterYear ? { key: "Years In India", value: "Include null/zero" } : null,
+      centerIncYearFilterActive
+        ? {
+            key: "Timeline",
+            value: `${minCenterIncYear.toLocaleString()} - ${maxCenterIncYear.toLocaleString()}`,
+          }
+        : null,
+      filter.filters.includeNullCenterIncYear ? { key: "Timeline", value: "Include null/zero" } : null,
+    ].filter(Boolean) as Array<{ key: string; value: string }>
+
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">{filter.name}</CardTitle>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">{activeFilterCount} filters</Badge>
+              <Button variant="ghost" size="sm" onClick={() => onEdit(filter)}>
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-red-600 hover:text-red-700"
+                onClick={() => onDelete(filter)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
-            Created: {new Date(filter.created_at).toLocaleDateString()}
-          </div>
-          {filter.updated_at !== filter.created_at && (
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              Updated: {new Date(filter.updated_at).toLocaleDateString()}
+              Created: {new Date(filter.created_at).toLocaleDateString()}
             </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Filter Details:</span>
-            <Button variant="outline" size="sm" onClick={() => onLoad(filter)}>
-              <Filter className="h-4 w-4 mr-2" />
-              Load Filters
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {renderFilterValues(filter.filters.accountNameKeywords, "Account Name")}
-            {renderFilterValues(filter.filters.accountCountries, "Country")}
-            {renderFilterValues(filter.filters.accountIndustries, "Industry")}
-            {renderFilterValues(filter.filters.accountPrimaryCategories, "Category")}
-            {renderFilterValues(filter.filters.accountPrimaryNatures, "Nature")}
-            {renderFilterValues(filter.filters.accountNasscomStatuses, "NASSCOM")}
-            {renderFilterValues(filter.filters.accountEmployeesRanges, "Emp Range")}
-            {renderFilterValues(filter.filters.accountCenterEmployees, "Center Emp")}
-            {renderFilterValues(filter.filters.centerTypes, "Type")}
-            {renderFilterValues(filter.filters.centerFocus, "Focus")}
-            {renderFilterValues(filter.filters.centerCities, "City")}
-            {renderFilterValues(filter.filters.centerStates, "State")}
-            {renderFilterValues(filter.filters.centerCountries, "Center Country")}
-            {renderFilterValues(filter.filters.centerEmployees, "Center Employees")}
-            {renderFilterValues(filter.filters.centerStatuses, "Center Status")}
-            {renderFilterValues(filter.filters.functionTypes, "Function")}
-            {renderFilterValues(filter.filters.centerSoftwareInUseKeywords, "Software In Use")}
-            {renderFilterValues(filter.filters.prospectDepartments, "Department")}
-            {renderFilterValues(filter.filters.prospectLevels, "Prospect Level")}
-            {renderFilterValues(filter.filters.prospectCities, "Prospect City")}
-            {renderFilterValues(filter.filters.prospectTitleKeywords, "Job Title")}
-            {revenueFilterActive && (
-              <FilterBadge
-                filterKey="Revenue"
-                value={`${minRevenue.toLocaleString()} - ${maxRevenue.toLocaleString()}`}
-              />
-            )}
-            {filter.filters.includeNullRevenue && (
-              <FilterBadge filterKey="Revenue" value="Include null revenue" />
-            )}
-            {yearsInIndiaFilterActive && (
-              <FilterBadge
-                filterKey="India Headcount"
-                value={`${minYearsInIndia.toLocaleString()} - ${maxYearsInIndia.toLocaleString()}`}
-              />
-            )}
-            {filter.filters.includeNullYearsInIndia && (
-              <FilterBadge filterKey="India Headcount" value="Include null/zero" />
-            )}
-            {firstCenterYearFilterActive && (
-              <FilterBadge
-                filterKey="Years In India"
-                value={`${minFirstCenterYear.toLocaleString()} - ${maxFirstCenterYear.toLocaleString()}`}
-              />
-            )}
-            {filter.filters.includeNullFirstCenterYear && (
-              <FilterBadge filterKey="Years In India" value="Include null/zero" />
-            )}
-            {centerIncYearFilterActive && (
-              <FilterBadge
-                filterKey="Timeline"
-                value={`${minCenterIncYear.toLocaleString()} - ${maxCenterIncYear.toLocaleString()}`}
-              />
-            )}
-            {filter.filters.includeNullCenterIncYear && (
-              <FilterBadge filterKey="Timeline" value="Include null/zero" />
+            {filter.updated_at !== filter.created_at && (
+              <div className="flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                Updated: {new Date(filter.updated_at).toLocaleDateString()}
+              </div>
             )}
           </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-})
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Filter Details:</span>
+              <Button variant="outline" size="sm" onClick={() => onLoad(filter)}>
+                <Filter className="h-4 w-4 mr-2" />
+                Load Filters
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {valueBadges.map((section) => renderFilterValues(section.values, section.label))}
+              {rangeBadges.map((badge, index) => (
+                <FilterBadge key={`${badge.key}-${badge.value}-${index}`} filterKey={badge.key} value={badge.value} />
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+)
 SavedFilterCard.displayName = "SavedFilterCard"
 
 export const SavedFiltersManager = memo(function SavedFiltersManager({
@@ -238,8 +238,8 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
   onLoadFilters,
   totalActiveFilters,
   onReset,
-  onExport
-}: SavedFiltersManagerProps) {
+  onExport,
+}: SavedFiltersManagerProps): JSX.Element {
   const supabase = getSupabaseBrowserClient()
   const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([])
   const [loading, setLoading] = useState(false)
@@ -338,9 +338,12 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
     }
   }, [currentFilters, filterName, loadSavedFilters, supabase, userId])
 
-  const handleLoadFilter = useCallback((savedFilter: SavedFilter) => {
-    onLoadFilters(savedFilter.filters)
-  }, [onLoadFilters])
+  const handleLoadFilter = useCallback(
+    (savedFilter: SavedFilter) => {
+      onLoadFilters(savedFilter.filters)
+    },
+    [onLoadFilters]
+  )
 
   const handleDeleteFilter = useCallback((filter: SavedFilter) => {
     setFilterToDelete(filter)
@@ -352,10 +355,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
 
     setLoading(true)
     try {
-      const { error } = await supabase
-        .from("saved_filters")
-        .delete()
-        .eq("id", filterToDelete.id)
+      const { error } = await supabase.from("saved_filters").delete().eq("id", filterToDelete.id)
 
       if (error) throw error
 
@@ -395,9 +395,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
     }
   }, [editingFilter, editName, loadSavedFilters, supabase])
 
-  const getFilterSummary = useCallback((filters: Filters) => {
-    return calculateActiveFilters(filters)
-  }, [])
+  const getFilterSummary = (filters: Filters): number => calculateActiveFilters(filters)
 
   const handleEdit = useCallback((filter: SavedFilter) => {
     setEditingFilter(filter)

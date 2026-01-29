@@ -26,7 +26,24 @@ interface AllDataResult {
   error?: string
 }
 
-export function useDashboardData({ enabled }: UseDashboardDataOptions) {
+export type UseDashboardDataResult = {
+  accounts: Account[]
+  centers: Center[]
+  functions: Function[]
+  services: Service[]
+  tech: Tech[]
+  prospects: Prospect[]
+  loading: boolean
+  error: string | null
+  connectionStatus: string
+  databaseStatus: DatabaseStatus | null
+  loadData: () => Promise<void>
+  handleClearCache: () => Promise<void>
+}
+
+const toArray = <T,>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : [])
+
+export function useDashboardData({ enabled }: UseDashboardDataOptions): UseDashboardDataResult {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [centers, setCenters] = useState<Center[]>([])
   const [functions, setFunctions] = useState<Function[]>([])
@@ -37,6 +54,11 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
   const [error, setError] = useState<string | null>(null)
   const [connectionStatus, setConnectionStatus] = useState<string>("")
   const [databaseStatus, setDatabaseStatus] = useState<DatabaseStatus | null>(null)
+
+  const setFailure = useCallback((message: string, status: string) => {
+    setError(message)
+    setConnectionStatus(status)
+  }, [])
 
   const checkDatabaseStatus = useCallback(async () => {
     try {
@@ -70,39 +92,36 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
 
       const status = await checkDatabaseStatus()
       if (status && !status.hasUrl) {
-        setError("Database URL not configured. Please check environment variables.")
-        setConnectionStatus("Database URL missing")
+        setFailure("Database URL not configured. Please check environment variables.", "Database URL missing")
         return
       }
 
       if (status && !status.hasConnection) {
-        setError("Database connection could not be initialized.")
-        setConnectionStatus("Connection initialization failed")
+        setFailure("Database connection could not be initialized.", "Connection initialization failed")
         return
       }
 
       setConnectionStatus("Testing database connection...")
       const connectionOk = await testDatabaseConnection()
       if (!connectionOk) {
-        setError("Database connection test failed. Please check your database configuration.")
+        setFailure("Database connection test failed. Please check your database configuration.", "")
         return
       }
 
       setConnectionStatus("Loading data from database...")
-      const data = await getAllData() as AllDataResult
+      const data = (await getAllData()) as AllDataResult
 
       if (data.error) {
-        setError(`Database error: ${data.error}`)
-        setConnectionStatus("Data loading failed")
+        setFailure(`Database error: ${data.error}`, "Data loading failed")
         return
       }
 
-      const accountsData = Array.isArray(data.accounts) ? data.accounts : []
-      const centersData = Array.isArray(data.centers) ? data.centers : []
-      const functionsData = Array.isArray(data.functions) ? data.functions : []
-      const servicesData = Array.isArray(data.services) ? data.services : []
-      const techData = Array.isArray(data.tech) ? data.tech : []
-      const prospectsData = Array.isArray(data.prospects) ? data.prospects : []
+      const accountsData = toArray<Account>(data.accounts)
+      const centersData = toArray<Center>(data.centers)
+      const functionsData = toArray<Function>(data.functions)
+      const servicesData = toArray<Service>(data.services)
+      const techData = toArray<Tech>(data.tech)
+      const prospectsData = toArray<Prospect>(data.prospects)
 
       if (
         accountsData.length === 0 &&
@@ -112,17 +131,16 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
         techData.length === 0 &&
         prospectsData.length === 0
       ) {
-        setError("No data found in database tables. Please check if your tables contain data.")
-        setConnectionStatus("No data available")
+        setFailure("No data found in database tables. Please check if your tables contain data.", "No data available")
         return
       }
 
-      setAccounts(accountsData as Account[])
-      setCenters(centersData as Center[])
-      setFunctions(functionsData as Function[])
-      setServices(servicesData as Service[])
-      setTech(techData as Tech[])
-      setProspects(prospectsData as Prospect[])
+      setAccounts(accountsData)
+      setCenters(centersData)
+      setFunctions(functionsData)
+      setServices(servicesData)
+      setTech(techData)
+      setProspects(prospectsData)
 
       setConnectionStatus(
         `Successfully loaded: ${accountsData.length} accounts, ${centersData.length} centers, ${functionsData.length} functions, ${servicesData.length} services, ${techData.length} tech, ${prospectsData.length} prospects`
@@ -135,7 +153,7 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
     } finally {
       setLoading(false)
     }
-  }, [checkDatabaseStatus, testDatabaseConnection])
+  }, [checkDatabaseStatus, setFailure, testDatabaseConnection])
 
   const handleClearCache = useCallback(async () => {
     try {

@@ -5,6 +5,8 @@ import {
   useMemo,
   useRef,
   useState,
+  type Dispatch,
+  type SetStateAction,
 } from "react"
 import type { Account, Center, Function, Prospect, Service, Tech, Filters, AvailableOptions } from "@/lib/types"
 import { createDefaultFilters } from "@/lib/dashboard/defaults"
@@ -19,6 +21,45 @@ import {
 } from "@/lib/dashboard/filtering"
 import { getAccountChartData, getCenterChartData, getProspectChartData } from "@/lib/dashboard/charts"
 
+type RangeTuple = [number, number]
+
+type RangeBounds = {
+  min: number
+  max: number
+}
+
+export type UseDashboardFiltersResult = {
+  filters: Filters
+  pendingFilters: Filters
+  setPendingFilters: Dispatch<SetStateAction<Filters>>
+  isApplying: boolean
+  revenueRange: RangeBounds
+  yearsInIndiaRange: RangeBounds
+  firstCenterYearRange: RangeBounds
+  centerIncYearRange: RangeBounds
+  accountNames: string[]
+  availableOptions: AvailableOptions
+  filteredData: FilteredData
+  accountChartData: ReturnType<typeof getAccountChartData>
+  centerChartData: ReturnType<typeof getCenterChartData>
+  prospectChartData: ReturnType<typeof getProspectChartData>
+  resetFilters: () => void
+  handleLoadSavedFilters: (savedFilters: Filters) => void
+  handleMinRevenueChange: (value: string) => void
+  handleMaxRevenueChange: (value: string) => void
+  handleRevenueRangeChange: (value: RangeTuple) => void
+  handleMinYearsInIndiaChange: (value: string) => void
+  handleMaxYearsInIndiaChange: (value: string) => void
+  handleYearsInIndiaRangeChange: (value: RangeTuple) => void
+  handleMinFirstCenterYearChange: (value: string) => void
+  handleMaxFirstCenterYearChange: (value: string) => void
+  handleFirstCenterYearRangeChange: (value: RangeTuple) => void
+  handleMinCenterIncYearChange: (value: string) => void
+  handleMaxCenterIncYearChange: (value: string) => void
+  handleCenterIncYearRangeChange: (value: RangeTuple) => void
+  getTotalActiveFilters: () => number
+}
+
 interface UseDashboardFiltersParams {
   accounts: Account[]
   centers: Center[]
@@ -28,6 +69,18 @@ interface UseDashboardFiltersParams {
   tech: Tech[]
 }
 
+const buildRangeTuple = (range: RangeBounds): RangeTuple => [range.min, range.max]
+
+const parseNumberOr = (value: string, fallback: number): number => {
+  const parsed = Number.parseFloat(value)
+  return Number.isFinite(parsed) ? parsed : fallback
+}
+
+const clampNumber = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value))
+
+const countRangeFilter = (range: RangeTuple, baseRange: RangeBounds): number =>
+  range[0] !== baseRange.min || range[1] !== baseRange.max ? 1 : 0
+
 export function useDashboardFilters({
   accounts,
   centers,
@@ -35,7 +88,7 @@ export function useDashboardFilters({
   services,
   prospects,
   tech,
-}: UseDashboardFiltersParams) {
+}: UseDashboardFiltersParams): UseDashboardFiltersResult {
   const baseRanges = useMemo(() => calculateBaseRanges(accounts, centers), [accounts, centers])
 
   const [filters, setFilters] = useState<Filters>(() => createDefaultFilters())
@@ -49,6 +102,16 @@ export function useDashboardFilters({
 
   const isRevenueRangeAutoRef = useRef(true)
 
+  const baseRangeFilters = useMemo(
+    () => ({
+      accountRevenueRange: buildRangeTuple(baseRanges.revenueRange),
+      accountYearsInIndiaRange: buildRangeTuple(baseRanges.yearsInIndiaRange),
+      accountFirstCenterYearRange: buildRangeTuple(baseRanges.firstCenterYearRange),
+      centerIncYearRange: buildRangeTuple(baseRanges.centerIncYearRange),
+    }),
+    [baseRanges]
+  )
+
   useEffect(() => {
     isRevenueRangeAutoRef.current = true
     setRevenueRange(baseRanges.revenueRange)
@@ -56,30 +119,16 @@ export function useDashboardFilters({
     setFirstCenterYearRange(baseRanges.firstCenterYearRange)
     setCenterIncYearRange(baseRanges.centerIncYearRange)
 
-    const baseRevenue: [number, number] = [baseRanges.revenueRange.min, baseRanges.revenueRange.max]
-    const baseYears: [number, number] = [baseRanges.yearsInIndiaRange.min, baseRanges.yearsInIndiaRange.max]
-    const baseFirstCenter: [number, number] = [
-      baseRanges.firstCenterYearRange.min,
-      baseRanges.firstCenterYearRange.max,
-    ]
-    const baseCenterInc: [number, number] = [baseRanges.centerIncYearRange.min, baseRanges.centerIncYearRange.max]
-
     setFilters((prev) => ({
       ...prev,
-      accountRevenueRange: baseRevenue,
-      accountYearsInIndiaRange: baseYears,
-      accountFirstCenterYearRange: baseFirstCenter,
-      centerIncYearRange: baseCenterInc,
+      ...baseRangeFilters,
     }))
 
     setPendingFilters((prev) => ({
       ...prev,
-      accountRevenueRange: baseRevenue,
-      accountYearsInIndiaRange: baseYears,
-      accountFirstCenterYearRange: baseFirstCenter,
-      centerIncYearRange: baseCenterInc,
+      ...baseRangeFilters,
     }))
-  }, [baseRanges])
+  }, [baseRanges, baseRangeFilters])
 
   useLayoutEffect(() => {
     setIsApplying(true)
@@ -123,19 +172,7 @@ export function useDashboardFilters({
       accountFirstCenterYearRange: filters.accountFirstCenterYearRange,
       includeNullFirstCenterYear: filters.includeNullFirstCenterYear,
     }),
-    [
-      filters.accountCountries,
-      filters.accountIndustries,
-      filters.accountPrimaryCategories,
-      filters.accountPrimaryNatures,
-      filters.accountNasscomStatuses,
-      filters.accountEmployeesRanges,
-      filters.accountCenterEmployees,
-      filters.accountYearsInIndiaRange,
-      filters.includeNullYearsInIndia,
-      filters.accountFirstCenterYearRange,
-      filters.includeNullFirstCenterYear,
-    ]
+    [filters]
   )
 
   const dynamicRevenueRange = useMemo(
@@ -154,7 +191,7 @@ export function useDashboardFilters({
         ) {
           return {
             ...prev,
-            accountRevenueRange: [dynamicRevenueRange.min, dynamicRevenueRange.max] as [number, number],
+            accountRevenueRange: [dynamicRevenueRange.min, dynamicRevenueRange.max] as RangeTuple,
           }
         }
 
@@ -167,7 +204,7 @@ export function useDashboardFilters({
       if (newMin !== prev.accountRevenueRange[0] || newMax !== prev.accountRevenueRange[1]) {
         return {
           ...prev,
-          accountRevenueRange: [newMin, newMax] as [number, number],
+          accountRevenueRange: [newMin, newMax] as RangeTuple,
         }
       }
 
@@ -215,18 +252,13 @@ export function useDashboardFilters({
   )
 
   const resetFilters = useCallback(() => {
-    const emptyFilters = createDefaultFilters({
-      accountRevenueRange: [baseRanges.revenueRange.min, baseRanges.revenueRange.max],
-      accountYearsInIndiaRange: [baseRanges.yearsInIndiaRange.min, baseRanges.yearsInIndiaRange.max],
-      accountFirstCenterYearRange: [baseRanges.firstCenterYearRange.min, baseRanges.firstCenterYearRange.max],
-      centerIncYearRange: [baseRanges.centerIncYearRange.min, baseRanges.centerIncYearRange.max],
-    })
+    const emptyFilters = createDefaultFilters(baseRangeFilters)
 
     isRevenueRangeAutoRef.current = true
     setRevenueRange(baseRanges.revenueRange)
     setFilters(emptyFilters)
     setPendingFilters(emptyFilters)
-  }, [baseRanges])
+  }, [baseRangeFilters, baseRanges])
 
   const handleLoadSavedFilters = useCallback((savedFilters: Filters) => {
     isRevenueRangeAutoRef.current = false
@@ -236,8 +268,8 @@ export function useDashboardFilters({
 
   const handleMinRevenueChange = useCallback(
     (value: string) => {
-      const numValue = Number.parseFloat(value) || revenueRange.min
-      const clampedValue = Math.max(revenueRange.min, Math.min(numValue, pendingFilters.accountRevenueRange[1]))
+      const numValue = parseNumberOr(value, revenueRange.min)
+      const clampedValue = clampNumber(numValue, revenueRange.min, pendingFilters.accountRevenueRange[1])
       isRevenueRangeAutoRef.current = false
       setPendingFilters((prev) => ({
         ...prev,
@@ -249,8 +281,8 @@ export function useDashboardFilters({
 
   const handleMaxRevenueChange = useCallback(
     (value: string) => {
-      const numValue = Number.parseFloat(value) || revenueRange.max
-      const clampedValue = Math.min(revenueRange.max, Math.max(numValue, pendingFilters.accountRevenueRange[0]))
+      const numValue = parseNumberOr(value, revenueRange.max)
+      const clampedValue = clampNumber(numValue, pendingFilters.accountRevenueRange[0], revenueRange.max)
       isRevenueRangeAutoRef.current = false
       setPendingFilters((prev) => ({
         ...prev,
@@ -260,7 +292,7 @@ export function useDashboardFilters({
     [pendingFilters.accountRevenueRange, revenueRange]
   )
 
-  const handleRevenueRangeChange = useCallback((value: [number, number]) => {
+  const handleRevenueRangeChange = useCallback((value: RangeTuple) => {
     isRevenueRangeAutoRef.current = false
     setPendingFilters((prev) => ({
       ...prev,
@@ -270,8 +302,8 @@ export function useDashboardFilters({
 
   const handleMinYearsInIndiaChange = useCallback(
     (value: string) => {
-      const numValue = Number.parseFloat(value) || yearsInIndiaRange.min
-      const clampedValue = Math.max(yearsInIndiaRange.min, Math.min(numValue, pendingFilters.accountYearsInIndiaRange[1]))
+      const numValue = parseNumberOr(value, yearsInIndiaRange.min)
+      const clampedValue = clampNumber(numValue, yearsInIndiaRange.min, pendingFilters.accountYearsInIndiaRange[1])
       setPendingFilters((prev) => ({
         ...prev,
         accountYearsInIndiaRange: [clampedValue, prev.accountYearsInIndiaRange[1]],
@@ -282,8 +314,8 @@ export function useDashboardFilters({
 
   const handleMaxYearsInIndiaChange = useCallback(
     (value: string) => {
-      const numValue = Number.parseFloat(value) || yearsInIndiaRange.max
-      const clampedValue = Math.min(yearsInIndiaRange.max, Math.max(numValue, pendingFilters.accountYearsInIndiaRange[0]))
+      const numValue = parseNumberOr(value, yearsInIndiaRange.max)
+      const clampedValue = clampNumber(numValue, pendingFilters.accountYearsInIndiaRange[0], yearsInIndiaRange.max)
       setPendingFilters((prev) => ({
         ...prev,
         accountYearsInIndiaRange: [prev.accountYearsInIndiaRange[0], clampedValue],
@@ -292,7 +324,7 @@ export function useDashboardFilters({
     [pendingFilters.accountYearsInIndiaRange, yearsInIndiaRange]
   )
 
-  const handleYearsInIndiaRangeChange = useCallback((value: [number, number]) => {
+  const handleYearsInIndiaRangeChange = useCallback((value: RangeTuple) => {
     setPendingFilters((prev) => ({
       ...prev,
       accountYearsInIndiaRange: value,
@@ -301,10 +333,11 @@ export function useDashboardFilters({
 
   const handleMinFirstCenterYearChange = useCallback(
     (value: string) => {
-      const numValue = Number.parseFloat(value) || firstCenterYearRange.min
-      const clampedValue = Math.max(
+      const numValue = parseNumberOr(value, firstCenterYearRange.min)
+      const clampedValue = clampNumber(
+        numValue,
         firstCenterYearRange.min,
-        Math.min(numValue, pendingFilters.accountFirstCenterYearRange[1])
+        pendingFilters.accountFirstCenterYearRange[1]
       )
       setPendingFilters((prev) => ({
         ...prev,
@@ -316,10 +349,11 @@ export function useDashboardFilters({
 
   const handleMaxFirstCenterYearChange = useCallback(
     (value: string) => {
-      const numValue = Number.parseFloat(value) || firstCenterYearRange.max
-      const clampedValue = Math.min(
-        firstCenterYearRange.max,
-        Math.max(numValue, pendingFilters.accountFirstCenterYearRange[0])
+      const numValue = parseNumberOr(value, firstCenterYearRange.max)
+      const clampedValue = clampNumber(
+        numValue,
+        pendingFilters.accountFirstCenterYearRange[0],
+        firstCenterYearRange.max
       )
       setPendingFilters((prev) => ({
         ...prev,
@@ -329,7 +363,7 @@ export function useDashboardFilters({
     [pendingFilters.accountFirstCenterYearRange, firstCenterYearRange]
   )
 
-  const handleFirstCenterYearRangeChange = useCallback((value: [number, number]) => {
+  const handleFirstCenterYearRangeChange = useCallback((value: RangeTuple) => {
     setPendingFilters((prev) => ({
       ...prev,
       accountFirstCenterYearRange: value,
@@ -338,11 +372,8 @@ export function useDashboardFilters({
 
   const handleMinCenterIncYearChange = useCallback(
     (value: string) => {
-      const numValue = Number.parseFloat(value) || centerIncYearRange.min
-      const clampedValue = Math.max(
-        centerIncYearRange.min,
-        Math.min(numValue, pendingFilters.centerIncYearRange[1])
-      )
+      const numValue = parseNumberOr(value, centerIncYearRange.min)
+      const clampedValue = clampNumber(numValue, centerIncYearRange.min, pendingFilters.centerIncYearRange[1])
       setPendingFilters((prev) => ({
         ...prev,
         centerIncYearRange: [clampedValue, prev.centerIncYearRange[1]],
@@ -353,11 +384,8 @@ export function useDashboardFilters({
 
   const handleMaxCenterIncYearChange = useCallback(
     (value: string) => {
-      const numValue = Number.parseFloat(value) || centerIncYearRange.max
-      const clampedValue = Math.min(
-        centerIncYearRange.max,
-        Math.max(numValue, pendingFilters.centerIncYearRange[0])
-      )
+      const numValue = parseNumberOr(value, centerIncYearRange.max)
+      const clampedValue = clampNumber(numValue, pendingFilters.centerIncYearRange[0], centerIncYearRange.max)
       setPendingFilters((prev) => ({
         ...prev,
         centerIncYearRange: [prev.centerIncYearRange[0], clampedValue],
@@ -366,7 +394,7 @@ export function useDashboardFilters({
     [pendingFilters.centerIncYearRange, centerIncYearRange]
   )
 
-  const handleCenterIncYearRangeChange = useCallback((value: [number, number]) => {
+  const handleCenterIncYearRangeChange = useCallback((value: RangeTuple) => {
     setPendingFilters((prev) => ({
       ...prev,
       centerIncYearRange: value,
@@ -382,19 +410,11 @@ export function useDashboardFilters({
       filters.accountNasscomStatuses.length +
       filters.accountEmployeesRanges.length +
       filters.accountCenterEmployees.length +
-      (filters.accountRevenueRange[0] !== revenueRange.min || filters.accountRevenueRange[1] !== revenueRange.max
-        ? 1
-        : 0) +
+      countRangeFilter(filters.accountRevenueRange, revenueRange) +
       (filters.includeNullRevenue ? 1 : 0) +
-      (filters.accountYearsInIndiaRange[0] !== yearsInIndiaRange.min ||
-      filters.accountYearsInIndiaRange[1] !== yearsInIndiaRange.max
-        ? 1
-        : 0) +
+      countRangeFilter(filters.accountYearsInIndiaRange, yearsInIndiaRange) +
       (filters.includeNullYearsInIndia ? 1 : 0) +
-      (filters.accountFirstCenterYearRange[0] !== firstCenterYearRange.min ||
-      filters.accountFirstCenterYearRange[1] !== firstCenterYearRange.max
-        ? 1
-        : 0) +
+      countRangeFilter(filters.accountFirstCenterYearRange, firstCenterYearRange) +
       (filters.includeNullFirstCenterYear ? 1 : 0) +
       filters.accountNameKeywords.length +
       filters.centerTypes.length +
@@ -404,10 +424,7 @@ export function useDashboardFilters({
       filters.centerCountries.length +
       filters.centerEmployees.length +
       filters.centerStatuses.length +
-      (filters.centerIncYearRange[0] !== centerIncYearRange.min ||
-      filters.centerIncYearRange[1] !== centerIncYearRange.max
-        ? 1
-        : 0) +
+      countRangeFilter(filters.centerIncYearRange, centerIncYearRange) +
       (filters.includeNullCenterIncYear ? 1 : 0) +
       filters.functionTypes.length +
       filters.centerSoftwareInUseKeywords.length +
@@ -416,13 +433,7 @@ export function useDashboardFilters({
       filters.prospectCities.length +
       filters.prospectTitleKeywords.length
     )
-  }, [
-    filters,
-    revenueRange,
-    yearsInIndiaRange,
-    firstCenterYearRange,
-    centerIncYearRange,
-  ])
+  }, [filters, revenueRange, yearsInIndiaRange, firstCenterYearRange, centerIncYearRange])
 
   return {
     filters,

@@ -67,34 +67,38 @@ type AvailableOptionsFilterState = Pick<
   | "includeNullRevenue"
 >
 
-const normalizeNumber = (value: number | string | null | undefined) => {
+const normalizeNumber = (value: number | string | null | undefined): number => {
   if (value === null || value === undefined || value === "") return 0
   const num = typeof value === "number" ? value : Number(value)
   return Number.isFinite(num) ? num : 0
 }
 
-const parseRevenueValue = (value: number | string | null | undefined) => parseRevenue(value ?? 0)
+const parseRevenueValue = (value: number | string | null | undefined): number => parseRevenue(value ?? 0)
 
 const rangeFilterMatch = (
   range: [number, number],
   value: number | string | null | undefined,
   includeNull: boolean,
   parser: (value: number | string | null | undefined) => number = normalizeNumber
-) => {
+): boolean => {
   const numValue = parser(value)
+  const isEmptyValue = value === null || value === undefined || value === ""
 
-  if (includeNull && (numValue === 0 || value === null || value === undefined || value === "")) {
+  if (includeNull && (numValue === 0 || isEmptyValue)) {
     return true
   }
 
-  if (!includeNull && (numValue === 0 || value === null || value === undefined || value === "")) {
+  if (!includeNull && (numValue === 0 || isEmptyValue)) {
     return false
   }
 
   return numValue >= range[0] && numValue <= range[1]
 }
 
-const buildCenterSoftwareIndex = (tech: Tech[]) => {
+const hasRangeFilter = (range: [number, number], includeNull: boolean): boolean =>
+  range[0] > 0 || range[1] < Number.MAX_SAFE_INTEGER || includeNull
+
+const buildCenterSoftwareIndex = (tech: Tech[]): Map<string, string> => {
   const centerSoftwareIndex = new Map<string, string>()
   for (const techRow of tech) {
     const software = techRow.software_in_use?.trim()
@@ -105,7 +109,7 @@ const buildCenterSoftwareIndex = (tech: Tech[]) => {
   return centerSoftwareIndex
 }
 
-export function getAccountNames(accounts: Account[]) {
+export function getAccountNames(accounts: Account[]): string[] {
   return Array.from(
     new Set(accounts.map((account) => account.account_global_legal_name).filter(Boolean))
   )
@@ -161,22 +165,17 @@ export function getFilteredData(
     filters.accountNasscomStatuses.length > 0 ||
     filters.accountEmployeesRanges.length > 0 ||
     filters.accountCenterEmployees.length > 0 ||
-    filters.accountRevenueRange[0] > 0 ||
-    filters.accountRevenueRange[1] < Number.MAX_SAFE_INTEGER ||
-    filters.includeNullRevenue ||
-    filters.accountYearsInIndiaRange[0] > 0 ||
-    filters.accountYearsInIndiaRange[1] < Number.MAX_SAFE_INTEGER ||
-    filters.includeNullYearsInIndia ||
-    filters.accountFirstCenterYearRange[0] > 0 ||
-    filters.accountFirstCenterYearRange[1] < Number.MAX_SAFE_INTEGER ||
-    filters.includeNullFirstCenterYear ||
+    hasRangeFilter(filters.accountRevenueRange, filters.includeNullRevenue) ||
+    hasRangeFilter(filters.accountYearsInIndiaRange, filters.includeNullYearsInIndia) ||
+    hasRangeFilter(filters.accountFirstCenterYearRange, filters.includeNullFirstCenterYear) ||
     filters.accountNameKeywords.length > 0
 
-  const hasProspectFilters =
-    filters.prospectDepartments.length > 0 ||
-    filters.prospectLevels.length > 0 ||
-    filters.prospectCities.length > 0 ||
-    filters.prospectTitleKeywords.length > 0
+  const hasProspectFilters = [
+    filters.prospectDepartments,
+    filters.prospectLevels,
+    filters.prospectCities,
+    filters.prospectTitleKeywords,
+  ].some((values) => values.length > 0)
 
   const hasFunctionFilters = filters.functionTypes.length > 0
   const hasCenterSoftwareFilters = filters.centerSoftwareInUseKeywords.length > 0
@@ -273,12 +272,7 @@ export function getFilteredData(
     }
   }
 
-  const filteredServices: Service[] = []
-  for (const service of services) {
-    if (centerKeySet.has(service.cn_unique_key)) {
-      filteredServices.push(service)
-    }
-  }
+  const filteredServices = services.filter((service) => centerKeySet.has(service.cn_unique_key))
 
   const finalAccountNameSet = new Set<string>()
   for (const center of filteredCenters) {
@@ -302,7 +296,10 @@ export function getFilteredData(
   }
 }
 
-export function getDynamicRevenueRange(accounts: Account[], filters: RevenueRangeFilterState) {
+export function getDynamicRevenueRange(
+  accounts: Account[],
+  filters: RevenueRangeFilterState
+): { min: number; max: number } {
   const matchCountry = createValueMatcher(filters.accountCountries)
   const matchIndustry = createValueMatcher(filters.accountIndustries)
   const matchPrimaryCategory = createValueMatcher(filters.accountPrimaryCategories)
