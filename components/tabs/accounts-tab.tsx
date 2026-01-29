@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { TabsContent } from "@/components/ui/tabs"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -27,7 +27,7 @@ import { ViewSwitcher } from "@/components/ui/view-switcher"
 import { SortButton } from "@/components/ui/sort-button"
 import { PaginationControls } from "@/components/ui/pagination-controls"
 import { getPaginatedData } from "@/lib/utils/helpers"
-import type { Account, Center, Prospect, Service, Function, Tech } from "@/lib/types"
+import type { Account, Center, Prospect, Service, Tech } from "@/lib/types"
 
 interface AccountsTabProps {
   accounts: Account[]
@@ -35,7 +35,6 @@ interface AccountsTabProps {
   prospects: Prospect[]
   services: Service[]
   tech: Tech[]
-  functions: Function[]
   accountChartData: {
     regionData: Array<{ name: string; value: number; fill?: string }>
     primaryNatureData: Array<{ name: string; value: number; fill?: string }>
@@ -47,6 +46,17 @@ interface AccountsTabProps {
   currentPage: number
   setCurrentPage: (page: number | ((prev: number) => number)) => void
   itemsPerPage: number
+}
+
+const getSortIcon = (isActive: boolean, direction: "asc" | "desc" | null): JSX.Element => {
+  if (!isActive || direction === null) {
+    return <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+  }
+  return direction === "asc" ? (
+    <ArrowUpAZ className="h-3.5 w-3.5 text-muted-foreground" />
+  ) : (
+    <ArrowDownAZ className="h-3.5 w-3.5 text-muted-foreground" />
+  )
 }
 
 export function AccountsTab({
@@ -61,25 +71,27 @@ export function AccountsTab({
   currentPage,
   setCurrentPage,
   itemsPerPage,
-}: AccountsTabProps) {
+}: AccountsTabProps): JSX.Element {
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [sort, setSort] = useState<{
     key: "name" | "location" | "industry" | "revenue"
     direction: "asc" | "desc" | null
-  }>({
-    key: "name",
-    direction: null,
-  })
+  }>(
+    {
+      key: "name",
+      direction: null,
+    }
+  )
   const [dataLayout, setDataLayout] = useState<"table" | "grid">("table")
   const [mapMode, setMapMode] = useState<"city" | "state">("city")
 
-  const handleAccountClick = (account: Account) => {
+  const handleAccountClick = (account: Account): void => {
     setSelectedAccount(account)
     setIsDialogOpen(true)
   }
 
-  const handleSort = (key: typeof sort.key) => {
+  const handleSort = (key: typeof sort.key): void => {
     setSort((prev) => {
       if (prev.key !== key || prev.direction === null) {
         return { key, direction: "asc" }
@@ -90,8 +102,7 @@ export function AccountsTab({
     setCurrentPage(1)
   }
 
-
-  const sortedAccounts = React.useMemo(() => {
+  const sortedAccounts = useMemo(() => {
     if (!sort.direction) return accounts
 
     const compare = (a: string | undefined | null, b: string | undefined | null) =>
@@ -114,6 +125,11 @@ export function AccountsTab({
     return sort.direction === "asc" ? sorted : sorted.reverse()
   }, [accounts, sort])
 
+  const paginatedAccounts = useMemo(
+    () => getPaginatedData(sortedAccounts, currentPage, itemsPerPage),
+    [sortedAccounts, currentPage, itemsPerPage]
+  )
+
   if (accounts.length === 0) {
     return (
       <TabsContent value="accounts">
@@ -124,7 +140,6 @@ export function AccountsTab({
 
   return (
     <TabsContent value="accounts">
-      {/* Header with View Toggle */}
       <div className="flex items-center gap-2 mb-4">
         <PieChartIcon className="h-5 w-5 text-[hsl(var(--chart-1))]" />
         <h2 className="text-lg font-semibold text-foreground">Account Analytics</h2>
@@ -135,30 +150,23 @@ export function AccountsTab({
             {
               value: "chart",
               label: <span className="text-[hsl(var(--chart-1))]">Charts</span>,
-              icon: (
-                <PieChartIcon className="h-4 w-4 text-[hsl(var(--chart-1))]" />
-              ),
+              icon: <PieChartIcon className="h-4 w-4 text-[hsl(var(--chart-1))]" />,
             },
             {
               value: "map",
               label: <span className="text-[hsl(var(--chart-4))]">Map</span>,
-              icon: (
-                <MapIcon className="h-4 w-4 text-[hsl(var(--chart-4))]" />
-              ),
+              icon: <MapIcon className="h-4 w-4 text-[hsl(var(--chart-4))]" />,
             },
             {
               value: "data",
               label: <span className="text-[hsl(var(--chart-2))]">Data</span>,
-              icon: (
-                <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />
-              ),
+              icon: <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />,
             },
           ]}
           className="ml-auto"
         />
       </div>
 
-      {/* Charts Section */}
       {accountsView === "chart" && (
         <div className="w-full mb-6 animate-fade-in">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -190,7 +198,6 @@ export function AccountsTab({
         </div>
       )}
 
-      {/* Map Section */}
       {accountsView === "map" && (
         <Card className="w-full flex flex-col h-[calc(100vh-19.5rem)] border shadow-sm animate-fade-in">
           <CardHeader className="shrink-0 px-6 py-4">
@@ -227,7 +234,6 @@ export function AccountsTab({
         </Card>
       )}
 
-      {/* Data View */}
       {accountsView === "data" && (
         <Card className="w-full flex flex-col h-[calc(100vh-19.5rem)] border shadow-sm animate-fade-in">
           <CardHeader className="shrink-0 px-6 py-4">
@@ -240,16 +246,12 @@ export function AccountsTab({
                   {
                     value: "table",
                     label: <span className="text-[hsl(var(--chart-2))]">Table</span>,
-                    icon: (
-                      <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />
-                    ),
+                    icon: <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />,
                   },
                   {
                     value: "grid",
                     label: <span className="text-[hsl(var(--chart-3))]">Grid</span>,
-                    icon: (
-                      <LayoutGrid className="h-4 w-4 text-[hsl(var(--chart-3))]" />
-                    ),
+                    icon: <LayoutGrid className="h-4 w-4 text-[hsl(var(--chart-3))]" />,
                   },
                 ]}
               />
@@ -262,60 +264,74 @@ export function AccountsTab({
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-[280px]">
-                        <SortButton label="Account Name" sortKey="name" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
+                        <SortButton
+                          label="Account Name"
+                          sortKey="name"
+                          currentKey={sort.key}
+                          direction={sort.direction}
+                          onClick={handleSort}
+                        />
                       </TableHead>
                       <TableHead className="w-[200px]">
-                        <SortButton label="Location" sortKey="location" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
+                        <SortButton
+                          label="Location"
+                          sortKey="location"
+                          currentKey={sort.key}
+                          direction={sort.direction}
+                          onClick={handleSort}
+                        />
                       </TableHead>
                       <TableHead className="w-[220px]">
-                        <SortButton label="Industry" sortKey="industry" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
+                        <SortButton
+                          label="Industry"
+                          sortKey="industry"
+                          currentKey={sort.key}
+                          direction={sort.direction}
+                          onClick={handleSort}
+                        />
                       </TableHead>
                       <TableHead className="w-[140px]">
-                        <SortButton label="Revenue Range" sortKey="revenue" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
+                        <SortButton
+                          label="Revenue Range"
+                          sortKey="revenue"
+                          currentKey={sort.key}
+                          direction={sort.direction}
+                          onClick={handleSort}
+                        />
                       </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {getPaginatedData(sortedAccounts, currentPage, itemsPerPage).map(
-                      (account, index) => (
-                        <AccountRow
-                          key={`${account.account_global_legal_name}-${index}`}
-                          account={account}
-                          onClick={() => handleAccountClick(account)}
-                        />
-                      )
-                    )}
+                    {paginatedAccounts.map((account, index) => (
+                      <AccountRow
+                        key={`${account.account_global_legal_name}-${index}`}
+                        account={account}
+                        onClick={() => handleAccountClick(account)}
+                      />
+                    ))}
                   </TableBody>
                 </Table>
               ) : (
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2 px-6 py-3 border-b bg-muted/20">
-                      <span className="text-xs font-medium text-muted-foreground">Sort</span>
-                      <button
-                        type="button"
-                        onClick={() => handleSort("name")}
-                        className="inline-flex items-center justify-center rounded-md border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground hover:border-accent-foreground/20 shadow-sm transition-colors h-7 w-7"
-                        aria-label="Sort by account name"
-                      >
-                        {sort.key !== "name" || sort.direction === null ? (
-                          <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
-                        ) : sort.direction === "asc" ? (
-                          <ArrowUpAZ className="h-3.5 w-3.5 text-muted-foreground" />
-                        ) : (
-                          <ArrowDownAZ className="h-3.5 w-3.5 text-muted-foreground" />
-                        )}
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                      {getPaginatedData(sortedAccounts, currentPage, itemsPerPage).map(
-                        (account, index) => (
-                        <AccountGridCard
-                          key={`${account.account_global_legal_name}-${index}`}
-                          account={account}
-                          onClick={() => handleAccountClick(account)}
-                        />
-                      )
-                    )}
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2 px-6 py-3 border-b bg-muted/20">
+                    <span className="text-xs font-medium text-muted-foreground">Sort</span>
+                    <button
+                      type="button"
+                      onClick={() => handleSort("name")}
+                      className="inline-flex items-center justify-center rounded-md border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground hover:border-accent-foreground/20 shadow-sm transition-colors h-7 w-7"
+                      aria-label="Sort by account name"
+                    >
+                      {getSortIcon(sort.key === "name", sort.direction)}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+                    {paginatedAccounts.map((account, index) => (
+                      <AccountGridCard
+                        key={`${account.account_global_legal_name}-${index}`}
+                        account={account}
+                        onClick={() => handleAccountClick(account)}
+                      />
+                    ))}
                   </div>
                 </div>
               )}
@@ -333,7 +349,6 @@ export function AccountsTab({
         </Card>
       )}
 
-      {/* Account Details Dialog */}
       <AccountDetailsDialog
         account={selectedAccount}
         centers={centers}

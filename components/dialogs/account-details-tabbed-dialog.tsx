@@ -49,6 +49,34 @@ interface AccountDetailsDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
+type InfoRowConfig = {
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  value: string | number | null | undefined
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  "Active Center": "bg-green-500",
+  Upcoming: "bg-yellow-500",
+  "Non Operational": "bg-red-500",
+}
+
+const buildLocation = (account: Account): string =>
+  [account.account_hq_city, account.account_hq_country].filter(Boolean).join(", ")
+
+const hasValue = (value: string | number | null | undefined): boolean => {
+  if (value === null || value === undefined) return false
+  return String(value).trim() !== ""
+}
+
+const renderInfoRows = (rows: InfoRowConfig[]): Array<JSX.Element> =>
+  rows.map((row) => (
+    <InfoRow key={row.label} icon={row.icon} label={row.label} value={row.value} />
+  ))
+
+const getStatusColor = (status: string | null | undefined): string =>
+  STATUS_COLORS[status ?? ""] ?? "bg-gray-500"
+
 export function AccountDetailsDialog({
   account,
   centers,
@@ -57,7 +85,7 @@ export function AccountDetailsDialog({
   tech,
   open,
   onOpenChange,
-}: AccountDetailsDialogProps) {
+}: AccountDetailsDialogProps): JSX.Element | null {
   const [selectedCenter, setSelectedCenter] = useState<Center | null>(null)
   const [isCenterDialogOpen, setIsCenterDialogOpen] = useState(false)
   const [selectedProspect, setSelectedProspect] = useState<Prospect | null>(null)
@@ -65,7 +93,6 @@ export function AccountDetailsDialog({
 
   if (!account) return null
 
-  // Filter centers and prospects for this account
   const accountCenters = centers.filter(
     (center) => center.account_global_legal_name === account.account_global_legal_name
   )
@@ -76,27 +103,54 @@ export function AccountDetailsDialog({
     (item) => item.account_global_legal_name === account.account_global_legal_name
   )
 
-  // Merge city and country for location
-  const location = [account.account_hq_city, account.account_hq_country]
-    .filter(Boolean)
-    .join(", ")
+  const location = buildLocation(account)
+  const revenueValue = formatRevenueInMillions(parseRevenue(account.account_hq_revenue))
 
-  const handleCenterClick = (center: Center) => {
+  const companyOverviewRows: InfoRowConfig[] = [
+    { icon: Building2, label: "Account Type", value: account.account_hq_company_type },
+    { icon: Building2, label: "About", value: account.account_about },
+    { icon: Package, label: "Key Offerings", value: account.account_hq_key_offerings },
+  ]
+
+  const locationRows: InfoRowConfig[] = [
+    { icon: MapPin, label: "Location", value: location },
+    { icon: Globe, label: "Region", value: account.account_hq_region },
+  ]
+
+  const industryRows: InfoRowConfig[] = [
+    { icon: Briefcase, label: "Industry", value: account.account_hq_industry },
+    { icon: Briefcase, label: "Sub Industry", value: account.account_hq_sub_industry },
+    { icon: TrendingUp, label: "Primary Category", value: account.account_primary_category },
+    { icon: TrendingUp, label: "Primary Nature", value: account.account_primary_nature },
+  ]
+
+  const businessMetricRows: InfoRowConfig[] = [
+    { icon: DollarSign, label: "Revenue (in Millions)", value: revenueValue },
+    { icon: DollarSign, label: "Revenue Range", value: account.account_hq_revenue_range },
+    { icon: Users, label: "Total Employees", value: account.account_hq_employee_count },
+    { icon: Users, label: "Employees Range", value: account.account_hq_employee_range },
+    { icon: Users, label: "Center Employees Range", value: account.account_center_employees_range },
+  ]
+
+  const rankingRows: InfoRowConfig[] = [
+    { icon: Award, label: "Forbes Ranking", value: account.account_hq_forbes_2000_rank },
+    { icon: Award, label: "Fortune Ranking", value: account.account_hq_fortune_500_rank },
+    { icon: Award, label: "NASSCOM Status", value: account.account_nasscom_status },
+  ]
+
+  const indiaOperationsRows: InfoRowConfig[] = [
+    { icon: Calendar, label: "First Center Established", value: account.account_first_center_year },
+    { icon: Calendar, label: "Years in India", value: account.years_in_india },
+  ]
+
+  const handleCenterClick = (center: Center): void => {
     setSelectedCenter(center)
     setIsCenterDialogOpen(true)
   }
 
-  const handleProspectClick = (prospect: Prospect) => {
+  const handleProspectClick = (prospect: Prospect): void => {
     setSelectedProspect(prospect)
     setIsProspectDialogOpen(true)
-  }
-
-  // Get status indicator color
-  const getStatusColor = (status: string) => {
-    if (status === "Active Center") return "bg-green-500"
-    if (status === "Upcoming") return "bg-yellow-500"
-    if (status === "Non Operational") return "bg-red-500"
-    return "bg-gray-500"
   }
 
   return (
@@ -142,9 +196,7 @@ export function AccountDetailsDialog({
               </TabsTrigger>
             </TabsList>
 
-            {/* Account Info Tab */}
             <TabsContent value="info" className="space-y-6 mt-4">
-              {/* Tech Stack & Centers Section */}
               <div>
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                   <Info className="h-4 w-4" />
@@ -176,169 +228,73 @@ export function AccountDetailsDialog({
                 </div>
               </div>
 
-              {/* Company Overview Section */}
-              {(account.account_hq_company_type || account.account_about || account.account_hq_key_offerings) && (
+              {companyOverviewRows.some((row) => hasValue(row.value)) && (
                 <div>
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                     <Info className="h-4 w-4" />
                     Company Overview
                   </h3>
                   <div className="grid grid-cols-1 gap-3">
-                    <InfoRow
-                      icon={Building2}
-                      label="Account Type"
-                      value={account.account_hq_company_type}
-                    />
-                    <InfoRow
-                      icon={Building2}
-                      label="About"
-                      value={account.account_about}
-                    />
-                    <InfoRow
-                      icon={Package}
-                      label="Key Offerings"
-                      value={account.account_hq_key_offerings}
-                    />
+                    {renderInfoRows(companyOverviewRows)}
                   </div>
                 </div>
               )}
 
-              {/* Location Section */}
               <div>
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
                   Location
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <InfoRow
-                    icon={MapPin}
-                    label="Location"
-                    value={location}
-                  />
-                  <InfoRow
-                    icon={Globe}
-                    label="Region"
-                    value={account.account_hq_region}
-                  />
+                  {renderInfoRows(locationRows)}
                 </div>
               </div>
 
-              {/* Industry Information Section */}
               <div>
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                   <Briefcase className="h-4 w-4" />
                   Industry Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <InfoRow
-                    icon={Briefcase}
-                    label="Industry"
-                    value={account.account_hq_industry}
-                  />
-                  <InfoRow
-                    icon={Briefcase}
-                    label="Sub Industry"
-                    value={account.account_hq_sub_industry}
-                  />
-                  <InfoRow
-                    icon={TrendingUp}
-                    label="Primary Category"
-                    value={account.account_primary_category}
-                  />
-                  <InfoRow
-                    icon={TrendingUp}
-                    label="Primary Nature"
-                    value={account.account_primary_nature}
-                  />
+                  {renderInfoRows(industryRows)}
                 </div>
               </div>
 
-              {/* Business Metrics Section */}
               <div>
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                   <DollarSign className="h-4 w-4" />
                   Business Metrics
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <InfoRow
-                    icon={DollarSign}
-                    label="Revenue (in Millions)"
-                    value={formatRevenueInMillions(parseRevenue(account.account_hq_revenue))}
-                  />
-                  <InfoRow
-                    icon={DollarSign}
-                    label="Revenue Range"
-                    value={account.account_hq_revenue_range}
-                  />
-                  <InfoRow
-                    icon={Users}
-                    label="Total Employees"
-                    value={account.account_hq_employee_count}
-                  />
-                  <InfoRow
-                    icon={Users}
-                    label="Employees Range"
-                    value={account.account_hq_employee_range}
-                  />
-                  <InfoRow
-                    icon={Users}
-                    label="Center Employees Range"
-                    value={account.account_center_employees_range}
-                  />
+                  {renderInfoRows(businessMetricRows)}
                 </div>
               </div>
 
-              {/* Rankings & Recognition Section */}
-              {(account.account_hq_forbes_2000_rank || account.account_hq_fortune_500_rank || account.account_nasscom_status) && (
+              {rankingRows.some((row) => hasValue(row.value)) && (
                 <div>
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                     <Award className="h-4 w-4" />
                     Rankings & Recognition
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <InfoRow
-                      icon={Award}
-                      label="Forbes Ranking"
-                      value={account.account_hq_forbes_2000_rank}
-                    />
-                    <InfoRow
-                      icon={Award}
-                      label="Fortune Ranking"
-                      value={account.account_hq_fortune_500_rank}
-                    />
-                    <InfoRow
-                      icon={Award}
-                      label="NASSCOM Status"
-                      value={account.account_nasscom_status}
-                    />
+                    {renderInfoRows(rankingRows)}
                   </div>
                 </div>
               )}
 
-              {/* India Operations Section */}
-              {(account.account_first_center_year || account.years_in_india) && (
+              {indiaOperationsRows.some((row) => hasValue(row.value)) && (
                 <div>
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
                     India Operations
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <InfoRow
-                      icon={Calendar}
-                      label="First Center Established"
-                      value={account.account_first_center_year}
-                    />
-                    <InfoRow
-                      icon={Calendar}
-                      label="Years in India"
-                      value={account.years_in_india}
-                    />
+                    {renderInfoRows(indiaOperationsRows)}
                   </div>
                 </div>
               )}
             </TabsContent>
 
-            {/* Centers Tab */}
             <TabsContent value="centers" className="mt-4">
               {accountCenters.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
@@ -370,19 +326,20 @@ export function AccountDetailsDialog({
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2 text-sm">
                             <div className="flex items-center gap-1.5 text-muted-foreground">
                               <MapPin className="h-3.5 w-3.5" />
-                              <span>{center.center_city}, {center.center_state}</span>
+                              <span>
+                                {center.center_city}, {center.center_state}
+                              </span>
                             </div>
                             <div className="flex items-center gap-1.5 text-muted-foreground">
                               <Building className="h-3.5 w-3.5" />
                               <span>{center.center_type}</span>
                             </div>
-                            {center.center_employees_range &&
-                              center.center_employees_range.trim() !== "" && (
-                                <div className="flex items-center gap-1.5 text-muted-foreground">
-                                  <Users className="h-3.5 w-3.5" />
-                                  <span>{center.center_employees_range} employees</span>
-                                </div>
-                              )}
+                            {center.center_employees_range && center.center_employees_range.trim() !== "" && (
+                              <div className="flex items-center gap-1.5 text-muted-foreground">
+                                <Users className="h-3.5 w-3.5" />
+                                <span>{center.center_employees_range} employees</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -392,7 +349,6 @@ export function AccountDetailsDialog({
               )}
             </TabsContent>
 
-            {/* Prospects Tab */}
             <TabsContent value="prospects" className="mt-4">
               {accountProspects.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
@@ -410,7 +366,8 @@ export function AccountDetailsDialog({
                       <div className="flex items-start gap-3">
                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <span className="text-sm font-bold text-primary">
-                            {prospect.prospect_first_name?.[0]}{prospect.prospect_last_name?.[0]}
+                            {prospect.prospect_first_name?.[0]}
+                            {prospect.prospect_last_name?.[0]}
                           </span>
                         </div>
                         <div className="flex-1 min-w-0">
@@ -448,7 +405,6 @@ export function AccountDetailsDialog({
         </DialogContent>
       </Dialog>
 
-      {/* Center Details Dialog */}
       <CenterDetailsDialog
         center={selectedCenter}
         services={services}
@@ -456,7 +412,6 @@ export function AccountDetailsDialog({
         onOpenChange={setIsCenterDialogOpen}
       />
 
-      {/* Prospect Details Dialog */}
       <ProspectDetailsDialog
         prospect={selectedProspect}
         open={isProspectDialogOpen}

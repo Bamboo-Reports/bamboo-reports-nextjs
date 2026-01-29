@@ -40,9 +40,27 @@ const COLOR_SCALE = [
   "#FF8000",
 ]
 
-const normalizeIso2 = (value?: string | null) => (value || "").trim().toUpperCase()
-const normalizeStateKey = (value?: string | null) => (value || "").trim().toLowerCase()
-const makeKey = (countryIso2: string, stateKey: string) => `${countryIso2}|${stateKey}`
+const INDIA_CENTER = [78.9629, 20.5937]
+
+const normalizeIso2 = (value?: string | null): string => (value || "").trim().toUpperCase()
+const normalizeStateKey = (value?: string | null): string => (value || "").trim().toLowerCase()
+const makeKey = (countryIso2: string, stateKey: string): string => `${countryIso2}|${stateKey}`
+
+const buildPlaceholder = (
+  heightClass: string,
+  title: string,
+  description?: string,
+  tone: "error" | "muted" = "muted"
+): JSX.Element => (
+  <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
+    <div className="text-center">
+      <p className={`text-lg font-semibold mb-2 ${tone === "error" ? "text-red-500" : "text-muted-foreground"}`}>
+        {title}
+      </p>
+      {description && <p className="text-sm text-muted-foreground">{description}</p>}
+    </div>
+  </div>
+)
 
 const buildStateAggregates = (centers: Center[]) => {
   const countsByState = new Map<string, number>()
@@ -95,9 +113,7 @@ const buildColorScale = (values: number[], countExpression: any) => {
     const color = COLOR_SCALE[COLOR_SCALE.length - 1]
     return {
       expression: ["case", [">", countExpression, 0], color, COLOR_SCALE[0]] as any,
-      legend: [
-        { label: minValue.toLocaleString(), color },
-      ],
+      legend: [{ label: minValue.toLocaleString(), color }],
     }
   }
 
@@ -161,10 +177,9 @@ export function CentersChoroplethMap({
   centers,
   allCenters,
   heightClass = "h-[750px]",
-}: CentersChoroplethMapProps) {
+}: CentersChoroplethMapProps): JSX.Element {
   const [error, setError] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
-  const [isMapReady, setIsMapReady] = useState(false)
   const [hoverInfo, setHoverInfo] = useState<{
     x: number
     y: number
@@ -209,11 +224,6 @@ export function CentersChoroplethMap({
 
     setTooltipPosition({ x, y })
   }, [hoverInfo])
-
-  useEffect(() => {
-    const fallback = setTimeout(() => setIsMapReady(true), 700)
-    return () => clearTimeout(fallback)
-  }, [])
 
   useEffect(() => {
     if (!isClient || typeof ResizeObserver === "undefined") return
@@ -289,36 +299,6 @@ export function CentersChoroplethMap({
     return ["all", ["==", ["get", "level"], 1], ["in", featureKeyExpression, ["literal", stateKeysWithCounts]]] as any
   }, [featureKeyExpression, stateKeysWithCounts])
 
-  const bounds = useMemo(() => {
-    const coords = centers
-      .map((center) => ({ lat: center.lat, lng: center.lng }))
-      .filter((c) => typeof c.lat === "number" && typeof c.lng === "number") as Array<{
-      lat: number
-      lng: number
-    }>
-
-    if (coords.length === 0) return null
-
-    let minLat = coords[0].lat
-    let maxLat = coords[0].lat
-    let minLng = coords[0].lng
-    let maxLng = coords[0].lng
-
-    coords.forEach((coord) => {
-      minLat = Math.min(minLat, coord.lat)
-      maxLat = Math.max(maxLat, coord.lat)
-      minLng = Math.min(minLng, coord.lng)
-      maxLng = Math.max(maxLng, coord.lng)
-    })
-
-    return {
-      minLat,
-      maxLat,
-      minLng,
-      maxLng,
-    }
-  }, [centers])
-
   const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY
   const maptilerStyleId = process.env.NEXT_PUBLIC_MAPTILER_STYLE_ID || "streets"
   const mapStyle = maptilerKey
@@ -328,70 +308,40 @@ export function CentersChoroplethMap({
     ? `https://api.maptiler.com/tiles/countries/tiles.json?key=${maptilerKey}`
     : ""
 
-  const handleRecenter = () => {
+  const handleRecenter = (): void => {
     const mapInstance = mapRef.current?.getMap?.() ?? mapRef.current
     if (!mapInstance) return
 
     mapInstance.flyTo({
-      center: [78.9629, 20.5937],
+      center: INDIA_CENTER,
       zoom: 3.5,
       duration: 800,
     })
   }
 
   if (error) {
-    return (
-      <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
-        <div className="text-center">
-          <p className="text-lg font-semibold text-red-500 mb-2">Error Loading Map</p>
-          <p className="text-sm text-muted-foreground">{error}</p>
-          <p className="text-xs text-muted-foreground mt-2">Check browser console for details</p>
-        </div>
-      </div>
-    )
+    return buildPlaceholder(heightClass, "Error Loading Map", error, "error")
   }
 
   if (!isClient) {
-    return (
-      <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
-        <div className="text-center">
-          <p className="text-sm text-muted-foreground">Loading map...</p>
-        </div>
-      </div>
-    )
+    return buildPlaceholder(heightClass, "Loading map...")
   }
 
   if (!maptilerKey) {
     console.error("[CentersChoroplethMap] MapTiler key is missing")
-    return (
-      <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
-        <div className="text-center">
-          <p className="text-lg font-semibold text-muted-foreground mb-2">
-            MapTiler API Key Missing
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Please set NEXT_PUBLIC_MAPTILER_KEY in your environment variables
-          </p>
-        </div>
-      </div>
+    return buildPlaceholder(
+      heightClass,
+      "MapTiler API Key Missing",
+      "Please set NEXT_PUBLIC_MAPTILER_KEY in your environment variables"
     )
   }
 
   if (stateKeysWithCounts.length === 0) {
-    return (
-      <div className={`flex items-center justify-center ${heightClass} bg-muted rounded-lg`}>
-        <div className="text-center">
-          <p className="text-sm text-muted-foreground">No state boundaries to display.</p>
-        </div>
-      </div>
-    )
+    return buildPlaceholder(heightClass, "No state boundaries to display.")
   }
 
   return (
-    <div
-      ref={containerRef}
-      className={`relative w-full ${heightClass} rounded-lg overflow-hidden outline-none bg-muted`}
-    >
+    <div ref={containerRef} className={`relative w-full ${heightClass} rounded-lg overflow-hidden outline-none bg-muted`}>
       <MapGL
         ref={mapRef}
         style={{ width: "100%", height: "100%" }}
@@ -406,7 +356,6 @@ export function CentersChoroplethMap({
           setTimeout(() => {
             e.target.resize()
             handleRecenter()
-            setIsMapReady(true)
           }, 200)
         }}
         interactiveLayerIds={["admin1-fill"]}
@@ -516,8 +465,8 @@ export function CentersChoroplethMap({
             className="absolute z-50 pointer-events-none"
             ref={tooltipRef}
             style={{
-              left: `${(tooltipPosition?.x ?? hoverInfo.x + 15)}px`,
-              top: `${(tooltipPosition?.y ?? hoverInfo.y + 15)}px`,
+              left: `${tooltipPosition?.x ?? hoverInfo.x + 15}px`,
+              top: `${tooltipPosition?.y ?? hoverInfo.y + 15}px`,
               fontFamily:
                 "'Google Sans', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
             }}
@@ -566,7 +515,6 @@ export function CentersChoroplethMap({
             </div>
           </div>
         )}
-
       </MapGL>
     </div>
   )

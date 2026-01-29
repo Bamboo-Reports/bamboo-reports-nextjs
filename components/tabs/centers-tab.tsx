@@ -1,10 +1,20 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { TabsContent } from "@/components/ui/tabs"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, PieChartIcon, Table as TableIcon, MapIcon, LayoutGrid, Layers, MapPin } from "lucide-react"
+import {
+  ArrowDownAZ,
+  ArrowUpAZ,
+  ArrowUpDown,
+  PieChartIcon,
+  Table as TableIcon,
+  MapIcon,
+  LayoutGrid,
+  Layers,
+  MapPin,
+} from "lucide-react"
 import { CenterRow } from "@/components/tables"
 import { CenterGridCard } from "@/components/cards/center-grid-card"
 import { PieChartCard } from "@/components/charts/pie-chart-card"
@@ -37,6 +47,17 @@ interface CentersTabProps {
   itemsPerPage: number
 }
 
+const getSortIcon = (isActive: boolean, direction: "asc" | "desc" | null): JSX.Element => {
+  if (!isActive || direction === null) {
+    return <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+  }
+  return direction === "asc" ? (
+    <ArrowUpAZ className="h-3.5 w-3.5 text-muted-foreground" />
+  ) : (
+    <ArrowDownAZ className="h-3.5 w-3.5 text-muted-foreground" />
+  )
+}
+
 export function CentersTab({
   centers,
   allCenters,
@@ -47,25 +68,27 @@ export function CentersTab({
   currentPage,
   setCurrentPage,
   itemsPerPage,
-}: CentersTabProps) {
+}: CentersTabProps): JSX.Element {
   const [selectedCenter, setSelectedCenter] = useState<Center | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [sort, setSort] = useState<{
     key: "name" | "location" | "type" | "employees"
     direction: "asc" | "desc" | null
-  }>({
-    key: "name",
-    direction: null,
-  })
+  }>(
+    {
+      key: "name",
+      direction: null,
+    }
+  )
   const [dataLayout, setDataLayout] = useState<"table" | "grid">("table")
   const [mapMode, setMapMode] = useState<"city" | "state">("city")
 
-  const handleCenterClick = (center: Center) => {
+  const handleCenterClick = (center: Center): void => {
     setSelectedCenter(center)
     setIsDialogOpen(true)
   }
 
-  const handleSort = (key: typeof sort.key) => {
+  const handleSort = (key: typeof sort.key): void => {
     setSort((prev) => {
       if (prev.key !== key || prev.direction === null) {
         return { key, direction: "asc" }
@@ -76,8 +99,7 @@ export function CentersTab({
     setCurrentPage(1)
   }
 
-
-  const sortedCenters = React.useMemo(() => {
+  const sortedCenters = useMemo(() => {
     if (!sort.direction) return centers
 
     const compare = (a: string | undefined | null, b: string | undefined | null) =>
@@ -102,7 +124,11 @@ export function CentersTab({
     return sort.direction === "asc" ? sorted : sorted.reverse()
   }, [centers, sort])
 
-  // Show empty state when no centers
+  const paginatedCenters = useMemo(
+    () => getPaginatedData(sortedCenters, currentPage, itemsPerPage),
+    [sortedCenters, currentPage, itemsPerPage]
+  )
+
   if (centers.length === 0) {
     return (
       <TabsContent value="centers">
@@ -113,7 +139,6 @@ export function CentersTab({
 
   return (
     <TabsContent value="centers">
-      {/* Header with View Toggle */}
       <div className="flex items-center gap-2 mb-4">
         <PieChartIcon className="h-5 w-5 text-[hsl(var(--chart-2))]" />
         <h2 className="text-lg font-semibold text-foreground">Center Analytics</h2>
@@ -124,30 +149,23 @@ export function CentersTab({
             {
               value: "chart",
               label: <span className="text-[hsl(var(--chart-1))]">Charts</span>,
-              icon: (
-                <PieChartIcon className="h-4 w-4 text-[hsl(var(--chart-1))]" />
-              ),
+              icon: <PieChartIcon className="h-4 w-4 text-[hsl(var(--chart-1))]" />,
             },
             {
               value: "map",
               label: <span className="text-[hsl(var(--chart-4))]">Map</span>,
-              icon: (
-                <MapIcon className="h-4 w-4 text-[hsl(var(--chart-4))]" />
-              ),
+              icon: <MapIcon className="h-4 w-4 text-[hsl(var(--chart-4))]" />,
             },
             {
               value: "data",
               label: <span className="text-[hsl(var(--chart-2))]">Data</span>,
-              icon: (
-                <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />
-              ),
+              icon: <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />,
             },
           ]}
           className="ml-auto"
         />
       </div>
 
-      {/* Charts Section */}
       {centersView === "chart" && (
         <div className="w-full mb-6 animate-fade-in">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -179,150 +197,157 @@ export function CentersTab({
         </div>
       )}
 
-      {/* Map Section */}
-       {centersView === "map" && (
-         <Card className="w-full flex flex-col h-[calc(100vh-19.5rem)] border shadow-sm animate-fade-in">
-           <CardHeader className="shrink-0 px-6 py-4">
-             <div className="flex items-center gap-3">
-               <CardTitle className="text-lg">Centers Map</CardTitle>
-               <ViewSwitcher
-                 value={mapMode}
-                 onValueChange={(value) => setMapMode(value as "city" | "state")}
-                 options={[
-                   {
-                     value: "city",
-                     label: <span className="text-[hsl(var(--chart-4))]">City</span>,
-                     icon: <MapPin className="h-4 w-4 text-[hsl(var(--chart-4))]" />,
-                   },
-                   {
-                     value: "state",
-                     label: <span className="text-[hsl(var(--chart-3))]">State</span>,
-                     icon: <Layers className="h-4 w-4 text-[hsl(var(--chart-3))]" />,
-                   },
-                 ]}
-                 className="ml-auto"
-               />
-             </div>
-           </CardHeader>
-           <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
-             <MapErrorBoundary>
-               {mapMode === "city" ? (
-                 <CentersMap centers={centers} heightClass="h-full" />
-               ) : (
-                 <CentersChoroplethMap centers={centers} allCenters={allCenters} heightClass="h-full" />
-               )}
-             </MapErrorBoundary>
-           </CardContent>
-         </Card>
-       )}
+      {centersView === "map" && (
+        <Card className="w-full flex flex-col h-[calc(100vh-19.5rem)] border shadow-sm animate-fade-in">
+          <CardHeader className="shrink-0 px-6 py-4">
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-lg">Centers Map</CardTitle>
+              <ViewSwitcher
+                value={mapMode}
+                onValueChange={(value) => setMapMode(value as "city" | "state")}
+                options={[
+                  {
+                    value: "city",
+                    label: <span className="text-[hsl(var(--chart-4))]">City</span>,
+                    icon: <MapPin className="h-4 w-4 text-[hsl(var(--chart-4))]" />,
+                  },
+                  {
+                    value: "state",
+                    label: <span className="text-[hsl(var(--chart-3))]">State</span>,
+                    icon: <Layers className="h-4 w-4 text-[hsl(var(--chart-3))]" />,
+                  },
+                ]}
+                className="ml-auto"
+              />
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
+            <MapErrorBoundary>
+              {mapMode === "city" ? (
+                <CentersMap centers={centers} heightClass="h-full" />
+              ) : (
+                <CentersChoroplethMap centers={centers} allCenters={allCenters} heightClass="h-full" />
+              )}
+            </MapErrorBoundary>
+          </CardContent>
+        </Card>
+      )}
 
-       {/* Data Table */}
-       {centersView === "data" && (
-         <Card className="w-full flex flex-col h-[calc(100vh-19.5rem)] border shadow-sm animate-fade-in">
-           <CardHeader className="shrink-0 px-6 py-4">
-             <div className="flex flex-wrap items-center gap-3">
-               <CardTitle className="text-lg">Centers Data</CardTitle>
-               <ViewSwitcher
-                 value={dataLayout}
-                 onValueChange={(value) => setDataLayout(value as "table" | "grid")}
-                 options={[
-                   {
-                     value: "table",
-                     label: <span className="text-[hsl(var(--chart-2))]">Table</span>,
-                     icon: (
-                       <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />
-                     ),
-                   },
-                   {
-                     value: "grid",
-                     label: <span className="text-[hsl(var(--chart-3))]">Grid</span>,
-                     icon: (
-                       <LayoutGrid className="h-4 w-4 text-[hsl(var(--chart-3))]" />
-                     ),
-                   },
-                 ]}
-               />
-             </div>
-           </CardHeader>
-            <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
-              <div className="flex-1 overflow-auto">
-                {dataLayout === "table" ? (
-                  <Table className="table-fixed">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[260px]">
-                          <SortButton label="Center Name" sortKey="name" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
-                        </TableHead>
-                        <TableHead className="w-[200px]">
-                          <SortButton label="Location" sortKey="location" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
-                        </TableHead>
-                        <TableHead className="w-[200px]">
-                          <SortButton label="Center Type" sortKey="type" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
-                        </TableHead>
-                        <TableHead className="w-[160px]">
-                          <SortButton label="Employee Range" sortKey="employees" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {getPaginatedData(sortedCenters, currentPage, itemsPerPage).map(
-                        (center, index) => (
-                          <CenterRow
-                            key={`${center.cn_unique_key}-${index}`}
-                            center={center}
-                            onClick={() => handleCenterClick(center)}
-                          />
-                        )
-                      )}
-                    </TableBody>
-                  </Table>
-                ) : (
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2 px-6 py-3 border-b bg-muted/20">
-                      <span className="text-xs font-medium text-muted-foreground">Sort</span>
-                      <button
-                        type="button"
-                        onClick={() => handleSort("name")}
-                        className="inline-flex items-center justify-center rounded-md border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground hover:border-accent-foreground/20 shadow-sm transition-colors h-7 w-7"
-                        aria-label="Sort by center name"
-                      >
-                        {sort.key !== "name" || sort.direction === null ? (
-                          <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
-                        ) : sort.direction === "asc" ? (
-                          <ArrowUpAZ className="h-3.5 w-3.5 text-muted-foreground" />
-                        ) : (
-                          <ArrowDownAZ className="h-3.5 w-3.5 text-muted-foreground" />
-                        )}
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                      {getPaginatedData(sortedCenters, currentPage, itemsPerPage).map(
-                        (center, index) => (
-                          <CenterGridCard
-                            key={`${center.cn_unique_key}-${index}`}
-                            center={center}
-                            onClick={() => handleCenterClick(center)}
-                          />
-                        )
-                      )}
-                    </div>
+      {centersView === "data" && (
+        <Card className="w-full flex flex-col h-[calc(100vh-19.5rem)] border shadow-sm animate-fade-in">
+          <CardHeader className="shrink-0 px-6 py-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <CardTitle className="text-lg">Centers Data</CardTitle>
+              <ViewSwitcher
+                value={dataLayout}
+                onValueChange={(value) => setDataLayout(value as "table" | "grid")}
+                options={[
+                  {
+                    value: "table",
+                    label: <span className="text-[hsl(var(--chart-2))]">Table</span>,
+                    icon: <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />,
+                  },
+                  {
+                    value: "grid",
+                    label: <span className="text-[hsl(var(--chart-3))]">Grid</span>,
+                    icon: <LayoutGrid className="h-4 w-4 text-[hsl(var(--chart-3))]" />,
+                  },
+                ]}
+              />
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
+            <div className="flex-1 overflow-auto">
+              {dataLayout === "table" ? (
+                <Table className="table-fixed">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[260px]">
+                        <SortButton
+                          label="Center Name"
+                          sortKey="name"
+                          currentKey={sort.key}
+                          direction={sort.direction}
+                          onClick={handleSort}
+                        />
+                      </TableHead>
+                      <TableHead className="w-[200px]">
+                        <SortButton
+                          label="Location"
+                          sortKey="location"
+                          currentKey={sort.key}
+                          direction={sort.direction}
+                          onClick={handleSort}
+                        />
+                      </TableHead>
+                      <TableHead className="w-[200px]">
+                        <SortButton
+                          label="Center Type"
+                          sortKey="type"
+                          currentKey={sort.key}
+                          direction={sort.direction}
+                          onClick={handleSort}
+                        />
+                      </TableHead>
+                      <TableHead className="w-[160px]">
+                        <SortButton
+                          label="Employee Range"
+                          sortKey="employees"
+                          currentKey={sort.key}
+                          direction={sort.direction}
+                          onClick={handleSort}
+                        />
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedCenters.map((center, index) => (
+                      <CenterRow
+                        key={`${center.cn_unique_key}-${index}`}
+                        center={center}
+                        onClick={() => handleCenterClick(center)}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2 px-6 py-3 border-b bg-muted/20">
+                    <span className="text-xs font-medium text-muted-foreground">Sort</span>
+                    <button
+                      type="button"
+                      onClick={() => handleSort("name")}
+                      className="inline-flex items-center justify-center rounded-md border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground hover:border-accent-foreground/20 shadow-sm transition-colors h-7 w-7"
+                      aria-label="Sort by center name"
+                    >
+                      {getSortIcon(sort.key === "name", sort.direction)}
+                    </button>
                   </div>
-                )}
-              </div>
-                  {centers.length > 0 && (
-                    <PaginationControls
-                      currentPage={currentPage}
-                      totalItems={centers.length}
-                      itemsPerPage={itemsPerPage}
-                      onPageChange={setCurrentPage}
-                      dataLength={centers.length}
-                    />
-                  )}
-            </CardContent>
-         </Card>
-       )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+                    {paginatedCenters.map((center, index) => (
+                      <CenterGridCard
+                        key={`${center.cn_unique_key}-${index}`}
+                        center={center}
+                        onClick={() => handleCenterClick(center)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            {centers.length > 0 && (
+              <PaginationControls
+                currentPage={currentPage}
+                totalItems={centers.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+                dataLength={centers.length}
+              />
+            )}
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Center Details Dialog */}
       <CenterDetailsDialog
         center={selectedCenter}
         services={services}
