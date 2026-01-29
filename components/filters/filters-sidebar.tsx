@@ -1,15 +1,15 @@
 "use client"
 
-import React, { useState } from "react"
-import { Filter, Building, Briefcase, Users } from "lucide-react"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { SavedFiltersManager } from "@/components/saved-filters-manager"
-import type { Filters, AvailableOptions } from "@/lib/types"
+import React, { useState } from 'react'
+import { Briefcase, Building, Filter, Users } from 'lucide-react'
+import { SavedFiltersManager } from '@/components/saved-filters-manager'
 import {
   AccountFiltersSection,
   CenterFiltersSection,
   ProspectFiltersSection,
-} from "@/components/filters/filter-sections"
+} from '@/components/filters/filter-sections'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import type { AvailableOptions, Filters } from '@/lib/types'
 
 interface FiltersSidebarProps {
   filters: Filters
@@ -71,7 +71,7 @@ export function FiltersSidebar({
   getTotalActiveFilters,
   handleLoadSavedFilters,
   formatRevenueInMillions,
-}: FiltersSidebarProps) {
+}: FiltersSidebarProps): JSX.Element {
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
 
   return (

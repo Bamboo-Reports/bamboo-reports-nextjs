@@ -1,9 +1,10 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { RefreshCw, UserRound } from "lucide-react"
-import { ThemeToggle } from "@/components/theme-toggle"
+import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { RefreshCw, UserRound } from 'lucide-react'
+import { ThemeToggle } from '@/components/theme-toggle'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,16 +12,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { getSupabaseBrowserClient } from "@/lib/supabase/client"
-import type { Profile } from "@/lib/types"
-import { useRouter } from "next/navigation"
+} from '@/components/ui/dropdown-menu'
+import { getSupabaseBrowserClient } from '@/lib/supabase/client'
+import type { Profile } from '@/lib/types'
 
 interface HeaderProps {
   onRefresh: () => void
 }
 
-export const Header = React.memo(function Header({ onRefresh }: HeaderProps) {
+export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JSX.Element {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [sessionEmail, setSessionEmail] = useState<string | null>(null)
@@ -32,9 +32,9 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps) {
 
     const loadProfile = async (userId: string) => {
       const { data, error } = await supabase
-        .from("profiles")
-        .select("id, user_id, first_name, last_name, email, phone")
-        .eq("user_id", userId)
+        .from('profiles')
+        .select('id, user_id, first_name, last_name, email, phone')
+        .eq('user_id', userId)
         .single()
 
       if (!isMounted) return
@@ -78,7 +78,7 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps) {
   const handleSignOut = async () => {
     const supabase = getSupabaseBrowserClient()
     await supabase.auth.signOut()
-    router.replace("/signin")
+    router.replace('/signin')
   }
 
   return (
@@ -101,10 +101,10 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps) {
                 <DropdownMenuSeparator />
                 <div className="px-2 py-1.5 text-sm">
                   <div className="font-medium text-foreground">
-                    {profile ? `${profile.first_name} ${profile.last_name}` : "User"}
+                    {profile ? `${profile.first_name} ${profile.last_name}` : 'User'}
                   </div>
                   <div className="text-muted-foreground">
-                    {profile?.email ?? sessionEmail ?? "No email"}
+                    {profile?.email ?? sessionEmail ?? 'No email'}
                   </div>
                   {profile?.phone ? (
                     <div className="text-muted-foreground">{profile.phone}</div>
