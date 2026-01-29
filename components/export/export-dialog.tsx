@@ -72,13 +72,17 @@ const DATASET_META: Array<{
   },
 ]
 
-export function ExportDialog({ open, onOpenChange, data, isFiltered }: ExportDialogProps) {
-  const [selection, setSelection] = useState<Record<ExportDatasetKey, boolean>>({
-    accounts: true,
-    centers: true,
-    services: true,
-    prospects: true,
-  })
+const buildSelectionFromData = (data: ExportData): Record<ExportDatasetKey, boolean> => ({
+  accounts: data.accounts.length > 0,
+  centers: data.centers.length > 0,
+  services: data.services.length > 0,
+  prospects: data.prospects.length > 0,
+})
+
+export function ExportDialog({ open, onOpenChange, data, isFiltered }: ExportDialogProps): JSX.Element {
+  const [selection, setSelection] = useState<Record<ExportDatasetKey, boolean>>(
+    buildSelectionFromData(data)
+  )
   const [isExporting, setIsExporting] = useState(false)
   const [progress, setProgress] = useState(0)
   const [stage, setStage] = useState("Preparing export...")
@@ -86,12 +90,7 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered }: ExportDia
 
   useEffect(() => {
     if (!open) return
-    setSelection({
-      accounts: data.accounts.length > 0,
-      centers: data.centers.length > 0,
-      services: data.services.length > 0,
-      prospects: data.prospects.length > 0,
-    })
+    setSelection(buildSelectionFromData(data))
     setIsExporting(false)
     setProgress(0)
     setStage("Preparing export...")
@@ -103,12 +102,12 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered }: ExportDia
     [selection]
   )
 
-  const handleToggle = (key: ExportDatasetKey) => {
+  const handleToggle = (key: ExportDatasetKey): void => {
     if (isExporting) return
     setSelection((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
-  const handleSelectAll = (value: boolean) => {
+  const handleSelectAll = (value: boolean): void => {
     if (isExporting) return
     setSelection({
       accounts: value,
@@ -118,7 +117,7 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered }: ExportDia
     })
   }
 
-  const handleExport = async () => {
+  const handleExport = async (): Promise<void> => {
     if (isExporting || totalSelected === 0) return
 
     setIsExporting(true)
@@ -222,7 +221,7 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered }: ExportDia
                     <p className="text-xs text-muted-foreground">{item.description}</p>
                   </div>
                 </button>
-              )
+              )}
             })}
           </div>
 
@@ -242,7 +241,11 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered }: ExportDia
                   </div>
                 </>
               )}
-              {error && <p className={isExporting ? "mt-2 text-xs text-destructive" : "text-xs text-destructive"}>{error}</p>}
+              {error && (
+                <p className={isExporting ? "mt-2 text-xs text-destructive" : "text-xs text-destructive"}>
+                  {error}
+                </p>
+              )}
             </div>
           )}
         </div>

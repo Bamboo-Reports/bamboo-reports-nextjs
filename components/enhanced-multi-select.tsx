@@ -18,129 +18,143 @@ interface EnhancedMultiSelectProps {
   isApplying?: boolean
 }
 
-// Memoized Badge component with include/exclude toggle
-const EnhancedSelectBadge = React.memo(({
-  item,
-  onRemove,
-  onToggleMode
-}: {
-  item: FilterValue
-  onRemove: () => void
-  onToggleMode: () => void
-}) => {
-  const isInclude = item.mode === 'include'
+type Mode = FilterValue["mode"]
 
-  return (
-    <Badge
-      variant="secondary"
-      className={cn(
-        "mr-1 mb-1 flex items-center gap-1 pr-1",
-        isInclude
-          ? "bg-green-500/20 text-green-700 dark:bg-green-500/30 dark:text-green-300 border-green-500/50 hover:bg-green-500/25"
-          : "bg-red-500/20 text-red-700 dark:bg-red-500/30 dark:text-red-300 border-red-500/50 hover:bg-red-500/25"
-      )}
-    >
-      <button
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          onToggleMode()
-        }}
+type SelectOption = {
+  value: string
+  count?: number
+  disabled?: boolean
+}
+
+const MODE_INCLUDE: Mode = "include"
+const MODE_EXCLUDE: Mode = "exclude"
+
+const EnhancedSelectBadge = React.memo(
+  ({
+    item,
+    onRemove,
+    onToggleMode,
+  }: {
+    item: FilterValue
+    onRemove: () => void
+    onToggleMode: () => void
+  }): JSX.Element => {
+    const isInclude = item.mode === MODE_INCLUDE
+
+    return (
+      <Badge
+        variant="secondary"
         className={cn(
-          "flex items-center justify-center w-4 h-4 rounded-sm",
+          "mr-1 mb-1 flex items-center gap-1 pr-1",
           isInclude
-            ? "bg-green-600/30 hover:bg-green-600/40"
-            : "bg-red-600/30 hover:bg-red-600/40"
+            ? "bg-green-500/20 text-green-700 dark:bg-green-500/30 dark:text-green-300 border-green-500/50 hover:bg-green-500/25"
+            : "bg-red-500/20 text-red-700 dark:bg-red-500/30 dark:text-red-300 border-red-500/50 hover:bg-red-500/25"
         )}
-        title={isInclude ? "Click to exclude" : "Click to include"}
       >
-        {isInclude ? (
-          <Plus className="h-3 w-3" />
-        ) : (
-          <Minus className="h-3 w-3" />
-        )}
-      </button>
-      <span className="text-xs">{item.value}</span>
-      <button
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          onRemove()
-        }}
-        className="ml-1"
-      >
-        <X className="h-3 w-3" />
-      </button>
-    </Badge>
-  )
-})
+        <button
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            onToggleMode()
+          }}
+          className={cn(
+            "flex items-center justify-center w-4 h-4 rounded-sm",
+            isInclude
+              ? "bg-green-600/30 hover:bg-green-600/40"
+              : "bg-red-600/30 hover:bg-red-600/40"
+          )}
+          title={isInclude ? "Click to exclude" : "Click to include"}
+        >
+          {isInclude ? (
+            <Plus className="h-3 w-3" />
+          ) : (
+            <Minus className="h-3 w-3" />
+          )}
+        </button>
+        <span className="text-xs">{item.value}</span>
+        <button
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            onRemove()
+          }}
+          className="ml-1"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      </Badge>
+    )
+  }
+)
 EnhancedSelectBadge.displayName = "EnhancedSelectBadge"
 
-// Memoized Command Item
-const EnhancedSelectItem = React.memo(({
-  value,
-  disabled,
-  isSelected,
-  filterValue,
-  onSelect,
-  onSelectInclude,
-  onSelectExclude
-}: {
-  value: string
-  disabled: boolean
-  isSelected: boolean
-  filterValue?: FilterValue
-  onSelect: () => void
-  onSelectInclude: () => void
-  onSelectExclude: () => void
-}) => {
-  const isInclude = filterValue?.mode === 'include'
+const EnhancedSelectItem = React.memo(
+  ({
+    value,
+    disabled,
+    isSelected,
+    filterValue,
+    onSelect,
+    onSelectInclude,
+    onSelectExclude,
+  }: {
+    value: string
+    disabled: boolean
+    isSelected: boolean
+    filterValue?: FilterValue
+    onSelect: () => void
+    onSelectInclude: () => void
+    onSelectExclude: () => void
+  }): JSX.Element => {
+    const isInclude = filterValue?.mode === MODE_INCLUDE
 
-  return (
-    <CommandItem
-      key={value}
-      onSelect={onSelect}
-      disabled={disabled}
-      className={cn(
-        "cursor-pointer",
-        disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-accent/30",
-        isSelected && (isInclude
-          ? "bg-green-500/10 hover:bg-green-500/15"
-          : "bg-red-500/10 hover:bg-red-500/15")
-      )}
-    >
-      <div className="flex items-center justify-between flex-1">
-        <span className="flex-1">{value}</span>
-        <div className="flex gap-1 ml-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0 hover:bg-green-100/60 dark:hover:bg-green-900/15 transition-colors duration-150"
-            onClick={(e) => {
-              e.stopPropagation()
-              onSelectInclude()
-            }}
-            title="Include"
-          >
-            <Plus className="h-3 w-3 text-green-600" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0 hover:bg-red-100/60 dark:hover:bg-red-900/15 transition-colors duration-150"
-            onClick={(e) => {
-              e.stopPropagation()
-              onSelectExclude()
-            }}
-            title="Exclude"
-          >
-            <Minus className="h-3 w-3 text-red-600" />
-          </Button>
+    return (
+      <CommandItem
+        key={value}
+        onSelect={onSelect}
+        disabled={disabled}
+        className={cn(
+          "cursor-pointer",
+          disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-accent/30",
+          isSelected &&
+            (isInclude
+              ? "bg-green-500/10 hover:bg-green-500/15"
+              : "bg-red-500/10 hover:bg-red-500/15")
+        )}
+      >
+        <div className="flex items-center justify-between flex-1">
+          <span className="flex-1">{value}</span>
+          <div className="flex gap-1 ml-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 hover:bg-green-100/60 dark:hover:bg-green-900/15 transition-colors duration-150"
+              onClick={(e) => {
+                e.stopPropagation()
+                onSelectInclude()
+              }}
+              title="Include"
+            >
+              <Plus className="h-3 w-3 text-green-600" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 hover:bg-red-100/60 dark:hover:bg-red-900/15 transition-colors duration-150"
+              onClick={(e) => {
+                e.stopPropagation()
+                onSelectExclude()
+              }}
+              title="Exclude"
+            >
+              <Minus className="h-3 w-3 text-red-600" />
+            </Button>
+          </div>
         </div>
-      </div>
-    </CommandItem>
-  )
-})
+      </CommandItem>
+    )
+  }
+)
 EnhancedSelectItem.displayName = "EnhancedSelectItem"
 
 export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
@@ -149,54 +163,59 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
   onChange,
   placeholder = "Select items...",
   className,
-  isApplying = false,
-}: EnhancedMultiSelectProps) {
+}: EnhancedMultiSelectProps): JSX.Element {
   const [open, setOpen] = React.useState(false)
 
-  const handleUnselect = React.useCallback((item: FilterValue) => {
-    onChange(selected.filter((i) => i.value !== item.value))
-  }, [selected, onChange])
+  const handleUnselect = React.useCallback(
+    (item: FilterValue) => {
+      onChange(selected.filter((i) => i.value !== item.value))
+    },
+    [selected, onChange]
+  )
 
-  const handleToggleMode = React.useCallback((item: FilterValue) => {
-    onChange(
-      selected.map((i) =>
-        i.value === item.value
-          ? { ...i, mode: i.mode === 'include' ? 'exclude' : 'include' }
-          : i
+  const handleToggleMode = React.useCallback(
+    (item: FilterValue) => {
+      onChange(
+        selected.map((i) =>
+          i.value === item.value
+            ? { ...i, mode: i.mode === MODE_INCLUDE ? MODE_EXCLUDE : MODE_INCLUDE }
+            : i
+        )
       )
-    )
-  }, [selected, onChange])
+    },
+    [selected, onChange]
+  )
 
-  const handleSelect = React.useCallback((value: string, mode?: 'include' | 'exclude') => {
-    const option = options.find((opt) => (typeof opt === "string" ? opt === value : opt.value === value))
-    if (typeof option === "object" && option.disabled) return
+  const handleSelect = React.useCallback(
+    (value: string, mode?: Mode) => {
+      const option = options.find((opt) => opt.value === value)
+      if (option?.disabled) return
 
-    const existingIndex = selected.findIndex((i) => i.value === value)
+      const existingIndex = selected.findIndex((i) => i.value === value)
 
-    if (existingIndex >= 0) {
-      if (mode) {
-        // If mode is explicitly provided, set it
-        onChange(
-          selected.map((i, idx) =>
-            idx === existingIndex ? { ...i, mode } : i
+      if (existingIndex >= 0) {
+        if (mode) {
+          onChange(
+            selected.map((i, idx) =>
+              idx === existingIndex ? { ...i, mode } : i
+            )
           )
-        )
+        } else {
+          const currentMode = selected[existingIndex].mode
+          onChange(
+            selected.map((i, idx) =>
+              idx === existingIndex
+                ? { ...i, mode: currentMode === MODE_INCLUDE ? MODE_EXCLUDE : MODE_INCLUDE }
+                : i
+            )
+          )
+        }
       } else {
-        // If already selected and no mode provided, toggle mode
-        const currentMode = selected[existingIndex].mode
-        onChange(
-          selected.map((i, idx) =>
-            idx === existingIndex
-              ? { ...i, mode: currentMode === 'include' ? 'exclude' : 'include' }
-              : i
-          )
-        )
+        onChange([...selected, { value, mode: mode || MODE_INCLUDE }])
       }
-    } else {
-      // Add with specified mode or default to include
-      onChange([...selected, { value, mode: mode || 'include' }])
-    }
-  }, [options, selected, onChange])
+    },
+    [options, selected, onChange]
+  )
 
   const renderBadges = React.useMemo(() => {
     return selected.map((item) => (
@@ -211,8 +230,8 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
 
   const renderOptions = React.useMemo(() => {
     return options.map((option) => {
-      const value = typeof option === "string" ? option : option.value
-      const disabled = typeof option === "object" ? (option.disabled ?? false) : false
+      const value = option.value
+      const disabled = option.disabled ?? false
       const filterValue = selected.find((s) => s.value === value)
       const isSelected = !!filterValue
 
@@ -224,32 +243,15 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
           isSelected={isSelected}
           filterValue={filterValue}
           onSelect={() => handleSelect(value)}
-          onSelectInclude={() => handleSelect(value, 'include')}
-          onSelectExclude={() => handleSelect(value, 'exclude')}
+          onSelectInclude={() => handleSelect(value, MODE_INCLUDE)}
+          onSelectExclude={() => handleSelect(value, MODE_EXCLUDE)}
         />
       )
     })
   }, [options, selected, handleSelect])
 
-  // Count include vs exclude
-  const includeCount = selected.filter(s => s.mode === 'include').length
-  const excludeCount = selected.filter(s => s.mode === 'exclude').length
-
-  // Handle isApplying changes to trigger success state
-  const [showSuccess, setShowSuccess] = React.useState(false)
-  const prevIsApplying = React.useRef(isApplying)
-
-  React.useEffect(() => {
-    if (prevIsApplying.current && !isApplying) {
-      // Just finished applying
-      setShowSuccess(true)
-      const timer = setTimeout(() => {
-        setShowSuccess(false)
-      }, 500)
-      return () => clearTimeout(timer)
-    }
-    prevIsApplying.current = isApplying
-  }, [isApplying])
+  const includeCount = selected.filter((item) => item.mode === MODE_INCLUDE).length
+  const excludeCount = selected.filter((item) => item.mode === MODE_EXCLUDE).length
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>

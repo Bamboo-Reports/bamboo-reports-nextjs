@@ -3,12 +3,7 @@
 import { neon, type NeonQueryFunction } from "@neondatabase/serverless"
 import type { Account, Center, Function, Service, Tech, Prospect } from "@/lib/types"
 
-// ============================================
-// CONFIGURATION & SETUP
-// ============================================
-
-// Cache configuration
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+const CACHE_DURATION = 5 * 60 * 1000
 
 interface CachedData<T> {
   data: T
@@ -34,15 +29,41 @@ try {
   console.error("Failed to initialize database connection:", error)
 }
 
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
+const logCacheHit = (key: string): void => {
+  console.log(`Cache hit for: ${key}`)
+}
 
-/**
- * Retry logic for database operations
- */
+const logCacheSet = (key: string): void => {
+  console.log(`Cache set for: ${key}`)
+}
+
+const getSqlOrThrow = (): NeonQueryFunction => {
+  if (!sql) {
+    throw new Error("Database connection not initialized")
+  }
+  return sql
+}
+
+const getCachedData = <T,>(key: string): T | null => {
+  const cached = dataCache.get(key)
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    logCacheHit(key)
+    return cached.data as T
+  }
+  return null
+}
+
+const setCachedData = <T,>(key: string, data: T): void => {
+  dataCache.set(key, { data, timestamp: Date.now() })
+  logCacheSet(key)
+}
+
+const clearCachedKey = (key: string): void => {
+  dataCache.delete(key)
+}
+
 async function fetchWithRetry<T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
-  for (let i = 0; i < retries; i++) {
+  for (let i = 0; i < retries; i += 1) {
     try {
       return await fn()
     } catch (error) {
@@ -54,191 +75,102 @@ async function fetchWithRetry<T>(fn: () => Promise<T>, retries = 3, delay = 1000
   throw new Error("Max retries reached")
 }
 
-/**
- * Get data from cache or fetch if expired
- */
-function getCachedData<T>(key: string): T | null {
-  const cached = dataCache.get(key)
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    console.log(`Cache hit for: ${key}`)
-    return cached.data as T
-  }
-  return null
-}
-
-/**
- * Set data in cache
- */
-function setCachedData<T>(key: string, data: T): void {
-  dataCache.set(key, { data, timestamp: Date.now() })
-  console.log(`Cache set for: ${key}`)
-}
-
-function getSqlOrThrow(): NeonQueryFunction {
-  if (!sql) {
-    throw new Error("Database connection not initialized")
-  }
-  return sql
-}
-
-/**
- * Clear all cached data
- */
 export async function clearCache(): Promise<{ success: boolean; message: string }> {
   dataCache.clear()
   console.log("Cache cleared")
   return { success: true, message: "Cache cleared successfully" }
 }
 
-// ============================================
-// BASIC DATA FETCHING FUNCTIONS
-// ============================================
+const fetchWithCache = async <T,>(
+  cacheKey: string,
+  fetcher: () => Promise<T>,
+  emptyValue: T
+): Promise<T> => {
+  const cached = getCachedData<T>(cacheKey)
+  if (cached) return cached
+
+  try {
+    const data = await fetchWithRetry(fetcher)
+    setCachedData(cacheKey, data)
+    return data
+  } catch (error) {
+    console.error(`Error fetching ${cacheKey}:`, error)
+    return emptyValue
+  }
+}
 
 export async function getAccounts(): Promise<Account[]> {
-  try {
-    const sqlClient = getSqlOrThrow()
-
-    // Check cache first
-    const cacheKey = "accounts"
-    const cached = getCachedData<Account[]>(cacheKey)
-    if (cached) return cached
-
-    console.log("Fetching accounts from database...")
-    const accounts = await fetchWithRetry(
-      () => sqlClient`SELECT * FROM accounts ORDER BY account_global_legal_name`
-    )
-    console.log(`Successfully fetched ${accounts.length} accounts`)
-
-    // Cache the result
-    setCachedData(cacheKey, accounts)
-
-    return accounts
-  } catch (error) {
-    console.error("Error fetching accounts:", error)
-    return []
-  }
+  const sqlClient = getSqlOrThrow()
+  console.log("Fetching accounts from database...")
+  const accounts = await fetchWithCache(
+    "accounts",
+    () => sqlClient`SELECT * FROM accounts ORDER BY account_global_legal_name`,
+    [] as Account[]
+  )
+  console.log(`Successfully fetched ${accounts.length} accounts`)
+  return accounts
 }
 
 export async function getCenters(): Promise<Center[]> {
-  try {
-    const sqlClient = getSqlOrThrow()
-
-    // Check cache first
-    const cacheKey = "centers"
-    const cached = getCachedData<Center[]>(cacheKey)
-    if (cached) return cached
-
-    console.log("Fetching centers from database...")
-    const centers = await fetchWithRetry(() => sqlClient`SELECT * FROM centers ORDER BY center_name`)
-    console.log(`Successfully fetched ${centers.length} centers`)
-
-    // Cache the result
-    setCachedData(cacheKey, centers)
-
-    return centers
-  } catch (error) {
-    console.error("Error fetching centers:", error)
-    return []
-  }
+  const sqlClient = getSqlOrThrow()
+  console.log("Fetching centers from database...")
+  const centers = await fetchWithCache(
+    "centers",
+    () => sqlClient`SELECT * FROM centers ORDER BY center_name`,
+    [] as Center[]
+  )
+  console.log(`Successfully fetched ${centers.length} centers`)
+  return centers
 }
 
 export async function getFunctions(): Promise<Function[]> {
-  try {
-    const sqlClient = getSqlOrThrow()
-
-    // Check cache first
-    const cacheKey = "functions"
-    const cached = getCachedData<Function[]>(cacheKey)
-    if (cached) return cached
-
-    console.log("Fetching functions from database...")
-    const functions = await fetchWithRetry(() => sqlClient`SELECT * FROM functions ORDER BY cn_unique_key`)
-    console.log(`Successfully fetched ${functions.length} functions`)
-
-    // Cache the result
-    setCachedData(cacheKey, functions)
-
-    return functions
-  } catch (error) {
-    console.error("Error fetching functions:", error)
-    return []
-  }
+  const sqlClient = getSqlOrThrow()
+  console.log("Fetching functions from database...")
+  const functions = await fetchWithCache(
+    "functions",
+    () => sqlClient`SELECT * FROM functions ORDER BY cn_unique_key`,
+    [] as Function[]
+  )
+  console.log(`Successfully fetched ${functions.length} functions`)
+  return functions
 }
 
 export async function getServices(): Promise<Service[]> {
-  try {
-    const sqlClient = getSqlOrThrow()
-
-    // Check cache first
-    const cacheKey = "services"
-    const cached = getCachedData<Service[]>(cacheKey)
-    if (cached) return cached
-
-    console.log("Fetching services from database...")
-    const services = await fetchWithRetry(() => sqlClient`SELECT * FROM services ORDER BY center_name`)
-    console.log(`Successfully fetched ${services.length} services`)
-
-    // Cache the result
-    setCachedData(cacheKey, services)
-
-    return services
-  } catch (error) {
-    console.error("Error fetching services:", error)
-    return []
-  }
+  const sqlClient = getSqlOrThrow()
+  console.log("Fetching services from database...")
+  const services = await fetchWithCache(
+    "services",
+    () => sqlClient`SELECT * FROM services ORDER BY center_name`,
+    [] as Service[]
+  )
+  console.log(`Successfully fetched ${services.length} services`)
+  return services
 }
 
 export async function getTech(): Promise<Tech[]> {
-  try {
-    const sqlClient = getSqlOrThrow()
-
-    const cacheKey = "tech"
-    const cached = getCachedData<Tech[]>(cacheKey)
-    if (cached) return cached
-
-    console.log("Fetching tech stack from database...")
-    const tech = await fetchWithRetry(
-      () => sqlClient`SELECT * FROM tech ORDER BY account_global_legal_name, software_category, software_in_use`
-    )
-    console.log(`Successfully fetched ${tech.length} tech stack rows`)
-
-    setCachedData(cacheKey, tech)
-
-    return tech
-  } catch (error) {
-    console.error("Error fetching tech:", error)
-    return []
-  }
+  const sqlClient = getSqlOrThrow()
+  console.log("Fetching tech stack from database...")
+  const tech = await fetchWithCache(
+    "tech",
+    () =>
+      sqlClient`SELECT * FROM tech ORDER BY account_global_legal_name, software_category, software_in_use`,
+    [] as Tech[]
+  )
+  console.log(`Successfully fetched ${tech.length} tech stack rows`)
+  return tech
 }
 
 export async function getProspects(): Promise<Prospect[]> {
-  try {
-    const sqlClient = getSqlOrThrow()
-
-    // Check cache first
-    const cacheKey = "prospects"
-    const cached = getCachedData<Prospect[]>(cacheKey)
-    if (cached) return cached
-
-    console.log("Fetching prospects from database...")
-    const prospects = await fetchWithRetry(
-      () => sqlClient`SELECT * FROM prospects ORDER BY prospect_last_name, prospect_first_name`
-    )
-    console.log(`Successfully fetched ${prospects.length} prospects`)
-
-    // Cache the result
-    setCachedData(cacheKey, prospects)
-
-    return prospects
-  } catch (error) {
-    console.error("Error fetching prospects:", error)
-    return []
-  }
+  const sqlClient = getSqlOrThrow()
+  console.log("Fetching prospects from database...")
+  const prospects = await fetchWithCache(
+    "prospects",
+    () => sqlClient`SELECT * FROM prospects ORDER BY prospect_last_name, prospect_first_name`,
+    [] as Prospect[]
+  )
+  console.log(`Successfully fetched ${prospects.length} prospects`)
+  return prospects
 }
-
-// ============================================
-// SAVED FILTERS FUNCTIONS
-// ============================================
 
 export async function saveFilterSet(
   name: string,
@@ -257,8 +189,7 @@ export async function saveFilterSet(
     )
     console.log("Successfully saved filter set:", result[0])
 
-    // Invalidate saved filters cache
-    dataCache.delete("saved_filters")
+    clearCachedKey("saved_filters")
 
     return { success: true, data: result[0] }
   } catch (error) {
@@ -268,32 +199,22 @@ export async function saveFilterSet(
 }
 
 export async function getSavedFilters(): Promise<FilterSet[]> {
-  try {
-    const sqlClient = getSqlOrThrow()
+  const sqlClient = getSqlOrThrow()
+  console.log("Fetching saved filters...")
 
-    // Check cache first
-    const cacheKey = "saved_filters"
-    const cached = getCachedData<FilterSet[]>(cacheKey)
-    if (cached) return cached
-
-    console.log("Fetching saved filters...")
-    const savedFilters = await fetchWithRetry(
-      () => sqlClient`
+  const savedFilters = await fetchWithCache(
+    "saved_filters",
+    () =>
+      sqlClient`
         SELECT id, name, filters, created_at, updated_at 
         FROM saved_filters 
         ORDER BY created_at DESC
-      `
-    )
-    console.log(`Successfully fetched ${savedFilters.length} saved filters`)
+      `,
+    [] as FilterSet[]
+  )
 
-    // Cache the result
-    setCachedData(cacheKey, savedFilters)
-
-    return savedFilters
-  } catch (error) {
-    console.error("Error fetching saved filters:", error)
-    return []
-  }
+  console.log(`Successfully fetched ${savedFilters.length} saved filters`)
+  return savedFilters
 }
 
 export async function deleteSavedFilter(
@@ -312,8 +233,7 @@ export async function deleteSavedFilter(
     )
     console.log("Successfully deleted filter set:", result[0])
 
-    // Invalidate saved filters cache
-    dataCache.delete("saved_filters")
+    clearCachedKey("saved_filters")
 
     return { success: true, data: result[0] }
   } catch (error) {
@@ -341,8 +261,7 @@ export async function updateSavedFilter(
     )
     console.log("Successfully updated filter set:", result[0])
 
-    // Invalidate saved filters cache
-    dataCache.delete("saved_filters")
+    clearCachedKey("saved_filters")
 
     return { success: true, data: result[0] }
   } catch (error) {
@@ -350,10 +269,6 @@ export async function updateSavedFilter(
     return { success: false, error: error instanceof Error ? error.message : "Unknown error" }
   }
 }
-
-// ============================================
-// AGGREGATED DATA FUNCTIONS
-// ============================================
 
 type AllDataResult = {
   accounts: Account[]
@@ -365,39 +280,36 @@ type AllDataResult = {
   error: string | null
 }
 
+const emptyAllDataResult: AllDataResult = {
+  accounts: [],
+  centers: [],
+  functions: [],
+  services: [],
+  tech: [],
+  prospects: [],
+  error: null,
+}
+
+const buildAllDataError = (error: string): AllDataResult => ({
+  ...emptyAllDataResult,
+  error,
+})
+
 export async function getAllData(): Promise<AllDataResult> {
   try {
     console.time("getAllData total")
     console.log("Starting to fetch all data from database...")
 
-    // Check if DATABASE_URL is available
     if (!process.env.DATABASE_URL) {
       console.error("DATABASE_URL environment variable is not set")
-      return {
-        accounts: [],
-        centers: [],
-        functions: [],
-        services: [],
-        tech: [],
-        prospects: [],
-        error: "Database configuration missing",
-      }
+      return buildAllDataError("Database configuration missing")
     }
 
     if (!sql) {
       console.error("Database connection not initialized")
-      return {
-        accounts: [],
-        centers: [],
-        functions: [],
-        services: [],
-        tech: [],
-        prospects: [],
-        error: "Database connection failed",
-      }
+      return buildAllDataError("Database connection failed")
     }
 
-    // Check cache first for all data
     const cacheKey = "all_data"
     const cached = getCachedData<AllDataResult>(cacheKey)
     if (cached) {
@@ -405,7 +317,6 @@ export async function getAllData(): Promise<AllDataResult> {
       return cached
     }
 
-    // Fetch all data in parallel with retry logic
     console.time("getAllData parallel fetch")
     const [accounts, centers, functions, services, tech, prospects] = await Promise.all([
       (async () => {
@@ -466,33 +377,16 @@ export async function getAllData(): Promise<AllDataResult> {
       error: null,
     }
 
-    // Cache all data together
     setCachedData(cacheKey, allData)
 
     console.timeEnd("getAllData total")
     return allData
   } catch (error) {
     console.error("Error fetching all data:", error)
-    return {
-      accounts: [],
-      centers: [],
-      functions: [],
-      services: [],
-      tech: [],
-      prospects: [],
-      error: error instanceof Error ? error.message : "Unknown database error",
-    }
+    return buildAllDataError(error instanceof Error ? error.message : "Unknown database error")
   }
 }
 
-// ============================================
-// SERVER-SIDE FILTERING (ADVANCED - OPTIONAL)
-// ============================================
-
-/**
- * Get filtered accounts from server side
- * This is more efficient for large datasets
- */
 export async function getFilteredAccounts(filters: {
   countries?: string[]
   industries?: string[]
@@ -502,7 +396,6 @@ export async function getFilteredAccounts(filters: {
 
     console.log("Fetching filtered accounts:", filters)
 
-    // Build dynamic query
     let query = sqlClient`SELECT * FROM accounts WHERE 1=1`
 
     if (filters.countries && filters.countries.length > 0) {
@@ -524,10 +417,6 @@ export async function getFilteredAccounts(filters: {
     return { success: false, error: error instanceof Error ? error.message : "Unknown error", data: [] }
   }
 }
-
-// ============================================
-// DATABASE HEALTH & DIAGNOSTICS
-// ============================================
 
 export async function testConnection(): Promise<{ success: boolean; message: string }> {
   try {
@@ -592,10 +481,6 @@ export async function getDatabaseStatus(): Promise<{
   }
 }
 
-// ============================================
-// TYPESCRIPT INTERFACES
-// ============================================
-
 export interface FilterSet {
   id?: number
   name: string
@@ -609,11 +494,9 @@ export interface FilterSet {
   updated_at?: string
 }
 
-// ============================================
-// LEGACY COMPATIBILITY FUNCTIONS
-// ============================================
-
-export async function loadData(_filters: unknown): Promise<{ success: boolean; data?: AllDataResult; error?: string }> {
+export async function loadData(
+  _filters: unknown
+): Promise<{ success: boolean; data?: AllDataResult; error?: string }> {
   try {
     const data = await getAllData()
     return { success: true, data }
@@ -623,10 +506,10 @@ export async function loadData(_filters: unknown): Promise<{ success: boolean; d
   }
 }
 
-export async function exportToExcel(data: unknown[]): Promise<{ success: boolean; downloadUrl?: string; error?: string }> {
+export async function exportToExcel(
+  _data: unknown[]
+): Promise<{ success: boolean; downloadUrl?: string; error?: string }> {
   try {
-    // This function handles the Excel export
-    // The actual Excel generation happens on the client side with the exceljs library
     return { success: true, downloadUrl: "#" }
   } catch (error) {
     console.error("Error in exportToExcel:", error)
