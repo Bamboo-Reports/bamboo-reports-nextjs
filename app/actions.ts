@@ -17,7 +17,7 @@ interface CachedData<T> {
 
 const dataCache = new Map<string, CachedData<unknown>>()
 
-type SqlClient = ReturnType<typeof neon> | null
+type SqlClient = NeonQueryFunction | null
 
 let sql: SqlClient = null
 
@@ -74,10 +74,17 @@ function setCachedData<T>(key: string, data: T): void {
   console.log(`Cache set for: ${key}`)
 }
 
+function getSqlOrThrow(): NeonQueryFunction {
+  if (!sql) {
+    throw new Error("Database connection not initialized")
+  }
+  return sql
+}
+
 /**
  * Clear all cached data
  */
-export async function clearCache() {
+export async function clearCache(): Promise<{ success: boolean; message: string }> {
   dataCache.clear()
   console.log("Cache cleared")
   return { success: true, message: "Cache cleared successfully" }
@@ -87,20 +94,18 @@ export async function clearCache() {
 // BASIC DATA FETCHING FUNCTIONS
 // ============================================
 
-export async function getAccounts() {
+export async function getAccounts(): Promise<Account[]> {
   try {
-    if (!sql) {
-      throw new Error("Database connection not initialized")
-    }
+    const sqlClient = getSqlOrThrow()
 
     // Check cache first
     const cacheKey = "accounts"
-    const cached = getCachedData(cacheKey)
+    const cached = getCachedData<Account[]>(cacheKey)
     if (cached) return cached
 
     console.log("Fetching accounts from database...")
     const accounts = await fetchWithRetry(
-      () => sql`SELECT * FROM accounts ORDER BY account_global_legal_name`
+      () => sqlClient`SELECT * FROM accounts ORDER BY account_global_legal_name`
     )
     console.log(`Successfully fetched ${accounts.length} accounts`)
 
@@ -114,19 +119,17 @@ export async function getAccounts() {
   }
 }
 
-export async function getCenters() {
+export async function getCenters(): Promise<Center[]> {
   try {
-    if (!sql) {
-      throw new Error("Database connection not initialized")
-    }
+    const sqlClient = getSqlOrThrow()
 
     // Check cache first
     const cacheKey = "centers"
-    const cached = getCachedData(cacheKey)
+    const cached = getCachedData<Center[]>(cacheKey)
     if (cached) return cached
 
     console.log("Fetching centers from database...")
-    const centers = await fetchWithRetry(() => sql`SELECT * FROM centers ORDER BY center_name`)
+    const centers = await fetchWithRetry(() => sqlClient`SELECT * FROM centers ORDER BY center_name`)
     console.log(`Successfully fetched ${centers.length} centers`)
 
     // Cache the result
@@ -139,19 +142,17 @@ export async function getCenters() {
   }
 }
 
-export async function getFunctions() {
+export async function getFunctions(): Promise<Function[]> {
   try {
-    if (!sql) {
-      throw new Error("Database connection not initialized")
-    }
+    const sqlClient = getSqlOrThrow()
 
     // Check cache first
     const cacheKey = "functions"
-    const cached = getCachedData(cacheKey)
+    const cached = getCachedData<Function[]>(cacheKey)
     if (cached) return cached
 
     console.log("Fetching functions from database...")
-    const functions = await fetchWithRetry(() => sql`SELECT * FROM functions ORDER BY cn_unique_key`)
+    const functions = await fetchWithRetry(() => sqlClient`SELECT * FROM functions ORDER BY cn_unique_key`)
     console.log(`Successfully fetched ${functions.length} functions`)
 
     // Cache the result
@@ -164,19 +165,17 @@ export async function getFunctions() {
   }
 }
 
-export async function getServices() {
+export async function getServices(): Promise<Service[]> {
   try {
-    if (!sql) {
-      throw new Error("Database connection not initialized")
-    }
+    const sqlClient = getSqlOrThrow()
 
     // Check cache first
     const cacheKey = "services"
-    const cached = getCachedData(cacheKey)
+    const cached = getCachedData<Service[]>(cacheKey)
     if (cached) return cached
 
     console.log("Fetching services from database...")
-    const services = await fetchWithRetry(() => sql`SELECT * FROM services ORDER BY center_name`)
+    const services = await fetchWithRetry(() => sqlClient`SELECT * FROM services ORDER BY center_name`)
     console.log(`Successfully fetched ${services.length} services`)
 
     // Cache the result
@@ -189,19 +188,17 @@ export async function getServices() {
   }
 }
 
-export async function getTech() {
+export async function getTech(): Promise<Tech[]> {
   try {
-    if (!sql) {
-      throw new Error("Database connection not initialized")
-    }
+    const sqlClient = getSqlOrThrow()
 
     const cacheKey = "tech"
-    const cached = getCachedData(cacheKey)
+    const cached = getCachedData<Tech[]>(cacheKey)
     if (cached) return cached
 
     console.log("Fetching tech stack from database...")
     const tech = await fetchWithRetry(
-      () => sql`SELECT * FROM tech ORDER BY account_global_legal_name, software_category, software_in_use`
+      () => sqlClient`SELECT * FROM tech ORDER BY account_global_legal_name, software_category, software_in_use`
     )
     console.log(`Successfully fetched ${tech.length} tech stack rows`)
 
@@ -214,20 +211,18 @@ export async function getTech() {
   }
 }
 
-export async function getProspects() {
+export async function getProspects(): Promise<Prospect[]> {
   try {
-    if (!sql) {
-      throw new Error("Database connection not initialized")
-    }
+    const sqlClient = getSqlOrThrow()
 
     // Check cache first
     const cacheKey = "prospects"
-    const cached = getCachedData(cacheKey)
+    const cached = getCachedData<Prospect[]>(cacheKey)
     if (cached) return cached
 
     console.log("Fetching prospects from database...")
     const prospects = await fetchWithRetry(
-      () => sql`SELECT * FROM prospects ORDER BY prospect_last_name, prospect_first_name`
+      () => sqlClient`SELECT * FROM prospects ORDER BY prospect_last_name, prospect_first_name`
     )
     console.log(`Successfully fetched ${prospects.length} prospects`)
 
@@ -245,15 +240,16 @@ export async function getProspects() {
 // SAVED FILTERS FUNCTIONS
 // ============================================
 
-export async function saveFilterSet(name: string, filters: any) {
+export async function saveFilterSet(
+  name: string,
+  filters: unknown
+): Promise<{ success: boolean; data?: unknown; error?: string }> {
   try {
-    if (!sql) {
-      throw new Error("Database connection not initialized")
-    }
+    const sqlClient = getSqlOrThrow()
 
     console.log("Saving filter set:", name)
     const result = await fetchWithRetry(
-      () => sql`
+      () => sqlClient`
         INSERT INTO saved_filters (name, filters)
         VALUES (${name}, ${JSON.stringify(filters)})
         RETURNING id, name, created_at
@@ -271,20 +267,18 @@ export async function saveFilterSet(name: string, filters: any) {
   }
 }
 
-export async function getSavedFilters() {
+export async function getSavedFilters(): Promise<FilterSet[]> {
   try {
-    if (!sql) {
-      throw new Error("Database connection not initialized")
-    }
+    const sqlClient = getSqlOrThrow()
 
     // Check cache first
     const cacheKey = "saved_filters"
-    const cached = getCachedData(cacheKey)
+    const cached = getCachedData<FilterSet[]>(cacheKey)
     if (cached) return cached
 
     console.log("Fetching saved filters...")
     const savedFilters = await fetchWithRetry(
-      () => sql`
+      () => sqlClient`
         SELECT id, name, filters, created_at, updated_at 
         FROM saved_filters 
         ORDER BY created_at DESC
@@ -302,15 +296,15 @@ export async function getSavedFilters() {
   }
 }
 
-export async function deleteSavedFilter(id: number) {
+export async function deleteSavedFilter(
+  id: number
+): Promise<{ success: boolean; data?: unknown; error?: string }> {
   try {
-    if (!sql) {
-      throw new Error("Database connection not initialized")
-    }
+    const sqlClient = getSqlOrThrow()
 
     console.log("Deleting saved filter:", id)
     const result = await fetchWithRetry(
-      () => sql`
+      () => sqlClient`
         DELETE FROM saved_filters 
         WHERE id = ${id}
         RETURNING id, name
@@ -328,15 +322,17 @@ export async function deleteSavedFilter(id: number) {
   }
 }
 
-export async function updateSavedFilter(id: number, name: string, filters: any) {
+export async function updateSavedFilter(
+  id: number,
+  name: string,
+  filters: unknown
+): Promise<{ success: boolean; data?: unknown; error?: string }> {
   try {
-    if (!sql) {
-      throw new Error("Database connection not initialized")
-    }
+    const sqlClient = getSqlOrThrow()
 
     console.log("Updating saved filter:", id, name)
     const result = await fetchWithRetry(
-      () => sql`
+      () => sqlClient`
         UPDATE saved_filters 
         SET name = ${name}, filters = ${JSON.stringify(filters)}, updated_at = CURRENT_TIMESTAMP
         WHERE id = ${id}
@@ -359,7 +355,17 @@ export async function updateSavedFilter(id: number, name: string, filters: any) 
 // AGGREGATED DATA FUNCTIONS
 // ============================================
 
-export async function getAllData() {
+type AllDataResult = {
+  accounts: Account[]
+  centers: Center[]
+  functions: Function[]
+  services: Service[]
+  tech: Tech[]
+  prospects: Prospect[]
+  error: string | null
+}
+
+export async function getAllData(): Promise<AllDataResult> {
   try {
     console.time("getAllData total")
     console.log("Starting to fetch all data from database...")
@@ -393,7 +399,7 @@ export async function getAllData() {
 
     // Check cache first for all data
     const cacheKey = "all_data"
-    const cached = getCachedData(cacheKey)
+    const cached = getCachedData<AllDataResult>(cacheKey)
     if (cached) {
       console.log("Returning all data from cache")
       return cached
@@ -490,26 +496,24 @@ export async function getAllData() {
 export async function getFilteredAccounts(filters: {
   countries?: string[]
   industries?: string[]
-}) {
+}): Promise<{ success: boolean; data: Account[]; error?: string }> {
   try {
-    if (!sql) {
-      throw new Error("Database connection not initialized")
-    }
+    const sqlClient = getSqlOrThrow()
 
     console.log("Fetching filtered accounts:", filters)
 
     // Build dynamic query
-  let query = sql`SELECT * FROM accounts WHERE 1=1`
+    let query = sqlClient`SELECT * FROM accounts WHERE 1=1`
 
     if (filters.countries && filters.countries.length > 0) {
-      query = sql`${query} AND account_hq_country = ANY(${filters.countries})`
+      query = sqlClient`${query} AND account_hq_country = ANY(${filters.countries})`
     }
 
     if (filters.industries && filters.industries.length > 0) {
-      query = sql`${query} AND account_hq_industry = ANY(${filters.industries})`
+      query = sqlClient`${query} AND account_hq_industry = ANY(${filters.industries})`
     }
 
-    query = sql`${query} ORDER BY account_global_legal_name`
+    query = sqlClient`${query} ORDER BY account_global_legal_name`
 
     const results = await fetchWithRetry(() => query)
     console.log(`Filtered accounts: ${results.length} results`)
@@ -525,7 +529,7 @@ export async function getFilteredAccounts(filters: {
 // DATABASE HEALTH & DIAGNOSTICS
 // ============================================
 
-export async function testConnection() {
+export async function testConnection(): Promise<{ success: boolean; message: string }> {
   try {
     if (!process.env.DATABASE_URL) {
       return {
@@ -542,7 +546,7 @@ export async function testConnection() {
     }
 
     console.log("Testing database connection...")
-    const result = await fetchWithRetry(() => sql`SELECT 1 as test`)
+    const result = await fetchWithRetry(() => getSqlOrThrow()`SELECT 1 as test`)
     console.log("Database connection successful:", result)
     return { success: true, message: "Database connection successful" }
   } catch (error) {
@@ -554,7 +558,15 @@ export async function testConnection() {
   }
 }
 
-export async function getDatabaseStatus() {
+export async function getDatabaseStatus(): Promise<{
+  hasUrl: boolean
+  hasConnection: boolean
+  urlLength: number
+  environment: string
+  cacheSize: number
+  cacheKeys: string[]
+  error?: string
+}> {
   try {
     const hasUrl = !!process.env.DATABASE_URL
     const hasConnection = !!sql
@@ -601,7 +613,7 @@ export interface FilterSet {
 // LEGACY COMPATIBILITY FUNCTIONS
 // ============================================
 
-export async function loadData(filters: any) {
+export async function loadData(_filters: unknown): Promise<{ success: boolean; data?: AllDataResult; error?: string }> {
   try {
     const data = await getAllData()
     return { success: true, data }
@@ -611,7 +623,7 @@ export async function loadData(filters: any) {
   }
 }
 
-export async function exportToExcel(data: any[]) {
+export async function exportToExcel(data: unknown[]): Promise<{ success: boolean; downloadUrl?: string; error?: string }> {
   try {
     // This function handles the Excel export
     // The actual Excel generation happens on the client side with the exceljs library
@@ -622,7 +634,7 @@ export async function exportToExcel(data: any[]) {
   }
 }
 
-export async function loadFilterSets() {
+export async function loadFilterSets(): Promise<{ success: boolean; data?: FilterSet[]; error?: string }> {
   try {
     const filters = await getSavedFilters()
     return { success: true, data: filters }
@@ -632,7 +644,7 @@ export async function loadFilterSets() {
   }
 }
 
-export async function deleteFilterSet(id: number) {
+export async function deleteFilterSet(id: number): Promise<{ success: boolean; data?: unknown; error?: string }> {
   try {
     const result = await deleteSavedFilter(id)
     return result

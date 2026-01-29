@@ -1,21 +1,21 @@
 "use client"
 
-import React, { useCallback, useEffect, useState } from "react"
-import { Tabs } from "@/components/ui/tabs"
-import { LoadingState } from "@/components/states/loading-state"
-import { ErrorState } from "@/components/states/error-state"
-import { Header } from "@/components/layout/header"
-import { FiltersSidebar } from "@/components/filters/filters-sidebar"
-import { SummaryCards } from "@/components/dashboard/summary-cards"
-import { AccountsTab, CentersTab } from "@/components/tabs"
-import { ProspectsTab } from "@/components/tabs/prospects-tab"
-import { formatRevenueInMillions } from "@/lib/utils/helpers"
-import { ExportDialog } from "@/components/export/export-dialog"
-import { useAuthGuard } from "@/hooks/use-auth-guard"
-import { useDashboardData } from "@/hooks/use-dashboard-data"
-import { useDashboardFilters } from "@/hooks/use-dashboard-filters"
+import React, { useCallback, useEffect, useState } from 'react'
+import { ExportDialog } from '@/components/export/export-dialog'
+import { FiltersSidebar } from '@/components/filters/filters-sidebar'
+import { Header } from '@/components/layout/header'
+import { ErrorState } from '@/components/states/error-state'
+import { LoadingState } from '@/components/states/loading-state'
+import { AccountsTab, CentersTab } from '@/components/tabs'
+import { ProspectsTab } from '@/components/tabs/prospects-tab'
+import { SummaryCards } from '@/components/dashboard/summary-cards'
+import { Tabs } from '@/components/ui/tabs'
+import { useAuthGuard } from '@/hooks/use-auth-guard'
+import { useDashboardData } from '@/hooks/use-dashboard-data'
+import { useDashboardFilters } from '@/hooks/use-dashboard-filters'
+import { formatRevenueInMillions } from '@/lib/utils/helpers'
 
-function DashboardContent() {
+function DashboardContent(): JSX.Element | null {
   const { authReady, userId } = useAuthGuard()
 
   const {
@@ -73,11 +73,11 @@ function DashboardContent() {
   })
 
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(50)
-  const [accountsView, setAccountsView] = useState<"chart" | "data" | "map">("map")
-  const [centersView, setCentersView] = useState<"chart" | "data" | "map">("map")
-  const [prospectsView, setProspectsView] = useState<"chart" | "data">("chart")
-  const [activeSection, setActiveSection] = useState<"accounts" | "centers" | "prospects">("accounts")
+  const itemsPerPage = 50
+  const [accountsView, setAccountsView] = useState<'chart' | 'data' | 'map'>('map')
+  const [centersView, setCentersView] = useState<'chart' | 'data' | 'map'>('map')
+  const [prospectsView, setProspectsView] = useState<'chart' | 'data'>('chart')
+  const [activeSection, setActiveSection] = useState<'accounts' | 'centers' | 'prospects'>('accounts')
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
 
   useEffect(() => {
@@ -91,11 +91,7 @@ function DashboardContent() {
   const dataLoaded =
     !loading && accounts.length > 0 && centers.length > 0 && services.length > 0 && prospects.length > 0
 
-  if (!authReady) {
-    return null
-  }
-
-  if (!userId) {
+  if (!authReady || !userId) {
     return null
   }
 
