@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, memo } from "react"
+import { useState, useCallback, memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -31,27 +31,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Save, FolderOpen, Settings, Trash2, Edit, Calendar, Filter, X, ChevronDown } from "lucide-react"
-import type { Filters, FilterValue } from "@/lib/types"
-import { getSupabaseBrowserClient } from "@/lib/supabase/client"
-import {
-  DEFAULT_CENTER_INC_YEAR_RANGE,
-  DEFAULT_FIRST_CENTER_YEAR_RANGE,
-  DEFAULT_REVENUE_RANGE,
-  DEFAULT_YEARS_IN_INDIA_RANGE,
-} from "@/lib/dashboard/defaults"
-import { calculateActiveFilters, withFilterDefaults } from "@/lib/dashboard/filter-summary"
-
-interface SavedFilter {
-  id: string
-  name: string
-  filters: Filters
-  created_at: string
-  updated_at: string
-}
-
-type FilterValueLike = FilterValue | string | null | undefined
+import { Save, FolderOpen, Settings, X, ChevronDown } from "lucide-react"
+import type { Filters } from "@/lib/types"
+import { calculateActiveFilters } from "@/lib/dashboard/filter-summary"
+import { SavedFilterCard, type SavedFilter } from "@/components/filters/saved-filter-card"
+import { useSavedFilters } from "@/hooks/use-saved-filters"
 
 interface SavedFiltersManagerProps {
   currentFilters: Filters
@@ -61,178 +45,6 @@ interface SavedFiltersManagerProps {
   onExport?: () => void
 }
 
-const normalizeFilterValue = (value: FilterValueLike) => {
-  if (!value) return null
-  if (typeof value === "string") return { label: value, mode: "include" as FilterValue["mode"] }
-  if (typeof value === "object" && "value" in value) return { label: value.value, mode: value.mode }
-  return { label: String(value), mode: "include" as FilterValue["mode"] }
-}
-
-const FilterBadge = memo((
-  { filterKey, value, mode }: { filterKey: string; value: string; mode?: FilterValue["mode"] }
-) => (
-  <Badge variant={mode === "exclude" ? "destructive" : "outline"} className="text-xs">
-    {filterKey}: {value}
-    {mode === "exclude" ? " (excluded)" : ""}
-  </Badge>
-))
-FilterBadge.displayName = "FilterBadge"
-
-const renderFilterValues = (values: FilterValueLike[] = [], label: string) =>
-  values.map((item, index) => {
-    const normalized = normalizeFilterValue(item)
-    if (!normalized) return null
-
-    return (
-      <FilterBadge
-        key={`${label}-${normalized.label}-${index}`}
-        filterKey={label}
-        value={normalized.label}
-        mode={normalized.mode}
-      />
-    )
-  })
-
-const SavedFilterCard = memo(({
-  filter,
-  onLoad,
-  onEdit,
-  onDelete
-}: {
-  filter: SavedFilter
-  onLoad: (filter: SavedFilter) => void
-  onEdit: (filter: SavedFilter) => void
-  onDelete: (filter: SavedFilter) => void
-}) => {
-  const filterCount = useCallback(() => {
-    return calculateActiveFilters(filter.filters)
-  }, [filter.filters])
-
-  const [minRevenue, maxRevenue] = filter.filters.accountRevenueRange || DEFAULT_REVENUE_RANGE
-  const revenueFilterActive = minRevenue !== DEFAULT_REVENUE_RANGE[0] || maxRevenue !== DEFAULT_REVENUE_RANGE[1]
-  const [minYearsInIndia, maxYearsInIndia] = filter.filters.accountYearsInIndiaRange || DEFAULT_YEARS_IN_INDIA_RANGE
-  const yearsInIndiaFilterActive =
-    minYearsInIndia !== DEFAULT_YEARS_IN_INDIA_RANGE[0] || maxYearsInIndia !== DEFAULT_YEARS_IN_INDIA_RANGE[1]
-  const [minFirstCenterYear, maxFirstCenterYear] =
-    filter.filters.accountFirstCenterYearRange || DEFAULT_FIRST_CENTER_YEAR_RANGE
-  const firstCenterYearFilterActive =
-    minFirstCenterYear !== DEFAULT_FIRST_CENTER_YEAR_RANGE[0] || maxFirstCenterYear !== DEFAULT_FIRST_CENTER_YEAR_RANGE[1]
-  const [minCenterIncYear, maxCenterIncYear] = filter.filters.centerIncYearRange || DEFAULT_CENTER_INC_YEAR_RANGE
-  const centerIncYearFilterActive =
-    minCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[0] || maxCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[1]
-
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{filter.name}</CardTitle>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary">{filterCount()} filters</Badge>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit(filter)}
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-red-600 hover:text-red-700"
-              onClick={() => onDelete(filter)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
-            Created: {new Date(filter.created_at).toLocaleDateString()}
-          </div>
-          {filter.updated_at !== filter.created_at && (
-            <div className="flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              Updated: {new Date(filter.updated_at).toLocaleDateString()}
-            </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Filter Details:</span>
-            <Button variant="outline" size="sm" onClick={() => onLoad(filter)}>
-              <Filter className="h-4 w-4 mr-2" />
-              Load Filters
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {renderFilterValues(filter.filters.accountNameKeywords, "Account Name")}
-            {renderFilterValues(filter.filters.accountCountries, "Country")}
-            {renderFilterValues(filter.filters.accountIndustries, "Industry")}
-            {renderFilterValues(filter.filters.accountPrimaryCategories, "Category")}
-            {renderFilterValues(filter.filters.accountPrimaryNatures, "Nature")}
-            {renderFilterValues(filter.filters.accountNasscomStatuses, "NASSCOM")}
-            {renderFilterValues(filter.filters.accountEmployeesRanges, "Emp Range")}
-            {renderFilterValues(filter.filters.accountCenterEmployees, "Center Emp")}
-            {renderFilterValues(filter.filters.centerTypes, "Type")}
-            {renderFilterValues(filter.filters.centerFocus, "Focus")}
-            {renderFilterValues(filter.filters.centerCities, "City")}
-            {renderFilterValues(filter.filters.centerStates, "State")}
-            {renderFilterValues(filter.filters.centerCountries, "Center Country")}
-            {renderFilterValues(filter.filters.centerEmployees, "Center Employees")}
-            {renderFilterValues(filter.filters.centerStatuses, "Center Status")}
-            {renderFilterValues(filter.filters.functionTypes, "Function")}
-            {renderFilterValues(filter.filters.centerSoftwareInUseKeywords, "Software In Use")}
-            {renderFilterValues(filter.filters.prospectDepartments, "Department")}
-            {renderFilterValues(filter.filters.prospectLevels, "Prospect Level")}
-            {renderFilterValues(filter.filters.prospectCities, "Prospect City")}
-            {renderFilterValues(filter.filters.prospectTitleKeywords, "Job Title")}
-            {revenueFilterActive && (
-              <FilterBadge
-                filterKey="Revenue"
-                value={`${minRevenue.toLocaleString()} - ${maxRevenue.toLocaleString()}`}
-              />
-            )}
-            {filter.filters.includeNullRevenue && (
-              <FilterBadge filterKey="Revenue" value="Include null revenue" />
-            )}
-            {yearsInIndiaFilterActive && (
-              <FilterBadge
-                filterKey="India Headcount"
-                value={`${minYearsInIndia.toLocaleString()} - ${maxYearsInIndia.toLocaleString()}`}
-              />
-            )}
-            {filter.filters.includeNullYearsInIndia && (
-              <FilterBadge filterKey="India Headcount" value="Include null/zero" />
-            )}
-            {firstCenterYearFilterActive && (
-              <FilterBadge
-                filterKey="Years In India"
-                value={`${minFirstCenterYear.toLocaleString()} - ${maxFirstCenterYear.toLocaleString()}`}
-              />
-            )}
-            {filter.filters.includeNullFirstCenterYear && (
-              <FilterBadge filterKey="Years In India" value="Include null/zero" />
-            )}
-            {centerIncYearFilterActive && (
-              <FilterBadge
-                filterKey="Timeline"
-                value={`${minCenterIncYear.toLocaleString()} - ${maxCenterIncYear.toLocaleString()}`}
-              />
-            )}
-            {filter.filters.includeNullCenterIncYear && (
-              <FilterBadge filterKey="Timeline" value="Include null/zero" />
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-})
-SavedFilterCard.displayName = "SavedFilterCard"
-
 export const SavedFiltersManager = memo(function SavedFiltersManager({
   currentFilters,
   onLoadFilters,
@@ -240,103 +52,31 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
   onReset,
   onExport
 }: SavedFiltersManagerProps) {
-  const supabase = getSupabaseBrowserClient()
-  const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([])
-  const [loading, setLoading] = useState(false)
+  const { 
+    savedFilters, 
+    loading, 
+    saveFilter, 
+    deleteFilter, 
+    updateFilter 
+  } = useSavedFilters()
+
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
   const [manageDialogOpen, setManageDialogOpen] = useState(false)
   const [filterName, setFilterName] = useState("")
+  
   const [editingFilter, setEditingFilter] = useState<SavedFilter | null>(null)
   const [editName, setEditName] = useState("")
+  
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [filterToDelete, setFilterToDelete] = useState<SavedFilter | null>(null)
-  const [userId, setUserId] = useState<string | null>(null)
-  const [authReady, setAuthReady] = useState(false)
-
-  useEffect(() => {
-    let isMounted = true
-
-    supabase.auth.getSession().then(({ data }) => {
-      if (!isMounted) return
-      setUserId(data.session?.user.id ?? null)
-      setAuthReady(true)
-    })
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!isMounted) return
-      setUserId(session?.user.id ?? null)
-    })
-
-    return () => {
-      isMounted = false
-      authListener.subscription.unsubscribe()
-    }
-  }, [supabase])
-
-  const loadSavedFilters = useCallback(async () => {
-    if (!userId) {
-      setSavedFilters([])
-      return
-    }
-
-    setLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from("saved_filters")
-        .select("id, name, filters, created_at, updated_at")
-        .order("created_at", { ascending: false })
-
-      if (error) {
-        throw error
-      }
-
-      const normalizedFilters = Array.isArray(data)
-        ? data
-            .map((filter) => {
-              try {
-                const parsedFilters = typeof filter.filters === "string" ? JSON.parse(filter.filters) : filter.filters
-                if (!parsedFilters) return null
-                return { ...filter, filters: withFilterDefaults(parsedFilters) } as SavedFilter
-              } catch (error) {
-                console.error("Failed to parse saved filter:", error)
-                return null
-              }
-            })
-            .filter((item): item is SavedFilter => Boolean(item))
-        : []
-      setSavedFilters(normalizedFilters)
-    } catch (error) {
-      console.error("Failed to load saved filters:", error)
-    } finally {
-      setLoading(false)
-    }
-  }, [supabase, userId])
-
-  useEffect(() => {
-    if (!authReady) return
-    loadSavedFilters()
-  }, [authReady, loadSavedFilters, userId])
 
   const handleSaveFilter = useCallback(async () => {
-    if (!filterName.trim() || !userId) return
-
-    setLoading(true)
-    try {
-      const { error } = await supabase
-        .from("saved_filters")
-        .insert({ name: filterName.trim(), filters: currentFilters, user_id: userId })
-
-      if (error) throw error
-
+    const success = await saveFilter(filterName, currentFilters)
+    if (success) {
       setSaveDialogOpen(false)
       setFilterName("")
-      await loadSavedFilters()
-    } catch (error) {
-      console.error("Error saving filter:", error)
-    } finally {
-      setLoading(false)
     }
-  }, [currentFilters, filterName, loadSavedFilters, supabase, userId])
+  }, [currentFilters, filterName, saveFilter])
 
   const handleLoadFilter = useCallback((savedFilter: SavedFilter) => {
     onLoadFilters(savedFilter.filters)
@@ -349,51 +89,21 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
 
   const confirmDeleteFilter = useCallback(async () => {
     if (!filterToDelete) return
-
-    setLoading(true)
-    try {
-      const { error } = await supabase
-        .from("saved_filters")
-        .delete()
-        .eq("id", filterToDelete.id)
-
-      if (error) throw error
-
-      await loadSavedFilters()
+    const success = await deleteFilter(filterToDelete.id)
+    if (success) {
       setDeleteConfirmOpen(false)
       setFilterToDelete(null)
-    } catch (error) {
-      console.error("Error deleting filter:", error)
-    } finally {
-      setLoading(false)
     }
-  }, [filterToDelete, loadSavedFilters, supabase])
+  }, [filterToDelete, deleteFilter])
 
   const handleUpdateFilter = useCallback(async () => {
     if (!editingFilter || !editName.trim()) return
-
-    setLoading(true)
-    try {
-      const { error } = await supabase
-        .from("saved_filters")
-        .update({
-          name: editName.trim(),
-          filters: editingFilter.filters,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", editingFilter.id)
-
-      if (error) throw error
-
+    const success = await updateFilter(editingFilter.id, editName, editingFilter.filters)
+    if (success) {
       setEditingFilter(null)
       setEditName("")
-      await loadSavedFilters()
-    } catch (error) {
-      console.error("Error updating filter:", error)
-    } finally {
-      setLoading(false)
     }
-  }, [editingFilter, editName, loadSavedFilters, supabase])
+  }, [editingFilter, editName, updateFilter])
 
   const getFilterSummary = useCallback((filters: Filters) => {
     return calculateActiveFilters(filters)
