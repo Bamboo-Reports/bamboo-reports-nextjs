@@ -4,7 +4,7 @@ A modern Business Intelligence dashboard built with Next.js App Router, React, a
 
 [![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com)
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
+[![React](https://img.shields.io/badge/React-18.2-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red)](LICENSE)
 [![Supabase](https://img.shields.io/badge/Auth-Supabase-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com)
@@ -99,7 +99,7 @@ graph TD
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | **Next.js** | 14.2.x | App Router, Server Actions, SSR |
-| **React** | 19 | Component Library, Hooks |
+| **React** | 18.2.x | Component Library, Hooks |
 | **TypeScript** | 5 | Strict Type Safety |
 
 ### UI and Styling
@@ -126,29 +126,30 @@ A highly organized codebase designed for scalability.
 
 ```bash
 bamboo-reports-nextjs/
-├── app/                        # Next.js App Router (Pages & Layouts)
-│   ├── actions.ts              # SERVER ACTIONS (Data Fetching Layer)
-│   ├── layout.tsx              # Root layout (Providers, Toasters)
-│   └── page.tsx                # Main Dashboard Entry Point
-├── components/                 # React Components
-│   ├── charts/                 # Recharts Visualizations
-│   ├── dashboard/              # Summary Cards & Hero Stats
-│   ├── dialogs/                # Detail Views (Modal Popups)
-│   ├── filters/                # Sidebar Filter Logic
-│   ├── maps/                   # MapTiler + MapLibre Integration
-│   ├── saved-filters/          # Saved Filter CRUD Components
-│   ├── tables/                 # Data Grid Components
-│   └── ui/                     # Shared Design System (shadcn)
-├── lib/                        # Utilities & Configuration
-│   ├── supabase/               # Supabase Client Factory
-│   ├── types.ts                # SHARED TYPES (DB & UI)
-│   └── utils/                  # Helper Functions (Formatters, Sorters)
-├── documentation/              # DETAILED TECHNICAL DOCS
-│   ├── schema-migration-guide.md
-│   ├── supabase-auth-setup.md
-│   └── supabase-saved-filters.md
-└── public/                     # Static Assets (Images, Fonts)
+|-- app/                        # Next.js App Router (Pages & Layouts)
+|   |-- actions.ts              # Server Actions (Data Fetching Layer)
+|   |-- layout.tsx              # Root layout (Providers, Toasters)
+|   `-- page.tsx                # Main Dashboard Entry Point
+|-- components/                 # React Components
+|   |-- charts/                 # Recharts Visualizations
+|   |-- dashboard/              # Summary Cards & Hero Stats
+|   |-- dialogs/                # Detail Views (Modal Popups)
+|   |-- filters/                # Sidebar Filter Logic
+|   |-- maps/                   # MapTiler + MapLibre Integration
+|   |-- saved-filters/          # Saved Filter CRUD Components
+|   |-- tables/                 # Data Grid Components
+|   `-- ui/                     # Shared Design System (shadcn)
+|-- lib/                        # Utilities & Configuration
+|   |-- supabase/               # Supabase Client Factory
+|   |-- types.ts                # Shared types (DB & UI)
+|   `-- utils/                  # Helper Functions (Formatters, Sorters)
+|-- documentation/              # Detailed technical docs
+|   |-- schema-migration-guide.md
+|   |-- supabase-auth-setup.md
+|   `-- supabase-saved-filters.md
+`-- public/                     # Static Assets (Images, Fonts)
 ```
+
 
 ---
 
@@ -156,7 +157,7 @@ bamboo-reports-nextjs/
 
 ### Prerequisites
 - **Node.js 18.17+**
-- **npm** (v9+) or **pnpm**
+- **npm** (v9+)
 - **Neon PostgreSQL:** Connection string for the data warehouse.
 - **Supabase Project:** For Authentication and User State.
 - **MapTiler API Key:** For the geospatial view.
@@ -172,12 +173,10 @@ bamboo-reports-nextjs/
 2.  **Install Dependencies:**
     ```bash
     npm install
-    # or
-    pnpm install
     ```
 
 3.  **Environment Setup:**
-    Duplicate the example file and fill in your secrets.
+    Duplicate the example file and fill in your secrets. Add `DATABASE_URL` for Neon.
     ```bash
     cp .env.example .env.local
     ```
@@ -198,6 +197,7 @@ bamboo-reports-nextjs/
 | `NEXT_PUBLIC_SUPABASE_URL` | **Yes** | Your Supabase Project URL. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **Yes** | Supabase Public Anon Key (safe for client). |
 | `NEXT_PUBLIC_MAPTILER_KEY` | **Yes** | MapTiler public key for rendering map tiles. |
+| `NEXT_PUBLIC_MAPTILER_STYLE_ID` | **Yes** | MapTiler style ID used for the base map. |
 | `NEXT_PUBLIC_LOGO_DEV_TOKEN` | No | Token for fetching company logos (optional). |
 
 ---
@@ -207,7 +207,7 @@ bamboo-reports-nextjs/
 The app delegates identity management to **Supabase Auth**.
 
 -   **Sign Up/Login:** Standard Email/Password flow.
--   **Session Persistance:** Handled via HTTP-only cookies (Next.js Middleware).
+-   **Session Persistence:** Handled via HTTP-only cookies (Next.js Middleware).
 -   **User Data:**
     -   **`public.profiles`**: Stores user metadata (First Name, Last Name, Role).
     -   **`public.saved_filters`**: Stores JSON blobs of user's filter configurations.
@@ -241,7 +241,6 @@ This project is optimized for Vercel.
 3.  **Configure Environment Variables:** Add all keys from your `.env.local`.
 4.  **Deploy:** Vercel will auto-detect Next.js and build.
 
-*Note: The build process uses `pnpm` to ensure consistent dependency resolution.*
 
 ---
 
