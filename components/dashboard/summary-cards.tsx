@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
+import React, { useEffect, useRef, useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 const AnimatedNumber = React.memo(function AnimatedNumber({
   value,
@@ -8,19 +8,19 @@ const AnimatedNumber = React.memo(function AnimatedNumber({
 }: {
   value: number
   className?: string
-}) {
+}): JSX.Element {
   const [displayValue, setDisplayValue] = useState(value)
   const [reduceMotion, setReduceMotion] = useState(false)
   const frameRef = useRef<number | null>(null)
   const startValueRef = useRef(value)
 
   useEffect(() => {
-    if (typeof window === "undefined") return
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
+    if (typeof window === 'undefined') return
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
     const handleChange = () => setReduceMotion(mediaQuery.matches)
     handleChange()
-    mediaQuery.addEventListener?.("change", handleChange)
-    return () => mediaQuery.removeEventListener?.("change", handleChange)
+    mediaQuery.addEventListener?.('change', handleChange)
+    return () => mediaQuery.removeEventListener?.('change', handleChange)
   }, [])
 
   useEffect(() => {
@@ -59,7 +59,7 @@ const AnimatedNumber = React.memo(function AnimatedNumber({
   return (
     <span
       className={cn(
-        "inline-flex items-baseline gap-1 text-3xl font-semibold leading-tight animate-scale-in",
+        'inline-flex items-baseline gap-1 text-3xl font-semibold leading-tight animate-scale-in',
         className
       )}
     >
@@ -88,28 +88,28 @@ export const SummaryCards = React.memo(function SummaryCards({
   totalProspectsCount,
   activeView,
   onSelect,
-}: SummaryCardsProps) {
+}: SummaryCardsProps): JSX.Element {
   const cards = [
     {
-      id: "accounts",
-      title: "Total Accounts",
+      id: 'accounts',
+      title: 'Total Accounts',
       value: filteredAccountsCount,
       total: totalAccountsCount,
-      colorVar: "--chart-1",
+      colorVar: '--chart-1',
     },
     {
-      id: "centers",
-      title: "Total Centers",
+      id: 'centers',
+      title: 'Total Centers',
       value: filteredCentersCount,
       total: totalCentersCount,
-      colorVar: "--chart-2",
+      colorVar: '--chart-2',
     },
     {
-      id: "prospects",
-      title: "Total Prospects",
+      id: 'prospects',
+      title: 'Total Prospects',
       value: filteredProspectsCount,
       total: totalProspectsCount,
-      colorVar: "--chart-3",
+      colorVar: '--chart-3',
     },
   ] as const
 
@@ -123,16 +123,16 @@ export const SummaryCards = React.memo(function SummaryCards({
           aria-pressed={activeView === card.id}
           onClick={() => onSelect(card.id)}
           onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
+            if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault()
               onSelect(card.id)
             }
           }}
           className={cn(
-            "relative cursor-pointer select-none overflow-hidden border border-border/60 bg-gradient-to-br from-background/90 via-background to-background shadow-[0_15px_50px_-35px_rgba(0,0,0,0.6)] dark:shadow-[0_20px_65px_-45px_rgba(0,0,0,0.85)] transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            'relative cursor-pointer select-none overflow-hidden border border-border/60 bg-gradient-to-br from-background/90 via-background to-background shadow-[0_15px_50px_-35px_rgba(0,0,0,0.6)] dark:shadow-[0_20px_65px_-45px_rgba(0,0,0,0.85)] transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
             activeView === card.id
-              ? "ring-2 ring-sidebar-ring border-sidebar-ring/70 shadow-[0_18px_55px_-30px_rgba(0,0,0,0.7)]"
-              : "hover:-translate-y-0.5"
+              ? 'ring-2 ring-sidebar-ring border-sidebar-ring/70 shadow-[0_18px_55px_-30px_rgba(0,0,0,0.7)]'
+              : 'hover:-translate-y-0.5'
           )}
         >
           <div
