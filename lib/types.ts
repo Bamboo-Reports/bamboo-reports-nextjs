@@ -20,6 +20,7 @@ export interface Account {
   account_first_center_year?: number | null
   years_in_india?: number | null
   account_hq_website?: string | null
+  account_center_employees?: number | null
   account_center_employees_range?: string | null
   account_comments?: string | null
   account_coverage?: string | null

@@ -67,114 +67,12 @@ export function AccountFiltersSection({
 }: AccountFilterSectionProps) {
   return (
     <div className="max-h-[320px] overflow-y-auto pr-2">
-      <div className="space-y-4 pt-2">
-        <div className="space-y-2 pb-4 border-b border-border">
-          <Label className="text-xs font-medium">Search Account Name</Label>
-          <AccountAutocomplete
-            accountNames={accountNames}
-            selectedAccounts={pendingFilters.accountNameKeywords}
-            onChange={(keywords) => setPendingFilters((prev) => ({ ...prev, accountNameKeywords: keywords }))}
-            placeholder="Type to search account names..."
-          />
-        </div>
-
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Countries</Label>
-            <EnhancedMultiSelect
-              options={availableOptions.accountCountries || []}
-              selected={pendingFilters.accountCountries}
-              onChange={(selected) => {
-                setPendingFilters((prev) => ({ ...prev, accountCountries: selected }))
-                setActiveFilter("accountCountries")
-              }}
-              placeholder="Select countries..."
-              isApplying={isApplying && activeFilter === "accountCountries"}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Industries</Label>
-            <EnhancedMultiSelect
-              options={availableOptions.accountIndustries}
-              selected={pendingFilters.accountIndustries}
-              onChange={(selected) => {
-                setPendingFilters((prev) => ({ ...prev, accountIndustries: selected }))
-                setActiveFilter("accountIndustries")
-              }}
-              placeholder="Select industries..."
-              isApplying={isApplying && activeFilter === "accountIndustries"}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Primary Categories</Label>
-            <EnhancedMultiSelect
-              options={availableOptions.accountPrimaryCategories}
-              selected={pendingFilters.accountPrimaryCategories}
-              onChange={(selected) => {
-                setPendingFilters((prev) => ({ ...prev, accountPrimaryCategories: selected }))
-                setActiveFilter("accountPrimaryCategories")
-              }}
-              placeholder="Select categories..."
-              isApplying={isApplying && activeFilter === "accountPrimaryCategories"}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Primary Nature</Label>
-            <EnhancedMultiSelect
-              options={availableOptions.accountPrimaryNatures}
-              selected={pendingFilters.accountPrimaryNatures}
-              onChange={(selected) => {
-                setPendingFilters((prev) => ({ ...prev, accountPrimaryNatures: selected }))
-                setActiveFilter("accountPrimaryNatures")
-              }}
-              placeholder="Select nature..."
-              isApplying={isApplying && activeFilter === "accountPrimaryNatures"}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">NASSCOM Status</Label>
-            <EnhancedMultiSelect
-              options={availableOptions.accountNasscomStatuses}
-              selected={pendingFilters.accountNasscomStatuses}
-              onChange={(selected) => {
-                setPendingFilters((prev) => ({ ...prev, accountNasscomStatuses: selected }))
-                setActiveFilter("accountNasscomStatuses")
-              }}
-              placeholder="Select NASSCOM status..."
-              isApplying={isApplying && activeFilter === "accountNasscomStatuses"}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Employees Range</Label>
-            <EnhancedMultiSelect
-              options={availableOptions.accountEmployeesRanges}
-              selected={pendingFilters.accountEmployeesRanges}
-              onChange={(selected) => {
-                setPendingFilters((prev) => ({ ...prev, accountEmployeesRanges: selected }))
-                setActiveFilter("accountEmployeesRanges")
-              }}
-              placeholder="Select employees range..."
-              isApplying={isApplying && activeFilter === "accountEmployeesRanges"}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Center Employees</Label>
-            <EnhancedMultiSelect
-              options={availableOptions.accountCenterEmployees}
-              selected={pendingFilters.accountCenterEmployees}
-              onChange={(selected) => {
-                setPendingFilters((prev) => ({ ...prev, accountCenterEmployees: selected }))
-                setActiveFilter("accountCenterEmployees")
-              }}
-              placeholder="Select center employees..."
-              isApplying={isApplying && activeFilter === "accountCenterEmployees"}
-            />
-          </div>
-
-          <div className="space-y-3 pt-4 mt-4 border-t border-border">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-medium">Revenue</Label>
-              <div className="flex items-center gap-2">
+        <div className="space-y-4 pt-2">
+          <div className="space-y-3">
+            <div className="space-y-3 pt-4 mt-4 border-t border-border">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium">Revenue</Label>
+                <div className="flex items-center gap-2">
                 <Checkbox
                   id="include-null-revenue"
                   checked={pendingFilters.includeNullRevenue}
@@ -236,7 +134,44 @@ export function AccountFiltersSection({
             </div>
           </div>
 
-          <div className="space-y-3 pt-4 mt-4 border-t border-border">
+          <div className="space-y-2 pb-4 border-b border-border">
+            <Label className="text-xs font-medium">Search Account Name</Label>
+            <AccountAutocomplete
+              accountNames={accountNames}
+              selectedAccounts={pendingFilters.accountNameKeywords}
+              onChange={(keywords) => setPendingFilters((prev) => ({ ...prev, accountNameKeywords: keywords }))}
+              placeholder="Type to search account names..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Employees Range</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.accountEmployeesRanges}
+              selected={pendingFilters.accountEmployeesRanges}
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, accountEmployeesRanges: selected }))
+                setActiveFilter("accountEmployeesRanges")
+              }}
+              placeholder="Select employees range..."
+              isApplying={isApplying && activeFilter === "accountEmployeesRanges"}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Center Employees</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.accountCenterEmployees}
+              selected={pendingFilters.accountCenterEmployees}
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, accountCenterEmployees: selected }))
+                setActiveFilter("accountCenterEmployees")
+              }}
+              placeholder="Select center employees..."
+              isApplying={isApplying && activeFilter === "accountCenterEmployees"}
+            />
+          </div>
+
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="text-xs font-medium">Total India Headcount</Label>
               <div className="flex items-center gap-2">
@@ -301,7 +236,7 @@ export function AccountFiltersSection({
             </div>
           </div>
 
-          <div className="space-y-3 pt-4 mt-4 border-t border-border">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="text-xs font-medium">Years In India</Label>
               <div className="flex items-center gap-2">
@@ -365,6 +300,72 @@ export function AccountFiltersSection({
               <span>{firstCenterYearRange.max.toLocaleString()}</span>
             </div>
           </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Countries</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.accountCountries || []}
+              selected={pendingFilters.accountCountries}
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, accountCountries: selected }))
+                setActiveFilter("accountCountries")
+              }}
+              placeholder="Select countries..."
+              isApplying={isApplying && activeFilter === "accountCountries"}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Primary Nature</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.accountPrimaryNatures}
+              selected={pendingFilters.accountPrimaryNatures}
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, accountPrimaryNatures: selected }))
+                setActiveFilter("accountPrimaryNatures")
+              }}
+              placeholder="Select nature..."
+              isApplying={isApplying && activeFilter === "accountPrimaryNatures"}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Primary Categories</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.accountPrimaryCategories}
+              selected={pendingFilters.accountPrimaryCategories}
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, accountPrimaryCategories: selected }))
+                setActiveFilter("accountPrimaryCategories")
+              }}
+              placeholder="Select categories..."
+              isApplying={isApplying && activeFilter === "accountPrimaryCategories"}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Industries</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.accountIndustries}
+              selected={pendingFilters.accountIndustries}
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, accountIndustries: selected }))
+                setActiveFilter("accountIndustries")
+              }}
+              placeholder="Select industries..."
+              isApplying={isApplying && activeFilter === "accountIndustries"}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">NASSCOM Status</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.accountNasscomStatuses}
+              selected={pendingFilters.accountNasscomStatuses}
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, accountNasscomStatuses: selected }))
+                setActiveFilter("accountNasscomStatuses")
+              }}
+              placeholder="Select NASSCOM status..."
+              isApplying={isApplying && activeFilter === "accountNasscomStatuses"}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -387,98 +388,6 @@ export function CenterFiltersSection({
     <div className="max-h-[320px] overflow-y-auto pr-2">
       <div className="space-y-4 pt-2">
         <div className="space-y-3">
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Center Types</Label>
-            <EnhancedMultiSelect
-              options={availableOptions.centerTypes}
-              selected={pendingFilters.centerTypes}
-              onChange={(selected) => {
-                setPendingFilters((prev) => ({ ...prev, centerTypes: selected }))
-                setActiveFilter("centerTypes")
-              }}
-              placeholder="Select types..."
-              isApplying={isApplying && activeFilter === "centerTypes"}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Center Focus</Label>
-            <EnhancedMultiSelect
-              options={availableOptions.centerFocus}
-              selected={pendingFilters.centerFocus}
-              onChange={(selected) => {
-                setPendingFilters((prev) => ({ ...prev, centerFocus: selected }))
-                setActiveFilter("centerFocus")
-              }}
-              placeholder="Select focus..."
-              isApplying={isApplying && activeFilter === "centerFocus"}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Cities</Label>
-            <EnhancedMultiSelect
-              options={availableOptions.centerCities}
-              selected={pendingFilters.centerCities}
-              onChange={(selected) => {
-                setPendingFilters((prev) => ({ ...prev, centerCities: selected }))
-                setActiveFilter("centerCities")
-              }}
-              placeholder="Select cities..."
-              isApplying={isApplying && activeFilter === "centerCities"}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">States</Label>
-            <EnhancedMultiSelect
-              options={availableOptions.centerStates}
-              selected={pendingFilters.centerStates}
-              onChange={(selected) => {
-                setPendingFilters((prev) => ({ ...prev, centerStates: selected }))
-                setActiveFilter("centerStates")
-              }}
-              placeholder="Select states..."
-              isApplying={isApplying && activeFilter === "centerStates"}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Countries</Label>
-            <EnhancedMultiSelect
-              options={availableOptions.centerCountries}
-              selected={pendingFilters.centerCountries}
-              onChange={(selected) => {
-                setPendingFilters((prev) => ({ ...prev, centerCountries: selected }))
-                setActiveFilter("centerCountries")
-              }}
-              placeholder="Select countries..."
-              isApplying={isApplying && activeFilter === "centerCountries"}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Center Employees</Label>
-            <EnhancedMultiSelect
-              options={availableOptions.centerEmployees}
-              selected={pendingFilters.centerEmployees}
-              onChange={(selected) => {
-                setPendingFilters((prev) => ({ ...prev, centerEmployees: selected }))
-                setActiveFilter("centerEmployees")
-              }}
-              placeholder="Select employees range..."
-              isApplying={isApplying && activeFilter === "centerEmployees"}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Center Status</Label>
-            <EnhancedMultiSelect
-              options={availableOptions.centerStatuses}
-              selected={pendingFilters.centerStatuses}
-              onChange={(selected) => {
-                setPendingFilters((prev) => ({ ...prev, centerStatuses: selected }))
-                setActiveFilter("centerStatuses")
-              }}
-              placeholder="Select status..."
-              isApplying={isApplying && activeFilter === "centerStatuses"}
-            />
-          </div>
-
           <div className="space-y-3 pt-4 mt-4 border-t border-border">
             <div className="flex items-center justify-between">
               <Label className="text-xs font-medium">Timeline</Label>
@@ -542,6 +451,98 @@ export function CenterFiltersSection({
               <span>{centerIncYearRange.min.toLocaleString()}</span>
               <span>{centerIncYearRange.max.toLocaleString()}</span>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Center Status</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.centerStatuses}
+              selected={pendingFilters.centerStatuses}
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, centerStatuses: selected }))
+                setActiveFilter("centerStatuses")
+              }}
+              placeholder="Select status..."
+              isApplying={isApplying && activeFilter === "centerStatuses"}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Center Employees</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.centerEmployees}
+              selected={pendingFilters.centerEmployees}
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, centerEmployees: selected }))
+                setActiveFilter("centerEmployees")
+              }}
+              placeholder="Select employees range..."
+              isApplying={isApplying && activeFilter === "centerEmployees"}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Countries</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.centerCountries}
+              selected={pendingFilters.centerCountries}
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, centerCountries: selected }))
+                setActiveFilter("centerCountries")
+              }}
+              placeholder="Select countries..."
+              isApplying={isApplying && activeFilter === "centerCountries"}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">States</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.centerStates}
+              selected={pendingFilters.centerStates}
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, centerStates: selected }))
+                setActiveFilter("centerStates")
+              }}
+              placeholder="Select states..."
+              isApplying={isApplying && activeFilter === "centerStates"}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Cities</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.centerCities}
+              selected={pendingFilters.centerCities}
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, centerCities: selected }))
+                setActiveFilter("centerCities")
+              }}
+              placeholder="Select cities..."
+              isApplying={isApplying && activeFilter === "centerCities"}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Center Focus</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.centerFocus}
+              selected={pendingFilters.centerFocus}
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, centerFocus: selected }))
+                setActiveFilter("centerFocus")
+              }}
+              placeholder="Select focus..."
+              isApplying={isApplying && activeFilter === "centerFocus"}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Center Types</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.centerTypes}
+              selected={pendingFilters.centerTypes}
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, centerTypes: selected }))
+                setActiveFilter("centerTypes")
+              }}
+              placeholder="Select types..."
+              isApplying={isApplying && activeFilter === "centerTypes"}
+            />
           </div>
 
           <div className="space-y-2 pt-4 mt-4 border-t border-border">

@@ -200,7 +200,7 @@ export function getFilteredData(
     if (!matchAccountEmployeesRange(account.account_hq_employee_range)) continue
     if (!matchAccountCenterEmployees(account.account_center_employees_range || "")) continue
     if (!matchAccountRevenue(account.account_hq_revenue)) continue
-    if (!matchAccountYearsInIndia(account.years_in_india)) continue
+    if (!matchAccountYearsInIndia(account.account_center_employees)) continue
     if (!matchAccountFirstCenterYear(account.account_first_center_year)) continue
     if (!matchAccountName(account.account_global_legal_name)) continue
 
@@ -324,7 +324,7 @@ export function getDynamicRevenueRange(accounts: Account[], filters: RevenueRang
       matchNasscom(account.account_nasscom_status) &&
       matchEmployeesRange(account.account_hq_employee_range) &&
       matchCenterEmployees(account.account_center_employees_range || "") &&
-      matchYearsInIndiaRange(account.years_in_india) &&
+      matchYearsInIndiaRange(account.account_center_employees) &&
       matchFirstCenterYearRange(account.account_first_center_year)
     )
   })
@@ -404,7 +404,7 @@ export function getAvailableOptions(
 
     if (!matchesRevenue) return
 
-    const matchesYearsInIndia = matchAccountYearsInIndia(account.years_in_india)
+    const matchesYearsInIndia = matchAccountYearsInIndia(account.account_center_employees)
     if (!matchesYearsInIndia) return
 
     const matchesFirstCenterYear = matchAccountFirstCenterYear(account.account_first_center_year)
