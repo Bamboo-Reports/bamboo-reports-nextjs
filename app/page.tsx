@@ -108,7 +108,7 @@ function DashboardContent(): JSX.Element | null {
       <Header onRefresh={loadData} />
 
       {dataLoaded && (
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 overflow-hidden [--dashboard-content-top-gap:1.5rem] [--dashboard-content-bottom-gap:0.75rem]">
           <ExportDialog
             open={exportDialogOpen}
             onOpenChange={setExportDialogOpen}
@@ -152,7 +152,7 @@ function DashboardContent(): JSX.Element | null {
 
           <div className="flex-1 overflow-hidden flex flex-col">
             <div className="flex-1 overflow-y-auto scrollbar-gutter-stable">
-              <div className="p-6 pb-4">
+              <div className="px-6 pt-[var(--dashboard-content-top-gap)] pb-[var(--dashboard-content-bottom-gap)]">
                 <SummaryCards
                   filteredAccountsCount={filteredData.filteredAccounts.length}
                   totalAccountsCount={accounts.length}
