@@ -18,6 +18,8 @@ interface EnhancedMultiSelectProps {
   isApplying?: boolean
 }
 
+const DEFAULT_VISIBLE_OPTIONS = 20
+
 // Memoized Badge component with include/exclude toggle
 const EnhancedSelectBadge = React.memo(({
   item,
@@ -99,6 +101,7 @@ const EnhancedSelectItem = React.memo(({
   return (
     <CommandItem
       key={value}
+      value={value}
       onSelect={onSelect}
       disabled={disabled}
       className={cn(
@@ -152,6 +155,13 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
   isApplying = false,
 }: EnhancedMultiSelectProps) {
   const [open, setOpen] = React.useState(false)
+  const [searchQuery, setSearchQuery] = React.useState("")
+
+  React.useEffect(() => {
+    if (!open) {
+      setSearchQuery("")
+    }
+  }, [open])
 
   const handleUnselect = React.useCallback((item: FilterValue) => {
     onChange(selected.filter((i) => i.value !== item.value))
@@ -209,10 +219,26 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
     ))
   }, [selected, handleUnselect, handleToggleMode])
 
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase()
+  const visibleOptions = React.useMemo(() => {
+    const allOptions = options.map((option) => ({
+      value: typeof option === "string" ? option : option.value,
+      disabled: typeof option === "object" ? (option.disabled ?? false) : false,
+    }))
+
+    if (normalizedSearchQuery.length > 0) {
+      return allOptions.filter((option) => option.value.toLowerCase().includes(normalizedSearchQuery))
+    }
+
+    return allOptions.slice(0, DEFAULT_VISIBLE_OPTIONS)
+  }, [options, normalizedSearchQuery])
+
+  const hasMoreOptions = normalizedSearchQuery.length === 0 && options.length > DEFAULT_VISIBLE_OPTIONS
+
   const renderOptions = React.useMemo(() => {
-    return options.map((option) => {
+    return visibleOptions.map((option) => {
       const value = typeof option === "string" ? option : option.value
-      const disabled = typeof option === "object" ? (option.disabled ?? false) : false
+      const disabled = option.disabled
       const filterValue = selected.find((s) => s.value === value)
       const isSelected = !!filterValue
 
@@ -229,7 +255,7 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
         />
       )
     })
-  }, [options, selected, handleSelect])
+  }, [visibleOptions, selected, handleSelect])
 
   // Count include vs exclude
   const includeCount = selected.filter(s => s.mode === 'include').length
@@ -288,7 +314,17 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
           </PopoverTrigger>
           <PopoverContent className="w-[--radix-popover-trigger-width] min-w-[200px] p-0" align="start">
             <Command>
-              <CommandInput placeholder="Search..." className="h-9" />
+              <CommandInput
+                placeholder={hasMoreOptions ? `Search all ${options.length} options...` : "Search..."}
+                className="h-9"
+                value={searchQuery}
+                onValueChange={setSearchQuery}
+              />
+              {hasMoreOptions ? (
+                <p className="px-3 py-1.5 text-[11px] text-muted-foreground border-b">
+                  Showing first {DEFAULT_VISIBLE_OPTIONS} options. Use search to find more.
+                </p>
+              ) : null}
               <CommandList className="max-h-64">
                 <CommandEmpty>No item found.</CommandEmpty>
                 <CommandGroup>

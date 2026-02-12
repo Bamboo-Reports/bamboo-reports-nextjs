@@ -15,80 +15,74 @@
 
 @layer base {
   :root {
-    /* Neutral Color Palette - Light Mode */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    /* Bamboo Reports Brand Palette - Light Mode */
+    --background: 210 40% 98%;
+    --foreground: 214 45% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 214 45% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    /* Improved contrast for muted text */
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 35%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
+    --popover-foreground: 214 45% 15%;
+    --primary: 204 100% 41%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 25% 94%;
+    --secondary-foreground: 214 45% 22%;
+    --muted: 210 25% 94%;
+    --muted-foreground: 215 20% 39%;
+    --accent: 28 90% 94%;
+    --accent-foreground: 214 45% 18%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    /* Vibrant chart colors */
-    --chart-1: 210 85% 58%;
-    --chart-2: 142 60% 45%;
-    --chart-3: 262 65% 60%;
-    --chart-4: 32 95% 58%;
-    --chart-5: 340 82% 62%;
+    --border: 212 24% 86%;
+    --input: 212 24% 86%;
+    --ring: 204 100% 41%;
+    --chart-1: 204 100% 41%;
+    --chart-2: 212 71% 31%;
+    --chart-3: 28 88% 53%;
+    --chart-4: 195 88% 45%;
+    --chart-5: 35 92% 48%;
     --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 214 45% 15%;
+    --sidebar-primary: 204 100% 41%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 30% 96%;
+    --sidebar-accent-foreground: 214 45% 18%;
+    --sidebar-border: 212 24% 86%;
+    --sidebar-ring: 28 88% 53%;
   }
   .dark {
-    /* Consistent Dark Mode - Charcoal Theme */
-    --background: 0 0% 9%;
+    --background: 216 38% 8%;
     --foreground: 0 0% 98%;
-    --card: 0 0% 12%;
+    --card: 216 36% 10%;
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 12%;
+    --popover: 216 36% 10%;
     --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 16%;
+    --primary: 204 92% 56%;
+    --primary-foreground: 216 38% 8%;
+    --secondary: 216 24% 16%;
     --secondary-foreground: 0 0% 98%;
-    /* Improved contrast for muted text */
-    --muted: 0 0% 16%;
+    --muted: 216 24% 16%;
     --muted-foreground: 0 0% 65%;
-    --accent: 0 0% 16%;
+    --accent: 216 24% 16%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 20%;
-    --input: 0 0% 16%;
+    --border: 216 23% 24%;
+    --input: 216 23% 24%;
     --ring: 0 0% 83.1%;
-    /* Vibrant chart colors */
-    --chart-1: 210 90% 65%;
-    --chart-2: 142 55% 55%;
-    --chart-3: 262 70% 68%;
-    --chart-4: 32 95% 62%;
-    --chart-5: 340 82% 65%;
-    /* Consistent sidebar with main background */
-    --sidebar-background: 0 0% 9%;
+    --chart-1: 204 92% 56%;
+    --chart-2: 200 75% 59%;
+    --chart-3: 28 88% 60%;
+    --chart-4: 210 75% 67%;
+    --chart-5: 43 96% 56%;
+    --sidebar-background: 216 38% 8%;
     --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 16%;
+    --sidebar-primary: 204 92% 56%;
+    --sidebar-primary-foreground: 216 38% 8%;
+    --sidebar-accent: 216 24% 16%;
     --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-border: 216 23% 24%;
+    --sidebar-ring: 28 88% 60%;
   }
 }
 
@@ -100,6 +94,7 @@
     @apply bg-background text-foreground;
     font-family: 'Google Sans', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont,
       'Segoe UI', sans-serif;
+    line-height: 1.55;
   }
 
   input,
@@ -194,6 +189,17 @@
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

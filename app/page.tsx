@@ -104,7 +104,7 @@ function DashboardContent(): JSX.Element | null {
   }
 
   return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
+    <div className="h-screen bg-[radial-gradient(circle_at_top_right,_hsl(var(--primary)/0.14),_transparent_36%),radial-gradient(circle_at_0%_45%,_hsl(var(--chart-3)/0.10),_transparent_34%),hsl(var(--background))] flex flex-col overflow-hidden">
       <Header onRefresh={loadData} />
 
       {dataLoaded && (
@@ -150,9 +150,9 @@ function DashboardContent(): JSX.Element | null {
             formatRevenueInMillions={formatRevenueInMillions}
           />
 
-          <div className="flex-1 bg-background overflow-hidden flex flex-col">
+          <div className="flex-1 overflow-hidden flex flex-col">
             <div className="flex-1 overflow-y-auto scrollbar-gutter-stable">
-              <div className="p-6 pb-3">
+              <div className="p-6 pb-4">
                 <SummaryCards
                   filteredAccountsCount={filteredData.filteredAccounts.length}
                   totalAccountsCount={accounts.length}
