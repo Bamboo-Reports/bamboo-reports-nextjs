@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { RefreshCw, UserRound } from 'lucide-react'
+import { BarChart3, RefreshCw, UserRound } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import {
@@ -82,9 +82,22 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JS
   }
 
   return (
-    <div className="bg-background border-b shadow-sm sticky top-0 z-10 backdrop-blur-sm bg-background/95">
-      <div className="max-w-full mx-auto px-6 py-4">
-        <div className="flex items-center justify-end gap-3">
+    <div className="sticky top-0 z-20 border-b border-border/80 bg-background/95 backdrop-blur-md">
+      <div className="mx-auto w-full px-6 py-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary/15 via-primary/5 to-accent/40">
+              <span className="text-sm font-bold text-primary">BR</span>
+              <div className="pointer-events-none absolute inset-x-1 bottom-1 h-1 rounded-full bg-gradient-to-r from-primary/80 to-[hsl(var(--chart-3))]/80" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-foreground">Bamboo Reports Intelligence</p>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <BarChart3 className="h-3.5 w-3.5 text-primary" />
+                <span className="truncate">Indian GCC Benchmarking Platform</span>
+              </div>
+            </div>
+          </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={onRefresh} className="h-8 px-3 group" title="Refresh">
               <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-300" />

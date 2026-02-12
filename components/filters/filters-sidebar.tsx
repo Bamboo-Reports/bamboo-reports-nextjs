@@ -75,13 +75,16 @@ export function FiltersSidebar({
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
 
   return (
-    <div className="bg-sidebar overflow-y-auto overflow-x-hidden w-[320px] shrink-0 relative ml-6 mt-6 mb-5 rounded-lg border shadow-sm transition-colors hover:bg-muted/50">
+    <div className="bg-sidebar/90 backdrop-blur-sm overflow-y-auto overflow-x-hidden w-[320px] shrink-0 relative ml-6 mt-6 mb-5 rounded-2xl border border-sidebar-border shadow-[0_24px_60px_-45px_rgba(0,0,0,0.55)] transition-colors">
       <div className="p-4 space-y-3">
         <div className="flex flex-col gap-2 mb-3 pb-3 border-b border-sidebar-border">
           <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-semibold text-foreground">Filters</span>
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10">
+              <Filter className="h-4 w-4 text-primary" />
+            </div>
+            <span className="text-sm font-semibold text-foreground">Intelligence Filters</span>
           </div>
+          <p className="text-xs text-muted-foreground">Slice the market by account profile, center footprint, and prospect signals.</p>
           <div className="flex flex-col gap-2">
             <SavedFiltersManager
               currentFilters={filters}
@@ -93,15 +96,15 @@ export function FiltersSidebar({
           </div>
         </div>
 
-        <Accordion type="multiple" defaultValue={[]} className="w-full">
-          <AccordionItem value="accounts">
-            <AccordionTrigger className="text-sm font-semibold">
-              <div className="flex items-center gap-2">
-                <Building className="h-4 w-4 text-[hsl(var(--chart-1))]" />
-                <span className="uppercase tracking-wider">Account Attributes</span>
+        <Accordion type="multiple" defaultValue={["accounts"]} className="w-full space-y-2">
+          <AccordionItem value="accounts" className="overflow-hidden rounded-xl border border-border/70 bg-secondary/30 px-3 data-[state=open]:bg-background data-[state=open]:shadow-sm">
+            <AccordionTrigger className="py-3 text-sm font-semibold hover:no-underline">
+              <div className="flex items-center gap-2.5">
+                <Building className="h-4 w-4 text-primary" />
+                <span className="uppercase tracking-wider text-[12px]">Account Attributes</span>
               </div>
             </AccordionTrigger>
-            <AccordionContent>
+            <AccordionContent className="pb-3 pt-1">
               <AccountFiltersSection
                 pendingFilters={pendingFilters}
                 availableOptions={availableOptions}
@@ -127,14 +130,14 @@ export function FiltersSidebar({
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="centers">
-            <AccordionTrigger className="text-sm font-semibold">
-              <div className="flex items-center gap-2">
+          <AccordionItem value="centers" className="overflow-hidden rounded-xl border border-border/70 bg-secondary/30 px-3 data-[state=open]:bg-background data-[state=open]:shadow-sm">
+            <AccordionTrigger className="py-3 text-sm font-semibold hover:no-underline">
+              <div className="flex items-center gap-2.5">
                 <Briefcase className="h-4 w-4 text-[hsl(var(--chart-2))]" />
-                <span className="uppercase tracking-wider">Center Attributes</span>
+                <span className="uppercase tracking-wider text-[12px]">Center Attributes</span>
               </div>
             </AccordionTrigger>
-            <AccordionContent>
+            <AccordionContent className="pb-3 pt-1">
               <CenterFiltersSection
                 pendingFilters={pendingFilters}
                 availableOptions={availableOptions}
@@ -150,14 +153,14 @@ export function FiltersSidebar({
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="prospects">
-            <AccordionTrigger className="text-sm font-semibold">
-              <div className="flex items-center gap-2">
+          <AccordionItem value="prospects" className="overflow-hidden rounded-xl border border-border/70 bg-secondary/30 px-3 data-[state=open]:bg-background data-[state=open]:shadow-sm">
+            <AccordionTrigger className="py-3 text-sm font-semibold hover:no-underline">
+              <div className="flex items-center gap-2.5">
                 <Users className="h-4 w-4 text-[hsl(var(--chart-3))]" />
-                <span className="uppercase tracking-wider">Prospect Attributes</span>
+                <span className="uppercase tracking-wider text-[12px]">Prospect Attributes</span>
               </div>
             </AccordionTrigger>
-            <AccordionContent>
+            <AccordionContent className="pb-3 pt-1">
               <ProspectFiltersSection
                 pendingFilters={pendingFilters}
                 availableOptions={availableOptions}

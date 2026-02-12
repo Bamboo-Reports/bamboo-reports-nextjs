@@ -25,9 +25,13 @@ export function ViewSwitcher<V extends string>({
 }: ViewSwitcherProps<V>) {
   return (
     <Tabs value={value} onValueChange={(v) => onValueChange(v as V)} className={cn("w-fit", className)}>
-      <TabsList className="gap-2 bg-muted/80 shadow-sm">
+      <TabsList className="gap-2 bg-secondary/80 shadow-sm">
         {options.map(({ value: optionValue, label, icon }) => (
-          <TabsTrigger key={optionValue} value={optionValue} className="gap-2 data-[state=active]:shadow-sm">
+          <TabsTrigger
+            key={optionValue}
+            value={optionValue}
+            className="gap-2 border border-transparent data-[state=active]:border-primary/15 data-[state=active]:bg-white"
+          >
             {icon}
             {label}
           </TabsTrigger>

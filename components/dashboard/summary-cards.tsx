@@ -92,21 +92,21 @@ export const SummaryCards = React.memo(function SummaryCards({
   const cards = [
     {
       id: 'accounts',
-      title: 'Total Accounts',
+      title: 'Accounts',
       value: filteredAccountsCount,
       total: totalAccountsCount,
       colorVar: '--chart-1',
     },
     {
       id: 'centers',
-      title: 'Total Centers',
+      title: 'Centers',
       value: filteredCentersCount,
       total: totalCentersCount,
       colorVar: '--chart-2',
     },
     {
       id: 'prospects',
-      title: 'Total Prospects',
+      title: 'Prospects',
       value: filteredProspectsCount,
       total: totalProspectsCount,
       colorVar: '--chart-3',
@@ -129,9 +129,9 @@ export const SummaryCards = React.memo(function SummaryCards({
             }
           }}
           className={cn(
-            'relative cursor-pointer select-none overflow-hidden border border-border/60 bg-gradient-to-br from-background/90 via-background to-background shadow-[0_15px_50px_-35px_rgba(0,0,0,0.6)] dark:shadow-[0_20px_65px_-45px_rgba(0,0,0,0.85)] transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+            'relative cursor-pointer select-none overflow-hidden border border-border/70 bg-gradient-to-br from-card via-card to-secondary/20 shadow-[0_14px_42px_-30px_rgba(0,0,0,0.45)] transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
             activeView === card.id
-              ? 'ring-2 ring-sidebar-ring border-sidebar-ring/70 shadow-[0_18px_55px_-30px_rgba(0,0,0,0.7)]'
+              ? 'ring-2 ring-sidebar-ring border-sidebar-ring/70 shadow-[0_18px_55px_-35px_rgba(0,0,0,0.6)]'
               : 'hover:-translate-y-0.5'
           )}
         >
@@ -147,7 +147,7 @@ export const SummaryCards = React.memo(function SummaryCards({
             aria-hidden="true"
           />
           <div
-            className="pointer-events-none absolute inset-px rounded-[calc(var(--radius)-2px)] border border-white/20 dark:border-white/5 opacity-60"
+            className="pointer-events-none absolute inset-px rounded-[calc(var(--radius)-2px)] border border-white/40 dark:border-white/5 opacity-60"
             aria-hidden="true"
           />
           <CardHeader className="relative p-4 pb-2">
@@ -159,7 +159,7 @@ export const SummaryCards = React.memo(function SummaryCards({
             <div>
               <AnimatedNumber
                 value={card.value}
-                className="text-sidebar-foreground drop-shadow-[0_6px_12px_rgba(0,0,0,0.18)]"
+                className="text-sidebar-foreground"
               />
               <p className="mt-1 text-xs text-muted-foreground">Currently visible</p>
             </div>
