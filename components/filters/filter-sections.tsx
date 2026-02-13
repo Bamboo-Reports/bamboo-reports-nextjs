@@ -69,7 +69,7 @@ export function AccountFiltersSection({
     <div className="max-h-[320px] overflow-y-auto pr-2">
         <div className="space-y-4 pt-2">
           <div className="space-y-3">
-            <div className="space-y-3 pt-4 mt-4 border-t border-border">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-xs font-medium">Revenue</Label>
                 <div className="flex items-center gap-2">
@@ -134,7 +134,7 @@ export function AccountFiltersSection({
             </div>
           </div>
 
-          <div className="space-y-2 pb-4 border-b border-border">
+          <div className="space-y-2">
             <Label className="text-xs font-medium">Search Account Name</Label>
             <AccountAutocomplete
               accountNames={accountNames}
@@ -388,7 +388,7 @@ export function CenterFiltersSection({
     <div className="max-h-[320px] overflow-y-auto pr-2">
       <div className="space-y-4 pt-2">
         <div className="space-y-3">
-          <div className="space-y-3 pt-4 mt-4 border-t border-border">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="text-xs font-medium">Timeline</Label>
               <div className="flex items-center gap-2">
@@ -545,7 +545,7 @@ export function CenterFiltersSection({
             />
           </div>
 
-          <div className="space-y-2 pt-4 mt-4 border-t border-border">
+          <div className="space-y-2">
             <Label className="text-xs font-medium">Functions</Label>
             <EnhancedMultiSelect
               options={availableOptions.functionTypes}
@@ -558,7 +558,7 @@ export function CenterFiltersSection({
               isApplying={isApplying && activeFilter === "functionTypes"}
             />
           </div>
-          <div className="space-y-2 pt-4 mt-4 border-t border-border">
+          <div className="space-y-2">
             <Label className="text-xs font-medium">Software In Use</Label>
             <TitleKeywordInput
               keywords={pendingFilters.centerSoftwareInUseKeywords}
@@ -625,7 +625,7 @@ export function ProspectFiltersSection({
               isApplying={isApplying && activeFilter === "prospectCities"}
             />
           </div>
-          <div className="space-y-2 pt-4 mt-4 border-t border-border">
+          <div className="space-y-2">
             <Label className="text-xs font-medium">Title Keywords</Label>
             <TitleKeywordInput
               keywords={pendingFilters.prospectTitleKeywords}

@@ -122,7 +122,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 justify-between bg-background hover:bg-accent/30 border-input/50 h-9 transition-colors duration-150"
+              className="flex-1 justify-between h-9"
             >
               <div className="flex items-center gap-2 truncate">
                 <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -191,7 +191,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
               variant="outline"
               size="icon"
               disabled={totalActiveFilters === 0}
-              className="h-9 w-9 rounded-full shrink-0 bg-background hover:bg-primary/90 hover:text-primary-foreground border-input/50 transition-colors duration-150 shadow-sm"
+              className="h-9 w-9 rounded-full shrink-0"
               title="Save current filters"
             >
               <Save className="h-4 w-4" />
@@ -235,7 +235,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
               variant="outline"
               size="sm"
               onClick={onReset}
-              className="w-full h-8 text-xs font-medium border-[1.5px]"
+              className="w-full h-8 text-xs font-medium"
             >
               Reset
             </Button>
@@ -245,7 +245,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
               variant="default"
               size="sm"
               onClick={onExport}
-              className="w-full h-8 text-xs font-medium shadow-none transition-colors duration-150"
+              className="w-full h-8 text-xs font-medium"
             >
               Export
             </Button>

@@ -15,6 +15,8 @@ import { useDashboardData } from '@/hooks/use-dashboard-data'
 import { useDashboardFilters } from '@/hooks/use-dashboard-filters'
 import { formatRevenueInMillions } from '@/lib/utils/helpers'
 
+const SIDEBAR_COLLAPSED_STORAGE_KEY = 'br-dashboard-sidebar-collapsed'
+
 function DashboardContent(): JSX.Element | null {
   const { authReady, userId } = useAuthGuard()
 
@@ -79,10 +81,22 @@ function DashboardContent(): JSX.Element | null {
   const [prospectsView, setProspectsView] = useState<'chart' | 'data'>('chart')
   const [activeSection, setActiveSection] = useState<'accounts' | 'centers' | 'prospects'>('accounts')
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   useEffect(() => {
     setCurrentPage(1)
   }, [filters])
+
+  useEffect(() => {
+    const storedSidebarState = window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)
+    if (storedSidebarState === 'true') {
+      setIsSidebarCollapsed(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    window.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, String(isSidebarCollapsed))
+  }, [isSidebarCollapsed])
 
   const handleExportAll = useCallback(() => {
     setExportDialogOpen(true)
@@ -125,6 +139,8 @@ function DashboardContent(): JSX.Element | null {
             pendingFilters={pendingFilters}
             availableOptions={availableOptions}
             isApplying={isApplying}
+            isCollapsed={isSidebarCollapsed}
+            onToggleCollapse={() => setIsSidebarCollapsed((current) => !current)}
             revenueRange={revenueRange}
             yearsInIndiaRange={yearsInIndiaRange}
             firstCenterYearRange={firstCenterYearRange}
