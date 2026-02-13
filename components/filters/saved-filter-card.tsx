@@ -69,7 +69,7 @@ export const SavedFilterCard = memo(({
             <Button
               variant="ghost"
               size="sm"
-              className="text-red-600 hover:text-red-700"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={() => onDelete(filter)}
             >
               <Trash2 className="h-4 w-4" />
