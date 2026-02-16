@@ -186,7 +186,7 @@ export const TechTreemap = memo(({
                       style: {
                         fontSize: "0.6em",
                         fontWeight: "normal",
-                        color: "var(--highcharts-neutral-color-100, #000)",
+                        color: "var(--highcharts-neutral-color-100, hsl(var(--foreground)))",
                         textOutline: "none",
                       },
                     },

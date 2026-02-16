@@ -175,6 +175,7 @@ export function ProspectsTab({
                      ),
                    },
                  ]}
+                 className="ml-auto"
                />
              </div>
            </CardHeader>
