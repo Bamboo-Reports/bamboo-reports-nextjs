@@ -252,6 +252,7 @@ export function AccountsTab({
                     ),
                   },
                 ]}
+                className="ml-auto"
               />
             </div>
           </CardHeader>

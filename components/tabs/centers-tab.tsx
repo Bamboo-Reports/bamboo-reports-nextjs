@@ -241,6 +241,7 @@ export function CentersTab({
                      ),
                    },
                  ]}
+                 className="ml-auto"
                />
              </div>
            </CardHeader>

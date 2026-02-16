@@ -75,7 +75,7 @@ function DashboardContent(): JSX.Element | null {
   })
 
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 50
+  const itemsPerPage = 51
   const [accountsView, setAccountsView] = useState<'chart' | 'data' | 'map'>('map')
   const [centersView, setCentersView] = useState<'chart' | 'data' | 'map'>('map')
   const [prospectsView, setProspectsView] = useState<'chart' | 'data'>('chart')
