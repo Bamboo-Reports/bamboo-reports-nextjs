@@ -441,11 +441,12 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         <FullscreenControl position="top-left" />
 
         {/* Recenter Button */}
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-[152px] left-2 z-10">
           <button
             onClick={handleRecenter}
-            className="bg-background hover:bg-muted border rounded-md shadow-lg px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2"
+            className="h-8 w-8 bg-background hover:bg-muted border rounded-sm shadow-lg transition-colors flex items-center justify-center"
             title="Recenter map"
+            aria-label="Recenter map"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -461,7 +462,6 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
               <circle cx="12" cy="12" r="10" />
               <circle cx="12" cy="12" r="3" />
             </svg>
-            Recenter
           </button>
         </div>
 

@@ -72,7 +72,7 @@ export function AccountsTab({
     direction: null,
   })
   const [dataLayout, setDataLayout] = useState<"table" | "grid">("table")
-  const [mapMode, setMapMode] = useState<"city" | "state">("city")
+  const [mapMode, setMapMode] = useState<"city" | "state">("state")
 
   const handleAccountClick = (account: Account) => {
     setSelectedAccount(account)
