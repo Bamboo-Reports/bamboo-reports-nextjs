@@ -58,7 +58,7 @@ export function CentersTab({
     direction: null,
   })
   const [dataLayout, setDataLayout] = useState<"table" | "grid">("table")
-  const [mapMode, setMapMode] = useState<"city" | "state">("city")
+  const [mapMode, setMapMode] = useState<"city" | "state">("state")
 
   const handleCenterClick = (center: Center) => {
     setSelectedCenter(center)

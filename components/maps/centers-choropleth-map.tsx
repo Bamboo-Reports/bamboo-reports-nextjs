@@ -174,6 +174,10 @@ export function CentersChoroplethMap({
     accountsCount: number
     headcount: number
   } | null>(null)
+  const [hoveredStateFilter, setHoveredStateFilter] = useState<{
+    iso2: string
+    stateName: string
+  } | null>(null)
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null)
   const mapRef = React.useRef<any>(null)
   const containerRef = React.useRef<HTMLDivElement | null>(null)
@@ -288,6 +292,18 @@ export function CentersChoroplethMap({
     }
     return ["all", ["==", ["get", "level"], 1], ["in", featureKeyExpression, ["literal", stateKeysWithCounts]]] as any
   }, [featureKeyExpression, stateKeysWithCounts])
+
+  const hoverLayerFilter = useMemo(() => {
+    if (!hoveredStateFilter) {
+      return ["==", "name", "__never_hovered_state__"] as any
+    }
+    return [
+      "all",
+      ["==", "level", 1],
+      ["==", "level_0", hoveredStateFilter.iso2],
+      ["==", "name", hoveredStateFilter.stateName],
+    ] as any
+  }, [hoveredStateFilter])
 
   const bounds = useMemo(() => {
     const coords = centers
@@ -414,12 +430,17 @@ export function CentersChoroplethMap({
           const feature = e.features?.[0] as Admin1Feature | undefined
           if (!feature) {
             setHoverInfo(null)
+            setHoveredStateFilter(null)
             return
           }
           const props = feature.properties || {}
           const stateName = (props.name || "").toString()
           const iso2 = (props.level_0 || "").toString()
           const key = makeKey(iso2, normalizeStateKey(stateName))
+          setHoveredStateFilter({
+            iso2,
+            stateName,
+          })
           const count = stateAggregates.countsByState.get(key) || 0
           const accountsCount = stateAggregates.accountsByState.get(key)?.size || 0
           const headcount = stateAggregates.headcountByState.get(key) || 0
@@ -434,7 +455,10 @@ export function CentersChoroplethMap({
             headcount,
           })
         }}
-        onMouseLeave={() => setHoverInfo(null)}
+        onMouseLeave={() => {
+          setHoverInfo(null)
+          setHoveredStateFilter(null)
+        }}
         onError={(e) => {
           console.error("[CentersChoroplethMap] Map error:", e)
           setError(`Map error: ${e.error?.message || "Unknown error"}`)
@@ -443,11 +467,12 @@ export function CentersChoroplethMap({
         <NavigationControl position="top-left" showCompass={true} showZoom={true} />
         <FullscreenControl position="top-left" />
 
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-[152px] left-2 z-10">
           <button
             onClick={handleRecenter}
-            className="bg-background hover:bg-muted border rounded-md shadow-lg px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2"
+            className="h-8 w-8 bg-background hover:bg-muted border rounded-sm shadow-lg transition-colors flex items-center justify-center"
             title="Recenter map"
+            aria-label="Recenter map"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -463,7 +488,6 @@ export function CentersChoroplethMap({
               <circle cx="12" cy="12" r="10" />
               <circle cx="12" cy="12" r="3" />
             </svg>
-            Recenter
           </button>
         </div>
 
@@ -487,6 +511,17 @@ export function CentersChoroplethMap({
               "line-color": "#ffffff",
               "line-width": 0.7,
               "line-opacity": 0.8,
+            }}
+          />
+          <Layer
+            id="admin1-hover-outline"
+            type="line"
+            source-layer="administrative"
+            filter={hoverLayerFilter}
+            paint={{
+              "line-color": "#f97316",
+              "line-width": 2,
+              "line-opacity": 1,
             }}
           />
         </Source>
