@@ -82,7 +82,9 @@ function DashboardContent(): JSX.Element | null {
     tech,
   })
 
-  const [currentPage, setCurrentPage] = useState(1)
+  const [accountsPage, setAccountsPage] = useState(1)
+  const [centersPage, setCentersPage] = useState(1)
+  const [prospectsPage, setProspectsPage] = useState(1)
   const itemsPerPage = 51
   const [accountsView, setAccountsView] = useState<"chart" | "data" | "map">("map")
   const [centersView, setCentersView] = useState<"chart" | "data" | "map">("map")
@@ -95,7 +97,11 @@ function DashboardContent(): JSX.Element | null {
   const sessionStartRef = useRef<number | null>(null)
   const currentScreenStartRef = useRef<number | null>(null)
   const currentScreenRef = useRef<"accounts" | "centers" | "prospects">("accounts")
-  const previousPageRef = useRef(1)
+  const previousPageRef = useRef<Record<"accounts" | "centers" | "prospects", number>>({
+    accounts: 1,
+    centers: 1,
+    prospects: 1,
+  })
   const previousAccountsViewRef = useRef<"chart" | "data" | "map">("map")
   const previousCentersViewRef = useRef<"chart" | "data" | "map">("map")
   const previousProspectsViewRef = useRef<"chart" | "data">("chart")
@@ -119,8 +125,20 @@ function DashboardContent(): JSX.Element | null {
     return prospectsView
   }, [activeSection, accountsView, centersView, prospectsView])
 
+  const activePage = useMemo(() => {
+    if (activeSection === "accounts") {
+      return accountsPage
+    }
+    if (activeSection === "centers") {
+      return centersPage
+    }
+    return prospectsPage
+  }, [activeSection, accountsPage, centersPage, prospectsPage])
+
   useEffect(() => {
-    setCurrentPage(1)
+    setAccountsPage(1)
+    setCentersPage(1)
+    setProspectsPage(1)
   }, [filters])
 
   useEffect(() => {
@@ -195,7 +213,11 @@ function DashboardContent(): JSX.Element | null {
     sessionStartRef.current = Date.now()
     currentScreenStartRef.current = Date.now()
     currentScreenRef.current = "accounts"
-    previousPageRef.current = 1
+    previousPageRef.current = {
+      accounts: 1,
+      centers: 1,
+      prospects: 1,
+    }
     viewSwitchCountRef.current = 0
     exportCountRef.current = 0
 
@@ -407,18 +429,18 @@ function DashboardContent(): JSX.Element | null {
   }, [prospectsView])
 
   useEffect(() => {
-    if (previousPageRef.current === currentPage) {
+    if (previousPageRef.current[activeSection] === activePage) {
       return
     }
 
     captureEvent(ANALYTICS_EVENTS.PAGE_CHANGED, {
-      page: currentPage,
+      page: activePage,
       items_per_page: itemsPerPage,
       screen: activeSection,
     })
 
-    previousPageRef.current = currentPage
-  }, [currentPage, itemsPerPage, activeSection])
+    previousPageRef.current[activeSection] = activePage
+  }, [activePage, itemsPerPage, activeSection])
 
   const dataLoaded =
     !loading && accounts.length > 0 && centers.length > 0 && services.length > 0 && prospects.length > 0
@@ -563,8 +585,8 @@ function DashboardContent(): JSX.Element | null {
                     accountChartData={accountChartData}
                     accountsView={accountsView}
                     setAccountsView={setAccountsView}
-                    currentPage={currentPage}
-                    setCurrentPage={setCurrentPage}
+                    currentPage={accountsPage}
+                    setCurrentPage={setAccountsPage}
                     itemsPerPage={itemsPerPage}
                   />
 
@@ -576,8 +598,8 @@ function DashboardContent(): JSX.Element | null {
                     centerChartData={centerChartData}
                     centersView={centersView}
                     setCentersView={setCentersView}
-                    currentPage={currentPage}
-                    setCurrentPage={setCurrentPage}
+                    currentPage={centersPage}
+                    setCurrentPage={setCentersPage}
                     itemsPerPage={itemsPerPage}
                   />
 
@@ -586,8 +608,8 @@ function DashboardContent(): JSX.Element | null {
                     prospectChartData={prospectChartData}
                     prospectsView={prospectsView}
                     setProspectsView={setProspectsView}
-                    currentPage={currentPage}
-                    setCurrentPage={setCurrentPage}
+                    currentPage={prospectsPage}
+                    setCurrentPage={setProspectsPage}
                     itemsPerPage={itemsPerPage}
                   />
                 </Tabs>
