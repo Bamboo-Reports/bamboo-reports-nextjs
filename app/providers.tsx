@@ -1,12 +1,11 @@
 "use client"
 
 import { useEffect, type ReactNode } from "react"
-import { usePathname, useSearchParams } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { capturePageView, initAnalytics } from "@/lib/analytics/client"
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
 
   useEffect(() => {
     initAnalytics()
@@ -18,12 +17,12 @@ export function AppProviders({ children }: { children: ReactNode }) {
     }
 
     let url = `${window.location.origin}${pathname}`
-    if (searchParams.toString()) {
-      url += `?${searchParams.toString()}`
+    if (window.location.search) {
+      url += window.location.search
     }
 
     capturePageView(url)
-  }, [pathname, searchParams])
+  }, [pathname])
 
   return <>{children}</>
 }
