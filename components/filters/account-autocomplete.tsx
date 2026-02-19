@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
+import React, { useState, useEffect, useMemo, useRef, useCallback, useId } from "react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -39,6 +39,7 @@ export function AccountAutocomplete({
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const sourceFilterKey = trackingKey ?? "accountNameKeywords"
+  const comboboxId = useId()
 
   // Debounce input value for performance
   useEffect(() => {
@@ -84,6 +85,12 @@ export function AccountAutocomplete({
     // Combine and limit to 50 results for performance
     return [...startsWithMatches, ...containsMatches].slice(0, 50)
   }, [debouncedValue, uniqueAccountNames, selectedAccounts])
+  const isSuggestionsOpen = isOpen && suggestions.length > 0
+  const listboxId = `${comboboxId}-listbox`
+  const activeOptionId =
+    isSuggestionsOpen && suggestions[highlightedIndex]
+      ? `${comboboxId}-option-${highlightedIndex}`
+      : undefined
 
   // Handle account selection
   const handleSelectAccount = useCallback((accountName: string, mode: 'include' | 'exclude' = 'include') => {
@@ -261,6 +268,7 @@ export function AccountAutocomplete({
                 )}
               >
                 <button
+                  type="button"
                   onClick={() => handleToggleMode(index)}
                   className={cn(
                     "flex items-center justify-center w-4 h-4 rounded-sm",
@@ -269,6 +277,7 @@ export function AccountAutocomplete({
                       : "bg-red-600/30 hover:bg-red-600/50"
                   )}
                   title={isInclude ? 'Click to exclude' : 'Click to include'}
+                  aria-label={isInclude ? `Exclude ${account.value}` : `Include ${account.value}`}
                 >
                   {isInclude ? (
                     <Plus className="h-3 w-3" />
@@ -278,9 +287,11 @@ export function AccountAutocomplete({
                 </button>
                 <span className="text-xs">{account.value}</span>
                 <button
+                  type="button"
                   onClick={() => handleRemoveAccount(index)}
                   className="ml-1 rounded-sm opacity-70 hover:opacity-100 hover:bg-accent p-0.5"
                   title="Remove"
+                  aria-label={`Remove ${account.value}`}
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -294,6 +305,7 @@ export function AccountAutocomplete({
       <div className="relative">
         <div className="relative">
           <Input
+            id={comboboxId}
             ref={inputRef}
             type="text"
             value={inputValue}
@@ -306,26 +318,39 @@ export function AccountAutocomplete({
               if (inputValue.trim()) setIsOpen(true)
             }}
             placeholder={placeholder}
+            role="combobox"
+            aria-label="Search account names"
+            aria-autocomplete="list"
+            aria-haspopup="listbox"
+            aria-expanded={isOpen}
+            aria-controls={listboxId}
+            aria-activedescendant={activeOptionId}
           />
         </div>
 
         {/* Suggestions Dropdown */}
-        {isOpen && suggestions.length > 0 && (
+        {isSuggestionsOpen && (
           <div
             ref={dropdownRef}
             className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-lg"
+            role="listbox"
+            id={listboxId}
+            aria-label="Account suggestions"
           >
             <ScrollArea className="h-auto max-h-[300px]">
               <div className="p-1">
                 {suggestions.map((suggestion, index) => (
                   <div
                     key={suggestion}
+                    id={`${comboboxId}-option-${index}`}
                     className={cn(
                       "flex items-center justify-between px-3 py-2 cursor-pointer rounded-sm text-sm transition-colors",
                       highlightedIndex === index
                         ? "bg-accent text-accent-foreground"
                         : "hover:bg-accent/50"
                     )}
+                    role="option"
+                    aria-selected={highlightedIndex === index}
                     onClick={() => handleSelectAccount(suggestion)}
                     onMouseEnter={() => setHighlightedIndex(index)}
                   >
@@ -334,6 +359,7 @@ export function AccountAutocomplete({
                     </span>
                     <div className="flex gap-1 ml-2">
                       <Button
+                        type="button"
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0 hover:bg-green-100 dark:hover:bg-green-900/20"
@@ -342,10 +368,12 @@ export function AccountAutocomplete({
                           handleSelectAccount(suggestion, 'include')
                         }}
                         title="Include"
+                        aria-label={`Include ${suggestion}`}
                       >
                         <Plus className="h-3 w-3 text-green-600" />
                       </Button>
                       <Button
+                        type="button"
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0 hover:bg-red-100 dark:hover:bg-red-900/20"
@@ -354,6 +382,7 @@ export function AccountAutocomplete({
                           handleSelectAccount(suggestion, 'exclude')
                         }}
                         title="Exclude"
+                        aria-label={`Exclude ${suggestion}`}
                       >
                         <Minus className="h-3 w-3 text-red-600" />
                       </Button>
@@ -377,6 +406,8 @@ export function AccountAutocomplete({
           <div
             ref={dropdownRef}
             className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-lg p-3 text-sm text-muted-foreground"
+            role="status"
+            aria-live="polite"
           >
             No accounts found matching &quot;{debouncedValue}&quot;
           </div>

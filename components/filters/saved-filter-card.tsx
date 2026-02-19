@@ -60,17 +60,21 @@ export const SavedFilterCard = memo(({
           <div className="flex items-center gap-2">
             <Badge variant="secondary">{filterCount()} filters</Badge>
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               onClick={() => onEdit(filter)}
+              aria-label={`Edit saved filter ${filter.name}`}
             >
               <Edit className="h-4 w-4" />
             </Button>
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               className="text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={() => onDelete(filter)}
+              aria-label={`Delete saved filter ${filter.name}`}
             >
               <Trash2 className="h-4 w-4" />
             </Button>

@@ -14,23 +14,32 @@ export const AccountRow = memo(({ account, onClick }: AccountRowProps) => {
     .filter(Boolean)
     .join(", ")
   const isNasscomVerified = account.account_nasscom_status?.toLowerCase() === "yes"
+  const accountName = account.account_global_legal_name || "account"
 
   return (
     <TableRow
-      className="cursor-pointer hover:bg-muted/50 transition-colors"
+      className="cursor-pointer hover:bg-muted/50 transition-colors focus-visible:bg-muted/70"
       onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault()
+          onClick()
+        }
+      }}
+      tabIndex={0}
+      aria-label={`View account details for ${accountName}`}
     >
       <TableCell className="font-medium max-w-[280px]">
         <div className="flex items-center gap-3">
           <CompanyLogo
             domain={account.account_hq_website}
-            companyName={account.account_global_legal_name}
+            companyName={accountName}
             size="sm"
             theme="auto"
           />
           <div className="min-w-0">
-            <div className="truncate" title={account.account_global_legal_name}>
-              {account.account_global_legal_name}
+            <div className="truncate" title={accountName}>
+              {accountName}
             </div>
             <div
               className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${

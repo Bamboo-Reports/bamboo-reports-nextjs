@@ -512,6 +512,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         {/* Recenter Button */}
         <div className="absolute top-[152px] left-2 z-10">
           <button
+            type="button"
             onClick={handleRecenter}
             className="h-8 w-8 bg-background hover:bg-muted border rounded-sm shadow-lg transition-colors flex items-center justify-center"
             title="Recenter map"

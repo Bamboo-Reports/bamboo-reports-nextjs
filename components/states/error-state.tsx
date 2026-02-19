@@ -56,10 +56,11 @@ export function ErrorState({ error, dbStatus, onRetry, onClearCache }: ErrorStat
                       <div>
                         <p className="font-medium">Go to your Vercel Dashboard</p>
                         <Button
+                          type="button"
                           variant="outline"
                           size="sm"
                           className="mt-1 bg-transparent"
-                          onClick={() => window.open("https://vercel.com/dashboard", "_blank")}
+                          onClick={() => window.open("https://vercel.com/dashboard", "_blank", "noopener,noreferrer")}
                         >
                           <ExternalLink className="h-4 w-4 mr-2" />
                           Open Vercel Dashboard
@@ -85,7 +86,13 @@ export function ErrorState({ error, dbStatus, onRetry, onClearCache }: ErrorStat
                         <div className="bg-card p-3 rounded border space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="font-mono text-sm">Name: DATABASE_URL</span>
-                            <Button variant="ghost" size="sm" onClick={() => copyToClipboard("DATABASE_URL")}>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyToClipboard("DATABASE_URL")}
+                              aria-label="Copy DATABASE_URL variable name"
+                            >
                               <Copy className="h-4 w-4" />
                             </Button>
                           </div>

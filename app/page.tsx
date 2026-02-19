@@ -512,10 +512,19 @@ function DashboardContent(): JSX.Element | null {
 
   return (
     <div className="h-screen bg-[radial-gradient(circle_at_top_right,_hsl(var(--primary)/0.14),_transparent_36%),radial-gradient(circle_at_0%_45%,_hsl(var(--chart-3)/0.10),_transparent_34%),hsl(var(--background))] flex flex-col overflow-hidden">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow"
+      >
+        Skip to main content
+      </a>
       <Header onRefresh={handleRefresh} />
 
       {dataLoaded && (
-        <div className="flex flex-1 overflow-hidden [--dashboard-content-top-gap:1.5rem] [--dashboard-content-bottom-gap:0.75rem]">
+        <main
+          id="main-content"
+          className="flex flex-1 overflow-hidden [--dashboard-content-top-gap:1.5rem] [--dashboard-content-bottom-gap:0.75rem]"
+        >
           <ExportDialog
             open={exportDialogOpen}
             onOpenChange={setExportDialogOpen}
@@ -616,7 +625,7 @@ function DashboardContent(): JSX.Element | null {
               </div>
             </div>
           </div>
-        </div>
+        </main>
       )}
     </div>
   )

@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { BarChart3, RefreshCw, UserRound } from 'lucide-react'
+import Image from 'next/image'
+import { RefreshCw, UserRound } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import {
@@ -92,26 +93,28 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JS
       <div className="mx-auto w-full px-6 py-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary/15 via-primary/5 to-accent/40">
-              <span className="text-sm font-bold text-primary">BR</span>
-              <div className="pointer-events-none absolute inset-x-1 bottom-1 h-1 rounded-full bg-gradient-to-r from-primary/80 to-[hsl(var(--chart-3))]/80" />
+            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-primary/20 bg-background">
+              <Image
+                src="/logo.svg"
+                alt="Bamboo Reports logo"
+                fill
+                sizes="40px"
+                className="object-contain p-1"
+                priority
+              />
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-foreground">Bamboo Reports Intelligence</p>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <BarChart3 className="h-3.5 w-3.5 text-primary" />
-                <span className="truncate">Indian GCC Benchmarking Platform</span>
-              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={onRefresh} className="h-8 px-3 group" title="Refresh">
+            <Button variant="ghost" size="sm" onClick={onRefresh} className="h-8 px-3 group" title="Refresh" aria-label="Refresh data">
               <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-300" />
             </Button>
             <ThemeToggle />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8" title="Profile">
+                <Button variant="ghost" size="icon" className="h-8 w-8" title="Profile" aria-label="Open profile menu">
                   <UserRound className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
