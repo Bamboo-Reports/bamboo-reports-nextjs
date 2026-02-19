@@ -190,6 +190,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
               savedFilters.map((filter) => (
                 <DropdownMenuItem key={filter.id} className="flex items-center justify-between p-0 group">
                   <button
+                    type="button"
                     className="flex-1 flex items-center justify-between px-2 py-2 hover:bg-accent/40 rounded-sm text-left transition-colors duration-150"
                     onClick={() => handleLoadFilter(filter)}
                   >
@@ -199,6 +200,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
                     </Badge>
                   </button>
                   <Button
+                    type="button"
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 text-foreground hover:text-destructive hover:bg-destructive/5 mr-1 transition-colors duration-150"
@@ -206,6 +208,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
                       e.stopPropagation()
                       handleDeleteFilter(filter)
                     }}
+                    aria-label={`Delete saved filter ${filter.name}`}
                   >
                     <X className="h-3.5 w-3.5" />
                   </Button>
@@ -234,11 +237,13 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
         <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
           <DialogTrigger asChild>
             <Button
+              type="button"
               variant="outline"
               size="icon"
               disabled={totalActiveFilters === 0}
               className="h-9 w-9 rounded-full shrink-0"
               title="Save current filters"
+              aria-label="Save current filters"
             >
               <Save className="h-4 w-4" />
             </Button>

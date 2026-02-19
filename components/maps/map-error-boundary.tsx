@@ -44,6 +44,7 @@ export class MapErrorBoundary extends React.Component<Props, State> {
               </pre>
             </details>
             <button
+              type="button"
               onClick={() => this.setState({ hasError: false, error: null })}
               className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded text-sm hover:bg-primary/90"
             >

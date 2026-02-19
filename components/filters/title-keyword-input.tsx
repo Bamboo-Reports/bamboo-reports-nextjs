@@ -125,6 +125,7 @@ export function TitleKeywordInput({
                   )}
                   title={isInclude ? "Click to exclude" : "Click to include"}
                   type="button"
+                  aria-label={isInclude ? `Exclude ${keyword.value}` : `Include ${keyword.value}`}
                 >
                   {isInclude ? (
                     <Plus className="h-3 w-3" />
@@ -138,6 +139,7 @@ export function TitleKeywordInput({
                   className="ml-1 rounded-sm opacity-70 hover:opacity-100 hover:bg-accent/40 p-0.5 transition-colors duration-150"
                   type="button"
                   title="Remove"
+                  aria-label={`Remove ${keyword.value}`}
                 >
                   <X className="h-3 w-3" />
                 </button>

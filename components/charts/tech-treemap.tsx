@@ -54,6 +54,11 @@ export const TechTreemap = memo(({
       if (typeof HighchartsTreemap === "function") {
         HighchartsTreemap(Highcharts)
       }
+      const accessibilityModule = await import("highcharts/modules/accessibility")
+      const HighchartsAccessibility = (accessibilityModule as any).default ?? accessibilityModule
+      if (typeof HighchartsAccessibility === "function") {
+        HighchartsAccessibility(Highcharts)
+      }
       const highchartsReactModule = await import("highcharts-react-official")
       const HighchartsReact = (highchartsReactModule as any).default ?? highchartsReactModule
       if (active) {
@@ -139,6 +144,14 @@ export const TechTreemap = memo(({
             },
             title: { text: showTitle ? title : undefined, align: "left" },
             credits: { enabled: false },
+            accessibility: {
+              enabled: true,
+              landmarkVerbosity: "one",
+              description: `${title}. Treemap showing ${data.length} technology nodes grouped by category.`,
+              point: {
+                valueDescriptionFormat: "{point.name}, {point.value}.",
+              },
+            },
             tooltip: {
               useHTML: true,
               backgroundColor: "transparent",

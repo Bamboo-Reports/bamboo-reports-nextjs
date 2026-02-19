@@ -30,6 +30,11 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
     const load = async () => {
       const highchartsModule = await import("highcharts")
       const Highcharts = (highchartsModule as any).default ?? highchartsModule
+      const accessibilityModule = await import("highcharts/modules/accessibility")
+      const HighchartsAccessibility = (accessibilityModule as any).default ?? accessibilityModule
+      if (typeof HighchartsAccessibility === "function") {
+        HighchartsAccessibility(Highcharts)
+      }
       const highchartsReactModule = await import("highcharts-react-official")
       const HighchartsReact = (highchartsReactModule as any).default ?? highchartsReactModule
       if (active) {
@@ -73,6 +78,14 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
       },
       title: { text: undefined },
       credits: { enabled: false },
+      accessibility: {
+        enabled: true,
+        landmarkVerbosity: "one",
+        description: `${title}. ${safeData.length} segments. ${countLabel} total ${total.toLocaleString()}.`,
+        point: {
+          valueDescriptionFormat: "{xDescription}. {point.y} {series.name}.",
+        },
+      },
       legend: {
         enabled: false,
       },
@@ -145,6 +158,7 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
       series: [
         {
           type: "pie",
+          name: countLabel,
           data: seriesData,
         },
       ],

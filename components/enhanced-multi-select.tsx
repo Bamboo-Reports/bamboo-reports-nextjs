@@ -52,6 +52,7 @@ const EnhancedSelectBadge = React.memo(({
       )}
     >
       <button
+        type="button"
         onClick={(e) => {
           e.preventDefault()
           e.stopPropagation()
@@ -64,6 +65,7 @@ const EnhancedSelectBadge = React.memo(({
             : "bg-red-600/30 hover:bg-red-600/40"
         )}
         title={isInclude ? "Click to exclude" : "Click to include"}
+        aria-label={isInclude ? `Exclude ${item.value}` : `Include ${item.value}`}
       >
         {isInclude ? (
           <Plus className="h-3 w-3" />
@@ -73,12 +75,14 @@ const EnhancedSelectBadge = React.memo(({
       </button>
       <span className="text-xs">{item.value}</span>
       <button
+        type="button"
         onClick={(e) => {
           e.preventDefault()
           e.stopPropagation()
           onRemove()
         }}
         className="ml-1"
+        aria-label={`Remove ${item.value}`}
       >
         <X className="h-3 w-3" />
       </button>
@@ -125,6 +129,7 @@ const EnhancedSelectItem = React.memo(({
         <span className="flex-1">{value}</span>
         <div className="flex gap-1 ml-2">
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             className="h-6 w-6 p-0 hover:bg-green-100/60 dark:hover:bg-green-900/15 transition-colors duration-150"
@@ -133,10 +138,12 @@ const EnhancedSelectItem = React.memo(({
               onSelectInclude()
             }}
             title="Include"
+            aria-label={`Include ${value}`}
           >
             <Plus className="h-3 w-3 text-green-600" />
           </Button>
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             className="h-6 w-6 p-0 hover:bg-red-100/60 dark:hover:bg-red-900/15 transition-colors duration-150"
@@ -145,6 +152,7 @@ const EnhancedSelectItem = React.memo(({
               onSelectExclude()
             }}
             title="Exclude"
+            aria-label={`Exclude ${value}`}
           >
             <Minus className="h-3 w-3 text-red-600" />
           </Button>

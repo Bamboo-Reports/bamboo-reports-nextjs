@@ -20,8 +20,16 @@ export const ProspectRow = memo(({ prospect, onClick }: ProspectRowProps) => {
 
   return (
     <TableRow
-      className="cursor-pointer hover:bg-muted/50 transition-colors"
+      className="cursor-pointer hover:bg-muted/50 transition-colors focus-visible:bg-muted/70"
       onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault()
+          onClick()
+        }
+      }}
+      tabIndex={0}
+      aria-label={`View prospect details for ${fullName || "prospect"}`}
     >
       <TableCell>
         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">

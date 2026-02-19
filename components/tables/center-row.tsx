@@ -10,8 +10,16 @@ interface CenterRowProps {
 
 export const CenterRow = memo(({ center, onClick }: CenterRowProps) => (
   <TableRow
-    className="cursor-pointer hover:bg-muted/50 transition-colors"
+    className="cursor-pointer hover:bg-muted/50 transition-colors focus-visible:bg-muted/70"
     onClick={onClick}
+    onKeyDown={(event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault()
+        onClick()
+      }
+    }}
+    tabIndex={0}
+    aria-label={`View center details for ${center.center_name || "center"}`}
   >
     <TableCell className="font-medium max-w-[260px]">
       <div className="flex items-center gap-3">
