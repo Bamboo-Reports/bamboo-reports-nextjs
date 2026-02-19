@@ -6,7 +6,15 @@ import {
   useRef,
   useState,
 } from "react"
-import type { Account, Center, Function, Prospect, Service, Tech, Filters, AvailableOptions } from "@/lib/types"
+import { captureEvent } from "@/lib/analytics/client"
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
+import {
+  buildTrackedFiltersSnapshot,
+  toTrackedFilterPlainValues,
+  toTrackedFilterValueArray,
+  toTrackedStringArray,
+} from "@/lib/analytics/tracking"
+import type { Account, Center, Function, Prospect, Service, Tech, Filters, AvailableOptions, FilterValue } from "@/lib/types"
 import { createDefaultFilters } from "@/lib/dashboard/defaults"
 import { calculateBaseRanges } from "@/lib/dashboard/ranges"
 import {
@@ -28,6 +36,15 @@ interface UseDashboardFiltersParams {
   tech: Tech[]
 }
 
+const isNumberRange = (value: unknown): value is [number, number] =>
+  Array.isArray(value) &&
+  value.length === 2 &&
+  typeof value[0] === "number" &&
+  typeof value[1] === "number"
+
+const serializeFilterValues = (values: FilterValue[]) =>
+  values.map(({ value, mode }) => `${mode}:${value}`).sort()
+
 export function useDashboardFilters({
   accounts,
   centers,
@@ -48,6 +65,8 @@ export function useDashboardFilters({
   const [centerIncYearRange, setCenterIncYearRange] = useState(baseRanges.centerIncYearRange)
 
   const isRevenueRangeAutoRef = useRef(true)
+  const previousTrackedFiltersRef = useRef<Filters | null>(null)
+  const filterTrackTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
     isRevenueRangeAutoRef.current = true
@@ -214,7 +233,57 @@ export function useDashboardFilters({
     [accounts, centers, functions, prospects, tech, filterStateForOptions]
   )
 
+  const getActiveFilterCountFor = useCallback(
+    (sourceFilters: Filters) => {
+      return (
+        sourceFilters.accountCountries.length +
+        sourceFilters.accountIndustries.length +
+        sourceFilters.accountPrimaryCategories.length +
+        sourceFilters.accountPrimaryNatures.length +
+        sourceFilters.accountNasscomStatuses.length +
+        sourceFilters.accountEmployeesRanges.length +
+        sourceFilters.accountCenterEmployees.length +
+        (sourceFilters.accountRevenueRange[0] !== revenueRange.min ||
+        sourceFilters.accountRevenueRange[1] !== revenueRange.max
+          ? 1
+          : 0) +
+        (sourceFilters.includeNullRevenue ? 1 : 0) +
+        (sourceFilters.accountYearsInIndiaRange[0] !== yearsInIndiaRange.min ||
+        sourceFilters.accountYearsInIndiaRange[1] !== yearsInIndiaRange.max
+          ? 1
+          : 0) +
+        (sourceFilters.includeNullYearsInIndia ? 1 : 0) +
+        (sourceFilters.accountFirstCenterYearRange[0] !== firstCenterYearRange.min ||
+        sourceFilters.accountFirstCenterYearRange[1] !== firstCenterYearRange.max
+          ? 1
+          : 0) +
+        (sourceFilters.includeNullFirstCenterYear ? 1 : 0) +
+        sourceFilters.accountNameKeywords.length +
+        sourceFilters.centerTypes.length +
+        sourceFilters.centerFocus.length +
+        sourceFilters.centerCities.length +
+        sourceFilters.centerStates.length +
+        sourceFilters.centerCountries.length +
+        sourceFilters.centerEmployees.length +
+        sourceFilters.centerStatuses.length +
+        (sourceFilters.centerIncYearRange[0] !== centerIncYearRange.min ||
+        sourceFilters.centerIncYearRange[1] !== centerIncYearRange.max
+          ? 1
+          : 0) +
+        (sourceFilters.includeNullCenterIncYear ? 1 : 0) +
+        sourceFilters.functionTypes.length +
+        sourceFilters.centerSoftwareInUseKeywords.length +
+        sourceFilters.prospectDepartments.length +
+        sourceFilters.prospectLevels.length +
+        sourceFilters.prospectCities.length +
+        sourceFilters.prospectTitleKeywords.length
+      )
+    },
+    [revenueRange, yearsInIndiaRange, firstCenterYearRange, centerIncYearRange]
+  )
+
   const resetFilters = useCallback(() => {
+    const previousActiveFiltersCount = getActiveFilterCountFor(filters)
     const emptyFilters = createDefaultFilters({
       accountRevenueRange: [baseRanges.revenueRange.min, baseRanges.revenueRange.max],
       accountYearsInIndiaRange: [baseRanges.yearsInIndiaRange.min, baseRanges.yearsInIndiaRange.max],
@@ -226,7 +295,24 @@ export function useDashboardFilters({
     setRevenueRange(baseRanges.revenueRange)
     setFilters(emptyFilters)
     setPendingFilters(emptyFilters)
-  }, [baseRanges])
+    if (previousActiveFiltersCount > 0) {
+      captureEvent(ANALYTICS_EVENTS.FILTERS_RESET, {
+        previous_active_filters_count: previousActiveFiltersCount,
+        previous_filters_snapshot: buildTrackedFiltersSnapshot(filters, {
+          accountRevenueRange: [baseRanges.revenueRange.min, baseRanges.revenueRange.max],
+          accountYearsInIndiaRange: [baseRanges.yearsInIndiaRange.min, baseRanges.yearsInIndiaRange.max],
+          accountFirstCenterYearRange: [baseRanges.firstCenterYearRange.min, baseRanges.firstCenterYearRange.max],
+          centerIncYearRange: [baseRanges.centerIncYearRange.min, baseRanges.centerIncYearRange.max],
+        }),
+        reset_to_filters_snapshot: buildTrackedFiltersSnapshot(emptyFilters, {
+          accountRevenueRange: [baseRanges.revenueRange.min, baseRanges.revenueRange.max],
+          accountYearsInIndiaRange: [baseRanges.yearsInIndiaRange.min, baseRanges.yearsInIndiaRange.max],
+          accountFirstCenterYearRange: [baseRanges.firstCenterYearRange.min, baseRanges.firstCenterYearRange.max],
+          centerIncYearRange: [baseRanges.centerIncYearRange.min, baseRanges.centerIncYearRange.max],
+        }),
+      })
+    }
+  }, [baseRanges, filters, getActiveFilterCountFor])
 
   const handleLoadSavedFilters = useCallback((savedFilters: Filters) => {
     isRevenueRangeAutoRef.current = false
@@ -373,56 +459,153 @@ export function useDashboardFilters({
     }))
   }, [])
 
-  const getTotalActiveFilters = useCallback(() => {
-    return (
-      filters.accountCountries.length +
-      filters.accountIndustries.length +
-      filters.accountPrimaryCategories.length +
-      filters.accountPrimaryNatures.length +
-      filters.accountNasscomStatuses.length +
-      filters.accountEmployeesRanges.length +
-      filters.accountCenterEmployees.length +
-      (filters.accountRevenueRange[0] !== revenueRange.min || filters.accountRevenueRange[1] !== revenueRange.max
-        ? 1
-        : 0) +
-      (filters.includeNullRevenue ? 1 : 0) +
-      (filters.accountYearsInIndiaRange[0] !== yearsInIndiaRange.min ||
-      filters.accountYearsInIndiaRange[1] !== yearsInIndiaRange.max
-        ? 1
-        : 0) +
-      (filters.includeNullYearsInIndia ? 1 : 0) +
-      (filters.accountFirstCenterYearRange[0] !== firstCenterYearRange.min ||
-      filters.accountFirstCenterYearRange[1] !== firstCenterYearRange.max
-        ? 1
-        : 0) +
-      (filters.includeNullFirstCenterYear ? 1 : 0) +
-      filters.accountNameKeywords.length +
-      filters.centerTypes.length +
-      filters.centerFocus.length +
-      filters.centerCities.length +
-      filters.centerStates.length +
-      filters.centerCountries.length +
-      filters.centerEmployees.length +
-      filters.centerStatuses.length +
-      (filters.centerIncYearRange[0] !== centerIncYearRange.min ||
-      filters.centerIncYearRange[1] !== centerIncYearRange.max
-        ? 1
-        : 0) +
-      (filters.includeNullCenterIncYear ? 1 : 0) +
-      filters.functionTypes.length +
-      filters.centerSoftwareInUseKeywords.length +
-      filters.prospectDepartments.length +
-      filters.prospectLevels.length +
-      filters.prospectCities.length +
-      filters.prospectTitleKeywords.length
-    )
-  }, [
-    filters,
-    revenueRange,
-    yearsInIndiaRange,
-    firstCenterYearRange,
-    centerIncYearRange,
-  ])
+  const getTotalActiveFilters = useCallback(() => getActiveFilterCountFor(filters), [filters, getActiveFilterCountFor])
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    const previousFilters = previousTrackedFiltersRef.current
+    if (!previousFilters) {
+      previousTrackedFiltersRef.current = filters
+      return
+    }
+
+    if (filterTrackTimeoutRef.current !== null) {
+      window.clearTimeout(filterTrackTimeoutRef.current)
+    }
+
+    filterTrackTimeoutRef.current = window.setTimeout(() => {
+      const previousActiveFiltersCount = getActiveFilterCountFor(previousFilters)
+      const currentActiveFiltersCount = getActiveFilterCountFor(filters)
+
+      if (previousActiveFiltersCount === 0 && currentActiveFiltersCount === 0) {
+        previousTrackedFiltersRef.current = filters
+        return
+      }
+
+      const filterKeys = Object.keys(filters) as Array<keyof Filters>
+
+      for (const filterKey of filterKeys) {
+        const previousValue = previousFilters[filterKey]
+        const currentValue = filters[filterKey]
+
+        if (JSON.stringify(previousValue) === JSON.stringify(currentValue)) {
+          continue
+        }
+
+        if (isNumberRange(currentValue)) {
+          const previousRange = isNumberRange(previousValue) ? previousValue : null
+          captureEvent(ANALYTICS_EVENTS.FILTER_CHANGED, {
+            filter_key: filterKey,
+            change_type: "range_change",
+            range_min: currentValue[0],
+            range_max: currentValue[1],
+            previous_range_min: previousRange ? previousRange[0] : null,
+            previous_range_max: previousRange ? previousRange[1] : null,
+            range_delta_min: previousRange ? currentValue[0] - previousRange[0] : null,
+            range_delta_max: previousRange ? currentValue[1] - previousRange[1] : null,
+            active_filters_count: currentActiveFiltersCount,
+          })
+          continue
+        }
+
+        if (typeof currentValue === "boolean") {
+          captureEvent(ANALYTICS_EVENTS.FILTER_CHANGED, {
+            filter_key: filterKey,
+            change_type: "toggle",
+            null_toggle_value: currentValue,
+            previous_null_toggle_value: typeof previousValue === "boolean" ? previousValue : null,
+            active_filters_count: currentActiveFiltersCount,
+          })
+          continue
+        }
+
+        if (!Array.isArray(currentValue)) {
+          continue
+        }
+
+        const previousArray = (Array.isArray(previousValue) ? previousValue : []) as FilterValue[]
+        const currentArray = currentValue as FilterValue[]
+        const serializedPreviousValues = serializeFilterValues(previousArray)
+        const serializedCurrentValues = serializeFilterValues(currentArray)
+        const serializedPrevious = new Set(serializedPreviousValues)
+        const serializedCurrent = new Set(serializedCurrentValues)
+
+        let addedCount = 0
+        let removedCount = 0
+        const addedValues: string[] = []
+        const removedValues: string[] = []
+
+        for (const value of serializedCurrent) {
+          if (!serializedPrevious.has(value)) {
+            addedCount += 1
+            addedValues.push(value)
+          }
+        }
+
+        for (const value of serializedPrevious) {
+          if (!serializedCurrent.has(value)) {
+            removedCount += 1
+            removedValues.push(value)
+          }
+        }
+
+        const includeValues = currentArray
+          .filter((item) => item.mode === "include")
+          .map((item) => item.value)
+        const excludeValues = currentArray
+          .filter((item) => item.mode === "exclude")
+          .map((item) => item.value)
+        const previousIncludeValues = previousArray
+          .filter((item) => item.mode === "include")
+          .map((item) => item.value)
+        const previousExcludeValues = previousArray
+          .filter((item) => item.mode === "exclude")
+          .map((item) => item.value)
+        const includeCount = includeValues.length
+        const excludeCount = excludeValues.length
+
+        const changeType =
+          currentArray.length === 0
+            ? "clear"
+            : addedCount >= removedCount
+              ? "add"
+              : "remove"
+
+        captureEvent(ANALYTICS_EVENTS.FILTER_CHANGED, {
+          filter_key: filterKey,
+          change_type: changeType,
+          include_count: includeCount,
+          exclude_count: excludeCount,
+          selected_count: currentArray.length,
+          previous_selected_count: previousArray.length,
+          added_count: addedCount,
+          removed_count: removedCount,
+          selected_values: toTrackedFilterPlainValues(currentArray),
+          selected_values_with_mode: toTrackedFilterValueArray(currentArray),
+          previous_selected_values: toTrackedFilterPlainValues(previousArray),
+          previous_selected_values_with_mode: toTrackedFilterValueArray(previousArray),
+          include_values: toTrackedStringArray(includeValues),
+          exclude_values: toTrackedStringArray(excludeValues),
+          previous_include_values: toTrackedStringArray(previousIncludeValues),
+          previous_exclude_values: toTrackedStringArray(previousExcludeValues),
+          added_values: toTrackedStringArray(addedValues),
+          removed_values: toTrackedStringArray(removedValues),
+          active_filters_count: currentActiveFiltersCount,
+        })
+      }
+
+      previousTrackedFiltersRef.current = filters
+    }, 350)
+
+    return () => {
+      if (filterTrackTimeoutRef.current !== null) {
+        window.clearTimeout(filterTrackTimeoutRef.current)
+      }
+    }
+  }, [filters, getActiveFilterCountFor])
 
   return {
     filters,

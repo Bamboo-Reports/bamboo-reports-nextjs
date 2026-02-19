@@ -12,6 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { captureEvent, identifyUser } from "@/lib/analytics/client"
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import { getSupabaseBrowserClient, setSupabaseAuthStoragePreference } from "@/lib/supabase/client"
 import { signInSchema, type SignInValues } from "@/lib/validators/auth"
 
@@ -56,11 +58,28 @@ function SignInForm() {
 
     if (signInError) {
       setSubmitError(signInError.message)
+      captureEvent(ANALYTICS_EVENTS.AUTH_SIGN_IN_FAILED, {
+        auth_provider: "email",
+        remember_me: values.rememberMe,
+        email_domain: values.email.includes("@") ? values.email.split("@")[1] : null,
+        error_message: signInError.message,
+      })
       return
     }
 
     const user = signInData.user ?? signInData.session?.user
     if (user) {
+      identifyUser({
+        id: user.id,
+        email: user.email ?? values.email,
+        authProvider: "email",
+      })
+      captureEvent(ANALYTICS_EVENTS.AUTH_SIGN_IN_SUCCEEDED, {
+        auth_provider: "email",
+        remember_me: values.rememberMe,
+        email_domain: values.email.includes("@") ? values.email.split("@")[1] : null,
+      })
+
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("id")

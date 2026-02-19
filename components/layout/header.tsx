@@ -13,6 +13,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { captureEvent, resetAnalytics } from '@/lib/analytics/client'
+import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/types'
 
@@ -77,7 +79,11 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JS
 
   const handleSignOut = async () => {
     const supabase = getSupabaseBrowserClient()
+    captureEvent(ANALYTICS_EVENTS.AUTH_SIGNED_OUT, {
+      auth_provider: "email",
+    })
     await supabase.auth.signOut()
+    resetAnalytics()
     router.replace('/signin')
   }
 

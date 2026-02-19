@@ -2,6 +2,8 @@
 
 import React, { useMemo, useState, useEffect, useCallback, useLayoutEffect } from "react"
 import { Map as MapGL, Source, Layer, NavigationControl, FullscreenControl } from "@vis.gl/react-maplibre"
+import { captureEvent } from "@/lib/analytics/client"
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import type { Center } from "@/lib/types"
 import "maplibre-gl/dist/maplibre-gl.css"
 
@@ -60,6 +62,9 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
   const mapRef = React.useRef<any>(null)
   const containerRef = React.useRef<HTMLDivElement | null>(null)
   const tooltipRef = React.useRef<HTMLDivElement | null>(null)
+  const lastMapMoveTrackedAtRef = React.useRef(0)
+  const lastZoomTrackedRef = React.useRef<number | null>(null)
+  const lastTooltipCityRef = React.useRef<string | null>(null)
 
   useEffect(() => {
     setIsClient(true)
@@ -94,6 +99,32 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
 
     setTooltipPosition({ x, y })
   }, [mousePosition, hoveredCity])
+
+  useEffect(() => {
+    if (!hoveredCity) {
+      lastTooltipCityRef.current = null
+      return
+    }
+
+    if (lastTooltipCityRef.current === hoveredCity) {
+      return
+    }
+
+    const matchingCenters = centers.filter((center) => center.center_city === hoveredCity)
+    const accounts = new Set(matchingCenters.map((center) => center.account_global_legal_name).filter(Boolean))
+    const totalHeadcount = matchingCenters.reduce((sum, center) => sum + (center.center_employees ?? 0), 0)
+    const country = matchingCenters.find((center) => center.center_country)?.center_country ?? null
+    captureEvent(ANALYTICS_EVENTS.MAP_TOOLTIP_VIEWED, {
+      map_kind: "city",
+      map_name: "centers_map",
+      city: hoveredCity,
+      country,
+      center_count: matchingCenters.length,
+      accounts_count: accounts.size,
+      headcount: totalHeadcount,
+    })
+    lastTooltipCityRef.current = hoveredCity
+  }, [hoveredCity, centers])
 
   // Fallback to ensure the map shows even if onLoad is delayed
   useEffect(() => {
@@ -330,6 +361,10 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         zoom: 3.5,
         duration: 1000,
       })
+      captureEvent(ANALYTICS_EVENTS.MAP_RECENTER_CLICKED, {
+        map_kind: "city",
+        map_name: "centers_map",
+      })
     }
   }
 
@@ -390,6 +425,35 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
   console.log("[CentersMap] Rendering map with", cityData.length, "cities")
 
   try {
+    const handleMapMoveTracked = (event: any) => {
+      updateVisibleGeojsonData()
+      const now = Date.now()
+      const zoom = Number(event?.viewState?.zoom ?? 0)
+      const latitude = Number(event?.viewState?.latitude ?? 0)
+      const longitude = Number(event?.viewState?.longitude ?? 0)
+
+      if (now - lastMapMoveTrackedAtRef.current >= 1500) {
+        captureEvent(ANALYTICS_EVENTS.MAP_MOVED, {
+          map_kind: "city",
+          map_name: "centers_map",
+          zoom: Number(zoom.toFixed(2)),
+          latitude: Number(latitude.toFixed(4)),
+          longitude: Number(longitude.toFixed(4)),
+          visible_city_count: visibleGeojsonData?.features.length ?? geojsonData.features.length,
+        })
+        lastMapMoveTrackedAtRef.current = now
+      }
+
+      if (lastZoomTrackedRef.current === null || Math.abs(lastZoomTrackedRef.current - zoom) >= 0.3) {
+        captureEvent(ANALYTICS_EVENTS.MAP_ZOOM_CHANGED, {
+          map_kind: "city",
+          map_name: "centers_map",
+          zoom: Number(zoom.toFixed(2)),
+        })
+        lastZoomTrackedRef.current = zoom
+      }
+    }
+
     return (
       <div
         ref={containerRef}
@@ -412,7 +476,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
             setIsMapReady(true)
           }, 200)
         }}
-        onMove={updateVisibleGeojsonData}
+        onMove={handleMapMoveTracked}
         interactiveLayerIds={["centers-circles"]}
         onMouseMove={(e) => {
           const features = e.features
@@ -432,6 +496,11 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
         onError={(e) => {
           console.error("[CentersMap] Map error:", e)
           setError(`Map error: ${e.error?.message || "Unknown error"}`)
+          captureEvent(ANALYTICS_EVENTS.MAP_ERROR_SHOWN, {
+            map_kind: "city",
+            map_name: "centers_map",
+            error_message: e.error?.message || "Unknown map error",
+          })
         }}
       >
         {/* Navigation Controls - Zoom and Rotation */}

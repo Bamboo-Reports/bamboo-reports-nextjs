@@ -14,6 +14,8 @@ import { getPaginatedData } from "@/lib/utils/helpers"
 import { ViewSwitcher } from "@/components/ui/view-switcher"
 import { SortButton } from "@/components/ui/sort-button"
 import { PaginationControls } from "@/components/ui/pagination-controls"
+import { captureEvent } from "@/lib/analytics/client"
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import type { Prospect } from "@/lib/types"
 
 interface ProspectsTabProps {
@@ -48,22 +50,90 @@ export function ProspectsTab({
     direction: null,
   })
   const [dataLayout, setDataLayout] = useState<"table" | "grid">("table")
+  const previousDataLayoutRef = React.useRef<"table" | "grid">("table")
+  const openedRecordRef = React.useRef<{ recordId: string; openedAt: number } | null>(null)
 
-  const handleProspectClick = (prospect: Prospect) => {
+  const handleProspectClick = (prospect: Prospect, openedFrom: "table_row" | "grid_card") => {
+    if (isDialogOpen && openedRecordRef.current) {
+      const dwellSeconds = Math.max(0, Math.round((Date.now() - openedRecordRef.current.openedAt) / 1000))
+      captureEvent(ANALYTICS_EVENTS.RECORD_CLOSED, {
+        entity: "prospect",
+        record_id: openedRecordRef.current.recordId,
+        dwell_seconds: dwellSeconds,
+        close_reason: "switch_to_another_record",
+      })
+    }
     setSelectedProspect(prospect)
     setIsDialogOpen(true)
+    const prospectName =
+      prospect.prospect_full_name ||
+      [prospect.prospect_first_name, prospect.prospect_last_name].filter(Boolean).join(" ") ||
+      "Unknown Prospect"
+    const recordId = `${prospect.account_global_legal_name}-${prospectName}-${prospect.prospect_title ?? ""}`
+    openedRecordRef.current = {
+      recordId,
+      openedAt: Date.now(),
+    }
+    captureEvent(ANALYTICS_EVENTS.RECORD_OPENED, {
+      entity: "prospect",
+      record_id: recordId,
+      record_label: prospectName,
+      source_view: prospectsView,
+      source_layout: prospectsView === "data" ? dataLayout : null,
+      opened_from: openedFrom,
+      has_contact_field: Boolean(prospect.prospect_email),
+    })
   }
 
   const handleSort = (key: typeof sort.key) => {
+    let nextDirection: "asc" | "desc" | null = "asc"
     setSort((prev) => {
       if (prev.key !== key || prev.direction === null) {
+        nextDirection = "asc"
         return { key, direction: "asc" }
       }
-      if (prev.direction === "asc") return { key, direction: "desc" }
+      if (prev.direction === "asc") {
+        nextDirection = "desc"
+        return { key, direction: "desc" }
+      }
+      nextDirection = null
       return { key, direction: null }
+    })
+    captureEvent(ANALYTICS_EVENTS.SORT_CHANGED, {
+      entity: "prospect",
+      sort_key: key,
+      sort_direction: nextDirection ?? "none",
     })
     setCurrentPage(1)
   }
+
+  React.useEffect(() => {
+    if (previousDataLayoutRef.current === dataLayout) {
+      return
+    }
+
+    captureEvent(ANALYTICS_EVENTS.DATA_LAYOUT_CHANGED, {
+      screen: "prospects",
+      data_layout: dataLayout,
+    })
+
+    previousDataLayoutRef.current = dataLayout
+  }, [dataLayout])
+
+  React.useEffect(() => {
+    if (isDialogOpen || !openedRecordRef.current) {
+      return
+    }
+
+    const dwellSeconds = Math.max(0, Math.round((Date.now() - openedRecordRef.current.openedAt) / 1000))
+    captureEvent(ANALYTICS_EVENTS.RECORD_CLOSED, {
+      entity: "prospect",
+      record_id: openedRecordRef.current.recordId,
+      dwell_seconds: dwellSeconds,
+      close_reason: "dialog_closed",
+    })
+    openedRecordRef.current = null
+  }, [isDialogOpen])
 
 
   const sortedProspects = React.useMemo(() => {
@@ -206,7 +276,7 @@ export function ProspectsTab({
                           <ProspectRow
                             key={`${prospect.prospect_email}-${index}`}
                             prospect={prospect}
-                            onClick={() => handleProspectClick(prospect)}
+                            onClick={() => handleProspectClick(prospect, "table_row")}
                           />
                         )
                       )}
@@ -237,7 +307,7 @@ export function ProspectsTab({
                           <ProspectGridCard
                             key={`${prospect.prospect_email}-${index}`}
                             prospect={prospect}
-                            onClick={() => handleProspectClick(prospect)}
+                            onClick={() => handleProspectClick(prospect, "grid_card")}
                           />
                         )
                       )}

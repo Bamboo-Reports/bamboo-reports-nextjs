@@ -6,6 +6,7 @@ export function useAuthGuard() {
   const router = useRouter()
   const [authReady, setAuthReady] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient()
@@ -16,10 +17,12 @@ export function useAuthGuard() {
       const session = data.session
       if (!session) {
         router.replace("/signin")
+        setUserEmail(null)
         setAuthReady(true)
         return
       }
       setUserId(session.user.id)
+      setUserEmail(session.user.email ?? null)
       setAuthReady(true)
     })
 
@@ -27,10 +30,12 @@ export function useAuthGuard() {
       if (!isMounted) return
       if (!session) {
         setUserId(null)
+        setUserEmail(null)
         router.replace("/signin")
         return
       }
       setUserId(session.user.id)
+      setUserEmail(session.user.email ?? null)
     })
 
     return () => {
@@ -39,5 +44,5 @@ export function useAuthGuard() {
     }
   }, [router])
 
-  return { authReady, userId }
+  return { authReady, userId, userEmail }
 }

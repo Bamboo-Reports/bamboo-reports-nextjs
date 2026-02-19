@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, memo } from "react"
+import { useState, useCallback, useEffect, memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -32,6 +32,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Save, FolderOpen, Settings, X, ChevronDown } from "lucide-react"
+import { captureEvent } from "@/lib/analytics/client"
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
+import { buildTrackedFiltersSnapshot, normalizeTrackedText, toTrackedStringArray } from "@/lib/analytics/tracking"
 import type { Filters } from "@/lib/types"
 import { calculateActiveFilters } from "@/lib/dashboard/filter-summary"
 import { SavedFilterCard, type SavedFilter } from "@/components/filters/saved-filter-card"
@@ -62,6 +65,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
 
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
   const [manageDialogOpen, setManageDialogOpen] = useState(false)
+  const [savedFiltersDropdownOpen, setSavedFiltersDropdownOpen] = useState(false)
   const [filterName, setFilterName] = useState("")
   
   const [editingFilter, setEditingFilter] = useState<SavedFilter | null>(null)
@@ -80,6 +84,12 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
 
   const handleLoadFilter = useCallback((savedFilter: SavedFilter) => {
     onLoadFilters(savedFilter.filters)
+    captureEvent(ANALYTICS_EVENTS.SAVED_FILTER_LOADED, {
+      saved_filter_id: savedFilter.id,
+      saved_filter_name: normalizeTrackedText(savedFilter.name),
+      loaded_active_filters_count: calculateActiveFilters(savedFilter.filters),
+      loaded_filters_snapshot: buildTrackedFiltersSnapshot(savedFilter.filters),
+    })
   }, [onLoadFilters])
 
   const handleDeleteFilter = useCallback((filter: SavedFilter) => {
@@ -114,10 +124,46 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
     setEditName(filter.name)
   }, [])
 
+  useEffect(() => {
+    if (!savedFiltersDropdownOpen) return
+    captureEvent(ANALYTICS_EVENTS.SAVED_FILTERS_DROPDOWN_OPENED, {
+      saved_filter_count: savedFilters.length,
+      saved_filter_ids: toTrackedStringArray(savedFilters.map((filter) => filter.id)),
+      saved_filter_names: toTrackedStringArray(savedFilters.map((filter) => filter.name)),
+    })
+  }, [savedFiltersDropdownOpen, savedFilters])
+
+  useEffect(() => {
+    if (!saveDialogOpen) return
+    captureEvent(ANALYTICS_EVENTS.SAVED_FILTER_SAVE_DIALOG_OPENED, {
+      total_active_filters: totalActiveFilters,
+      current_filters_snapshot: buildTrackedFiltersSnapshot(currentFilters),
+    })
+  }, [saveDialogOpen, totalActiveFilters, currentFilters])
+
+  useEffect(() => {
+    if (!manageDialogOpen) return
+    captureEvent(ANALYTICS_EVENTS.SAVED_FILTERS_MANAGE_OPENED, {
+      saved_filter_count: savedFilters.length,
+      saved_filter_ids: toTrackedStringArray(savedFilters.map((filter) => filter.id)),
+      saved_filter_names: toTrackedStringArray(savedFilters.map((filter) => filter.name)),
+    })
+  }, [manageDialogOpen, savedFilters])
+
+  useEffect(() => {
+    if (!deleteConfirmOpen) return
+    captureEvent(ANALYTICS_EVENTS.SAVED_FILTER_DELETE_CONFIRM_OPENED, {
+      saved_filter_id: filterToDelete?.id ?? null,
+      saved_filter_name: filterToDelete?.name ? normalizeTrackedText(filterToDelete.name) : null,
+      saved_filter_active_filters_count: filterToDelete ? calculateActiveFilters(filterToDelete.filters) : null,
+      saved_filter_snapshot: filterToDelete ? buildTrackedFiltersSnapshot(filterToDelete.filters) : null,
+    })
+  }, [deleteConfirmOpen, filterToDelete])
+
   return (
     <div className="flex flex-col gap-3 w-full bg-sidebar-accent/5 p-3 rounded-lg border border-sidebar-border/50">
       <div className="flex items-center gap-2 w-full">
-        <DropdownMenu>
+        <DropdownMenu open={savedFiltersDropdownOpen} onOpenChange={setSavedFiltersDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"

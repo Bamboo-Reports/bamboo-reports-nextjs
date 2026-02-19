@@ -7,6 +7,14 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { X, Plus, Minus } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { captureEvent } from "@/lib/analytics/client"
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
+import {
+  normalizeTrackedText,
+  toTrackedFilterPlainValues,
+  toTrackedFilterValueArray,
+  toTrackedStringArray,
+} from "@/lib/analytics/tracking"
 import type { FilterValue } from "@/lib/types"
 
 interface AccountAutocompleteProps {
@@ -14,6 +22,7 @@ interface AccountAutocompleteProps {
   selectedAccounts: FilterValue[]
   onChange: (accounts: FilterValue[]) => void
   placeholder?: string
+  trackingKey?: string
 }
 
 export function AccountAutocomplete({
@@ -21,6 +30,7 @@ export function AccountAutocomplete({
   selectedAccounts,
   onChange,
   placeholder = "Type to search account names...",
+  trackingKey,
 }: AccountAutocompleteProps) {
   const [inputValue, setInputValue] = useState("")
   const [debouncedValue, setDebouncedValue] = useState("")
@@ -28,6 +38,7 @@ export function AccountAutocomplete({
   const [highlightedIndex, setHighlightedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const sourceFilterKey = trackingKey ?? "accountNameKeywords"
 
   // Debounce input value for performance
   useEffect(() => {
@@ -77,29 +88,61 @@ export function AccountAutocomplete({
   // Handle account selection
   const handleSelectAccount = useCallback((accountName: string, mode: 'include' | 'exclude' = 'include') => {
     const newAccount: FilterValue = { value: accountName, mode }
-    onChange([...selectedAccounts, newAccount])
+    const nextSelected = [...selectedAccounts, newAccount]
+    onChange(nextSelected)
+    captureEvent(ANALYTICS_EVENTS.FILTER_OPTION_CLICKED, {
+      filter_key: sourceFilterKey,
+      option_value: accountName,
+      mode,
+      action: "add",
+      selected_values: toTrackedFilterPlainValues(nextSelected),
+      selected_values_with_mode: toTrackedFilterValueArray(nextSelected),
+    })
     setInputValue("")
     setDebouncedValue("")
     setIsOpen(false)
     setHighlightedIndex(0)
     inputRef.current?.focus()
-  }, [selectedAccounts, onChange])
+  }, [selectedAccounts, onChange, sourceFilterKey])
 
   // Handle account removal
   const handleRemoveAccount = useCallback((index: number) => {
+    const removedAccount = selectedAccounts[index]
     const newAccounts = selectedAccounts.filter((_, i) => i !== index)
     onChange(newAccounts)
-  }, [selectedAccounts, onChange])
+    if (removedAccount) {
+      captureEvent(ANALYTICS_EVENTS.FILTER_OPTION_CLICKED, {
+        filter_key: sourceFilterKey,
+        option_value: removedAccount.value,
+        mode: removedAccount.mode,
+        action: "remove",
+        selected_values: toTrackedFilterPlainValues(newAccounts),
+        selected_values_with_mode: toTrackedFilterValueArray(newAccounts),
+      })
+    }
+  }, [selectedAccounts, onChange, sourceFilterKey])
 
   // Toggle include/exclude mode
   const handleToggleMode = useCallback((index: number) => {
+    const target = selectedAccounts[index]
+    const nextMode = target?.mode === "include" ? "exclude" : "include"
     const newAccounts = selectedAccounts.map((account, i) =>
       i === index
-        ? { ...account, mode: account.mode === 'include' ? 'exclude' : 'include' } as FilterValue
+        ? { ...account, mode: nextMode } as FilterValue
         : account
     )
     onChange(newAccounts)
-  }, [selectedAccounts, onChange])
+    if (target) {
+      captureEvent(ANALYTICS_EVENTS.FILTER_OPTION_CLICKED, {
+        filter_key: sourceFilterKey,
+        option_value: target.value,
+        mode: nextMode,
+        action: "toggle_mode",
+        selected_values: toTrackedFilterPlainValues(newAccounts),
+        selected_values_with_mode: toTrackedFilterValueArray(newAccounts),
+      })
+    }
+  }, [selectedAccounts, onChange, sourceFilterKey])
 
   // Keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -139,6 +182,30 @@ export function AccountAutocomplete({
   useEffect(() => {
     setHighlightedIndex(0)
   }, [suggestions])
+
+  useEffect(() => {
+    if (!isOpen) return
+    captureEvent(ANALYTICS_EVENTS.FILTER_DROPDOWN_OPENED, {
+      filter_key: sourceFilterKey,
+      selected_count: selectedAccounts.length,
+      options_count: uniqueAccountNames.length,
+      selected_values: toTrackedFilterPlainValues(selectedAccounts),
+      selected_values_with_mode: toTrackedFilterValueArray(selectedAccounts),
+      option_values_preview: toTrackedStringArray(uniqueAccountNames),
+    })
+  }, [isOpen, sourceFilterKey, selectedAccounts, uniqueAccountNames])
+
+  useEffect(() => {
+    if (!debouncedValue.trim()) return
+    captureEvent(ANALYTICS_EVENTS.FILTER_SEARCH_TYPED, {
+      filter_key: sourceFilterKey,
+      query_text: normalizeTrackedText(debouncedValue),
+      query_length: debouncedValue.trim().length,
+      results_visible_count: suggestions.length,
+      input_type: "autocomplete",
+      suggestion_values: toTrackedStringArray(suggestions),
+    })
+  }, [debouncedValue, suggestions, sourceFilterKey])
 
   // Close dropdown when clicking outside
   useEffect(() => {

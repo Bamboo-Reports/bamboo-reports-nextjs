@@ -1,5 +1,8 @@
 import { FileQuestion, Filter, Search, DatabaseZap } from "lucide-react"
+import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { captureEvent } from "@/lib/analytics/client"
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 
 interface EmptyStateProps {
   type?: "no-data" | "no-results" | "no-filters" | "error"
@@ -17,6 +20,15 @@ export function EmptyState({
   description,
   action
 }: EmptyStateProps) {
+  const hasAction = Boolean(action)
+
+  useEffect(() => {
+    captureEvent(ANALYTICS_EVENTS.EMPTY_STATE_SHOWN, {
+      empty_state_type: type,
+      has_action: hasAction,
+    })
+  }, [type, hasAction])
+
   const config = {
     "no-data": {
       icon: DatabaseZap,
