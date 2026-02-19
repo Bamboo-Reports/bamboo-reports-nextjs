@@ -7,6 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
+import { captureEvent } from "@/lib/analytics/client"
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
+import {
+  normalizeTrackedText,
+  toTrackedFilterPlainValues,
+  toTrackedFilterValueArray,
+  toTrackedStringArray,
+} from "@/lib/analytics/tracking"
 import type { FilterValue } from "@/lib/types"
 
 interface EnhancedMultiSelectProps {
@@ -14,6 +22,7 @@ interface EnhancedMultiSelectProps {
   selected: FilterValue[]
   onChange: (selected: FilterValue[]) => void
   placeholder?: string
+  trackingKey?: string
   className?: string
   isApplying?: boolean
 }
@@ -151,11 +160,14 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
   selected,
   onChange,
   placeholder = "Select items...",
+  trackingKey,
   className,
   isApplying = false,
 }: EnhancedMultiSelectProps) {
   const [open, setOpen] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState("")
+  const searchTrackTimeoutRef = React.useRef<number | null>(null)
+  const sourceFilterKey = trackingKey ?? placeholder
 
   React.useEffect(() => {
     if (!open) {
@@ -163,19 +175,59 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
     }
   }, [open])
 
+  React.useEffect(() => {
+    if (!open) return
+    const selectedValues = toTrackedFilterPlainValues(selected)
+    const selectedValuesWithMode = toTrackedFilterValueArray(selected)
+    const includeValues = toTrackedStringArray(
+      selected.filter((item) => item.mode === "include").map((item) => item.value)
+    )
+    const excludeValues = toTrackedStringArray(
+      selected.filter((item) => item.mode === "exclude").map((item) => item.value)
+    )
+    captureEvent(ANALYTICS_EVENTS.FILTER_DROPDOWN_OPENED, {
+      filter_key: sourceFilterKey,
+      selected_count: selected.length,
+      options_count: options.length,
+      selected_values: selectedValues,
+      selected_values_with_mode: selectedValuesWithMode,
+      include_values: includeValues,
+      exclude_values: excludeValues,
+      option_values_preview: toTrackedStringArray(options.map((option) => option.value)),
+    })
+  }, [open, sourceFilterKey, selected, options])
+
   const handleUnselect = React.useCallback((item: FilterValue) => {
-    onChange(selected.filter((i) => i.value !== item.value))
-  }, [selected, onChange])
+    const nextSelected = selected.filter((i) => i.value !== item.value)
+    onChange(nextSelected)
+    captureEvent(ANALYTICS_EVENTS.FILTER_OPTION_CLICKED, {
+      filter_key: sourceFilterKey,
+      option_value: item.value,
+      mode: item.mode,
+      action: "remove",
+      selected_values: toTrackedFilterPlainValues(nextSelected),
+      selected_values_with_mode: toTrackedFilterValueArray(nextSelected),
+    })
+  }, [selected, onChange, sourceFilterKey])
 
   const handleToggleMode = React.useCallback((item: FilterValue) => {
-    onChange(
-      selected.map((i) =>
-        i.value === item.value
-          ? { ...i, mode: i.mode === 'include' ? 'exclude' : 'include' }
-          : i
-      )
+    const nextSelected: FilterValue[] = selected.map((i) =>
+      i.value === item.value
+        ? { ...i, mode: i.mode === "include" ? "exclude" : "include" }
+        : i
     )
-  }, [selected, onChange])
+    onChange(
+      nextSelected
+    )
+    captureEvent(ANALYTICS_EVENTS.FILTER_OPTION_CLICKED, {
+      filter_key: sourceFilterKey,
+      option_value: item.value,
+      mode: item.mode === "include" ? "exclude" : "include",
+      action: "toggle_mode_badge",
+      selected_values: toTrackedFilterPlainValues(nextSelected),
+      selected_values_with_mode: toTrackedFilterValueArray(nextSelected),
+    })
+  }, [selected, onChange, sourceFilterKey])
 
   const handleSelect = React.useCallback((value: string, mode?: 'include' | 'exclude') => {
     const option = options.find((opt) => (typeof opt === "string" ? opt === value : opt.value === value))
@@ -186,27 +238,56 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
     if (existingIndex >= 0) {
       if (mode) {
         // If mode is explicitly provided, set it
-        onChange(
-          selected.map((i, idx) =>
-            idx === existingIndex ? { ...i, mode } : i
-          )
+        const nextSelected: FilterValue[] = selected.map((i, idx) =>
+          idx === existingIndex ? { ...i, mode } : i
         )
+        onChange(
+          nextSelected
+        )
+        captureEvent(ANALYTICS_EVENTS.FILTER_OPTION_CLICKED, {
+          filter_key: sourceFilterKey,
+          option_value: value,
+          mode,
+          action: "update_mode",
+          selected_values: toTrackedFilterPlainValues(nextSelected),
+          selected_values_with_mode: toTrackedFilterValueArray(nextSelected),
+        })
       } else {
         // If already selected and no mode provided, toggle mode
         const currentMode = selected[existingIndex].mode
-        onChange(
-          selected.map((i, idx) =>
-            idx === existingIndex
-              ? { ...i, mode: currentMode === 'include' ? 'exclude' : 'include' }
-              : i
-          )
+        const nextMode = currentMode === 'include' ? 'exclude' : 'include'
+        const nextSelected: FilterValue[] = selected.map((i, idx) =>
+          idx === existingIndex
+            ? { ...i, mode: nextMode }
+            : i
         )
+        onChange(
+          nextSelected
+        )
+        captureEvent(ANALYTICS_EVENTS.FILTER_OPTION_CLICKED, {
+          filter_key: sourceFilterKey,
+          option_value: value,
+          mode: nextMode,
+          action: "toggle_mode",
+          selected_values: toTrackedFilterPlainValues(nextSelected),
+          selected_values_with_mode: toTrackedFilterValueArray(nextSelected),
+        })
       }
     } else {
       // Add with specified mode or default to include
-      onChange([...selected, { value, mode: mode || 'include' }])
+      const nextMode = mode || 'include'
+      const nextSelected: FilterValue[] = [...selected, { value, mode: nextMode }]
+      onChange(nextSelected)
+      captureEvent(ANALYTICS_EVENTS.FILTER_OPTION_CLICKED, {
+        filter_key: sourceFilterKey,
+        option_value: value,
+        mode: nextMode,
+        action: "add",
+        selected_values: toTrackedFilterPlainValues(nextSelected),
+        selected_values_with_mode: toTrackedFilterValueArray(nextSelected),
+      })
     }
-  }, [options, selected, onChange])
+  }, [options, selected, onChange, sourceFilterKey])
 
   const renderBadges = React.useMemo(() => {
     return selected.map((item) => (
@@ -234,6 +315,33 @@ export const EnhancedMultiSelect = React.memo(function EnhancedMultiSelect({
   }, [options, normalizedSearchQuery])
 
   const hasMoreOptions = normalizedSearchQuery.length === 0 && options.length > DEFAULT_VISIBLE_OPTIONS
+
+  React.useEffect(() => {
+    if (!open || normalizedSearchQuery.length === 0) {
+      return
+    }
+
+    if (searchTrackTimeoutRef.current !== null) {
+      window.clearTimeout(searchTrackTimeoutRef.current)
+    }
+
+    searchTrackTimeoutRef.current = window.setTimeout(() => {
+      captureEvent(ANALYTICS_EVENTS.FILTER_SEARCH_TYPED, {
+        filter_key: sourceFilterKey,
+        query_text: normalizeTrackedText(normalizedSearchQuery),
+        query_length: normalizedSearchQuery.length,
+        results_visible_count: visibleOptions.length,
+        has_more_options: hasMoreOptions,
+        matching_option_values: toTrackedStringArray(visibleOptions.map((option) => option.value)),
+      })
+    }, 400)
+
+    return () => {
+      if (searchTrackTimeoutRef.current !== null) {
+        window.clearTimeout(searchTrackTimeoutRef.current)
+      }
+    }
+  }, [open, normalizedSearchQuery, visibleOptions, hasMoreOptions, sourceFilterKey])
 
   const renderOptions = React.useMemo(() => {
     return visibleOptions.map((option) => {

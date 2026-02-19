@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -19,13 +19,16 @@ import {
   type ExportProgressHandler,
   type RowRecord,
 } from "@/lib/utils/export-helpers"
+import { captureEvent } from "@/lib/analytics/client"
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
+import { toTrackedStringArray } from "@/lib/analytics/tracking"
 import { cn } from "@/lib/utils"
 
 type ExportData = {
-  accounts: RowRecord[]
-  centers: RowRecord[]
-  services: RowRecord[]
-  prospects: RowRecord[]
+  accounts: object[]
+  centers: object[]
+  services: object[]
+  prospects: object[]
 }
 
 interface ExportDialogProps {
@@ -33,6 +36,7 @@ interface ExportDialogProps {
   onOpenChange: (open: boolean) => void
   data: ExportData
   isFiltered: boolean
+  onExportCompleted?: () => void
 }
 
 const DATASET_META: Array<{
@@ -72,7 +76,7 @@ const DATASET_META: Array<{
   },
 ]
 
-export function ExportDialog({ open, onOpenChange, data, isFiltered }: ExportDialogProps) {
+export function ExportDialog({ open, onOpenChange, data, isFiltered, onExportCompleted }: ExportDialogProps) {
   const [selection, setSelection] = useState<Record<ExportDatasetKey, boolean>>({
     accounts: true,
     centers: true,
@@ -83,20 +87,45 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered }: ExportDia
   const [progress, setProgress] = useState(0)
   const [stage, setStage] = useState("Preparing export...")
   const [error, setError] = useState<string | null>(null)
+  const wasOpenRef = useRef(false)
+
+  const getSelectedDatasets = (currentSelection: Record<ExportDatasetKey, boolean>) =>
+    (Object.keys(currentSelection) as ExportDatasetKey[]).filter((dataset) => currentSelection[dataset])
 
   useEffect(() => {
-    if (!open) return
-    setSelection({
+    if (!open) {
+      wasOpenRef.current = false
+      return
+    }
+    if (wasOpenRef.current) {
+      return
+    }
+    wasOpenRef.current = true
+
+    const initialSelection = {
       accounts: data.accounts.length > 0,
       centers: data.centers.length > 0,
       services: data.services.length > 0,
       prospects: data.prospects.length > 0,
-    })
+    }
+    setSelection(initialSelection)
     setIsExporting(false)
     setProgress(0)
     setStage("Preparing export...")
     setError(null)
-  }, [open, data])
+
+    const initiallySelectedDatasets = getSelectedDatasets(initialSelection)
+
+    captureEvent(ANALYTICS_EVENTS.EXPORT_DIALOG_OPENED, {
+      is_filtered: isFiltered,
+      row_count_accounts: data.accounts.length,
+      row_count_centers: data.centers.length,
+      row_count_services: data.services.length,
+      row_count_prospects: data.prospects.length,
+      selected_datasets: initiallySelectedDatasets,
+      selected_dataset_count: initiallySelectedDatasets.length,
+    })
+  }, [open, data, isFiltered])
 
   const totalSelected = useMemo(
     () => Object.values(selection).filter(Boolean).length,
@@ -105,16 +134,29 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered }: ExportDia
 
   const handleToggle = (key: ExportDatasetKey) => {
     if (isExporting) return
-    setSelection((prev) => ({ ...prev, [key]: !prev[key] }))
+    const next = { ...selection, [key]: !selection[key] }
+    setSelection(next)
+    const selectedDatasets = getSelectedDatasets(next)
+    captureEvent(ANALYTICS_EVENTS.EXPORT_SELECTION_CHANGED, {
+      changed_dataset: key,
+      is_selected: next[key],
+      selected_datasets: selectedDatasets,
+      selected_dataset_count: selectedDatasets.length,
+    })
   }
 
   const handleSelectAll = (value: boolean) => {
     if (isExporting) return
-    setSelection({
+    const next = {
       accounts: value,
       centers: value,
       services: value,
       prospects: value,
+    }
+    setSelection(next)
+    captureEvent(value ? ANALYTICS_EVENTS.EXPORT_SELECT_ALL_CLICKED : ANALYTICS_EVENTS.EXPORT_CLEAR_CLICKED, {
+      selected_dataset_count: value ? 4 : 0,
+      selected_datasets: value ? (Object.keys(next) as ExportDatasetKey[]) : [],
     })
   }
 
@@ -125,33 +167,76 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered }: ExportDia
     setError(null)
     setProgress(0)
     setStage("Preparing export...")
+    const startedAt = Date.now()
+    const selectedDatasets = getSelectedDatasets(selection)
 
     const onProgress: ExportProgressHandler = (value, nextStage) => {
       setProgress(value)
       if (nextStage) setStage(nextStage)
     }
 
+    captureEvent(ANALYTICS_EVENTS.EXPORT_STARTED, {
+      selected_datasets: selectedDatasets,
+      selected_dataset_count: selectedDatasets.length,
+      is_filtered: isFiltered,
+      row_count_accounts: selection.accounts ? data.accounts.length : 0,
+      row_count_centers: selection.centers ? data.centers.length : 0,
+      row_count_services: selection.services ? data.services.length : 0,
+      row_count_prospects: selection.prospects ? data.prospects.length : 0,
+    })
+
     try {
       await exportSelectedDataZip({
         selection: {
-          accounts: selection.accounts ? data.accounts : undefined,
-          centers: selection.centers ? data.centers : undefined,
-          services: selection.services ? data.services : undefined,
-          prospects: selection.prospects ? data.prospects : undefined,
+          accounts: selection.accounts ? (data.accounts as RowRecord[]) : undefined,
+          centers: selection.centers ? (data.centers as RowRecord[]) : undefined,
+          services: selection.services ? (data.services as RowRecord[]) : undefined,
+          prospects: selection.prospects ? (data.prospects as RowRecord[]) : undefined,
         },
         onProgress,
       })
       setStage("Export ready")
+      captureEvent(ANALYTICS_EVENTS.EXPORT_COMPLETED, {
+        selected_datasets: selectedDatasets,
+        selected_dataset_count: selectedDatasets.length,
+        is_filtered: isFiltered,
+        duration_ms: Date.now() - startedAt,
+      })
+      onExportCompleted?.()
     } catch (err) {
       console.error("Export failed:", err)
       setError("Export failed. Please try again.")
+      captureEvent(ANALYTICS_EVENTS.EXPORT_FAILED, {
+        selected_datasets: selectedDatasets,
+        selected_dataset_count: selectedDatasets.length,
+        is_filtered: isFiltered,
+        duration_ms: Date.now() - startedAt,
+        error_message: err instanceof Error ? err.message : "Unknown export error",
+      })
     } finally {
       setIsExporting(false)
     }
   }
 
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (open && !nextOpen && !isExporting) {
+      const selectedDatasets = getSelectedDatasets(selection)
+      captureEvent(ANALYTICS_EVENTS.EXPORT_CANCELLED, {
+        selected_dataset_count: totalSelected,
+        selected_datasets: selectedDatasets,
+        row_count_accounts: selection.accounts ? data.accounts.length : 0,
+        row_count_centers: selection.centers ? data.centers.length : 0,
+        row_count_services: selection.services ? data.services.length : 0,
+        row_count_prospects: selection.prospects ? data.prospects.length : 0,
+        stage: toTrackedStringArray([stage])[0] ?? null,
+        has_error: Boolean(error),
+      })
+    }
+    onOpenChange(nextOpen)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-xl">Export data</DialogTitle>
@@ -248,7 +333,13 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered }: ExportDia
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isExporting}>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              onOpenChange(false)
+            }}
+            disabled={isExporting}
+          >
             Cancel
           </Button>
           <Button onClick={handleExport} disabled={isExporting || totalSelected === 0}>

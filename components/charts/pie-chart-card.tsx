@@ -3,6 +3,8 @@
 import React, { memo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PieChartIcon } from "lucide-react"
+import { captureEvent } from "@/lib/analytics/client"
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import { CHART_COLORS } from "@/lib/utils/chart-helpers"
 import type { ChartData } from "@/lib/types"
 import type { Options, Point } from "highcharts"
@@ -126,6 +128,18 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
           },
           showInLegend: false,
           borderWidth: 0,
+          point: {
+            events: {
+              click: function () {
+                const point = this as Point
+                captureEvent(ANALYTICS_EVENTS.CHART_SLICE_CLICKED, {
+                  chart_title: title,
+                  segment_name: point.name,
+                  segment_value: point.y ?? 0,
+                })
+              },
+            },
+          },
         },
       },
       series: [
@@ -135,7 +149,7 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
         },
       ],
     }
-  }, [seriesData, total, countLabel, showBigPercentage])
+  }, [seriesData, total, countLabel, showBigPercentage, title])
 
   return (
     <Card className="border shadow-sm">

@@ -1,7 +1,10 @@
 
 import { useState, useCallback, useEffect } from "react"
+import { captureEvent } from "@/lib/analytics/client"
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
+import { buildTrackedFiltersSnapshot, normalizeTrackedText } from "@/lib/analytics/tracking"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
-import { withFilterDefaults } from "@/lib/dashboard/filter-summary"
+import { calculateActiveFilters, withFilterDefaults } from "@/lib/dashboard/filter-summary"
 import type { SavedFilter } from "@/components/filters/saved-filter-card"
 import type { Filters } from "@/lib/types"
 
@@ -79,15 +82,25 @@ export function useSavedFilters() {
 
   const saveFilter = useCallback(async (name: string, filters: Filters) => {
     if (!name.trim() || !userId) return false
+    const normalizedName = name.trim()
 
     setLoading(true)
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("saved_filters")
-        .insert({ name: name.trim(), filters: filters, user_id: userId })
+        .insert({ name: normalizedName, filters: filters, user_id: userId })
+        .select("id, name")
+        .single()
 
       if (error) throw error
       await loadSavedFilters()
+      captureEvent(ANALYTICS_EVENTS.SAVED_FILTER_SAVED, {
+        saved_filter_id: data?.id ?? null,
+        saved_filter_name: normalizeTrackedText(normalizedName),
+        filter_name_length: normalizedName.length,
+        active_filters_count: calculateActiveFilters(filters),
+        saved_filters_snapshot: buildTrackedFiltersSnapshot(filters),
+      })
       return true
     } catch (error) {
       console.error("Error saving filter:", error)
@@ -98,6 +111,8 @@ export function useSavedFilters() {
   }, [userId, loadSavedFilters, supabase])
 
   const deleteFilter = useCallback(async (id: string) => {
+    const filterToDelete = savedFilters.find((filter) => filter.id === id) ?? null
+
     setLoading(true)
     try {
       const { error } = await supabase
@@ -108,6 +123,12 @@ export function useSavedFilters() {
       if (error) throw error
 
       await loadSavedFilters()
+      captureEvent(ANALYTICS_EVENTS.SAVED_FILTER_DELETED, {
+        saved_filter_id: id,
+        saved_filter_name: filterToDelete ? normalizeTrackedText(filterToDelete.name) : null,
+        active_filters_count: filterToDelete ? calculateActiveFilters(filterToDelete.filters) : null,
+        deleted_filters_snapshot: filterToDelete ? buildTrackedFiltersSnapshot(filterToDelete.filters) : null,
+      })
       return true
     } catch (error) {
       console.error("Error deleting filter:", error)
@@ -115,15 +136,18 @@ export function useSavedFilters() {
     } finally {
       setLoading(false)
     }
-  }, [loadSavedFilters, supabase])
+  }, [loadSavedFilters, savedFilters, supabase])
 
   const updateFilter = useCallback(async (id: string, name: string, filters: Filters) => {
+    const previousFilter = savedFilters.find((filter) => filter.id === id) ?? null
+    const normalizedName = name.trim()
+
     setLoading(true)
     try {
       const { error } = await supabase
         .from("saved_filters")
         .update({
-          name: name.trim(),
+          name: normalizedName,
           filters: filters,
           updated_at: new Date().toISOString(),
         })
@@ -132,6 +156,14 @@ export function useSavedFilters() {
       if (error) throw error
 
       await loadSavedFilters()
+      captureEvent(ANALYTICS_EVENTS.SAVED_FILTER_RENAMED, {
+        saved_filter_id: id,
+        previous_filter_name: previousFilter ? normalizeTrackedText(previousFilter.name) : null,
+        next_filter_name: normalizeTrackedText(normalizedName),
+        filter_name_length: normalizedName.length,
+        active_filters_count: calculateActiveFilters(filters),
+        updated_filters_snapshot: buildTrackedFiltersSnapshot(filters),
+      })
       return true
     } catch (error) {
       console.error("Error updating filter:", error)
@@ -139,7 +171,7 @@ export function useSavedFilters() {
     } finally {
       setLoading(false)
     }
-  }, [loadSavedFilters, supabase])
+  }, [loadSavedFilters, savedFilters, supabase])
 
   return {
     savedFilters,

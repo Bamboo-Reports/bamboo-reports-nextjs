@@ -26,6 +26,8 @@ import { MapErrorBoundary } from "@/components/maps/map-error-boundary"
 import { ViewSwitcher } from "@/components/ui/view-switcher"
 import { SortButton } from "@/components/ui/sort-button"
 import { PaginationControls } from "@/components/ui/pagination-controls"
+import { captureEvent } from "@/lib/analytics/client"
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import { getPaginatedData } from "@/lib/utils/helpers"
 import type { Account, Center, Prospect, Service, Function, Tech } from "@/lib/types"
 
@@ -73,22 +75,99 @@ export function AccountsTab({
   })
   const [dataLayout, setDataLayout] = useState<"table" | "grid">("table")
   const [mapMode, setMapMode] = useState<"city" | "state">("state")
+  const previousDataLayoutRef = React.useRef<"table" | "grid">("table")
+  const previousMapModeRef = React.useRef<"city" | "state">("state")
+  const openedRecordRef = React.useRef<{ recordId: string; openedAt: number } | null>(null)
 
-  const handleAccountClick = (account: Account) => {
+  const handleAccountClick = (account: Account, openedFrom: "table_row" | "grid_card") => {
+    if (isDialogOpen && openedRecordRef.current) {
+      const dwellSeconds = Math.max(0, Math.round((Date.now() - openedRecordRef.current.openedAt) / 1000))
+      captureEvent(ANALYTICS_EVENTS.RECORD_CLOSED, {
+        entity: "account",
+        record_id: openedRecordRef.current.recordId,
+        dwell_seconds: dwellSeconds,
+        close_reason: "switch_to_another_record",
+      })
+    }
     setSelectedAccount(account)
     setIsDialogOpen(true)
+    openedRecordRef.current = {
+      recordId: account.account_global_legal_name,
+      openedAt: Date.now(),
+    }
+    captureEvent(ANALYTICS_EVENTS.RECORD_OPENED, {
+      entity: "account",
+      record_id: account.account_global_legal_name,
+      record_label: account.account_global_legal_name,
+      source_view: accountsView,
+      source_layout: accountsView === "data" ? dataLayout : null,
+      opened_from: openedFrom,
+      has_website: Boolean(account.account_hq_website),
+    })
   }
 
   const handleSort = (key: typeof sort.key) => {
+    let nextDirection: "asc" | "desc" | null = "asc"
     setSort((prev) => {
       if (prev.key !== key || prev.direction === null) {
+        nextDirection = "asc"
         return { key, direction: "asc" }
       }
-      if (prev.direction === "asc") return { key, direction: "desc" }
+      if (prev.direction === "asc") {
+        nextDirection = "desc"
+        return { key, direction: "desc" }
+      }
+      nextDirection = null
       return { key, direction: null }
+    })
+    captureEvent(ANALYTICS_EVENTS.SORT_CHANGED, {
+      entity: "account",
+      sort_key: key,
+      sort_direction: nextDirection ?? "none",
     })
     setCurrentPage(1)
   }
+
+  React.useEffect(() => {
+    if (previousDataLayoutRef.current === dataLayout) {
+      return
+    }
+
+    captureEvent(ANALYTICS_EVENTS.DATA_LAYOUT_CHANGED, {
+      screen: "accounts",
+      data_layout: dataLayout,
+    })
+
+    previousDataLayoutRef.current = dataLayout
+  }, [dataLayout])
+
+  React.useEffect(() => {
+    if (previousMapModeRef.current === mapMode) {
+      return
+    }
+
+    captureEvent(ANALYTICS_EVENTS.MAP_MODE_CHANGED, {
+      screen: "accounts",
+      map_mode: mapMode,
+    })
+
+    previousMapModeRef.current = mapMode
+  }, [mapMode])
+
+  React.useEffect(() => {
+    if (isDialogOpen || !openedRecordRef.current) {
+      return
+    }
+
+    const dwellSeconds = Math.max(0, Math.round((Date.now() - openedRecordRef.current.openedAt) / 1000))
+    captureEvent(ANALYTICS_EVENTS.RECORD_CLOSED, {
+      entity: "account",
+      record_id: openedRecordRef.current.recordId,
+      dwell_seconds: dwellSeconds,
+      close_reason: "dialog_closed",
+    })
+    openedRecordRef.current = null
+  }, [isDialogOpen])
 
 
   const sortedAccounts = React.useMemo(() => {
@@ -282,7 +361,7 @@ export function AccountsTab({
                         <AccountRow
                           key={`${account.account_global_legal_name}-${index}`}
                           account={account}
-                          onClick={() => handleAccountClick(account)}
+                          onClick={() => handleAccountClick(account, "table_row")}
                         />
                       )
                     )}
@@ -313,7 +392,7 @@ export function AccountsTab({
                         <AccountGridCard
                           key={`${account.account_global_legal_name}-${index}`}
                           account={account}
-                          onClick={() => handleAccountClick(account)}
+                          onClick={() => handleAccountClick(account, "grid_card")}
                         />
                       )
                     )}

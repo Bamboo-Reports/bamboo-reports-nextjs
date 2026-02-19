@@ -141,6 +141,7 @@ export function AccountFiltersSection({
               selectedAccounts={pendingFilters.accountNameKeywords}
               onChange={(keywords) => setPendingFilters((prev) => ({ ...prev, accountNameKeywords: keywords }))}
               placeholder="Type to search account names..."
+              trackingKey="accountNameKeywords"
             />
           </div>
 
@@ -149,6 +150,7 @@ export function AccountFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.accountEmployeesRanges}
               selected={pendingFilters.accountEmployeesRanges}
+              trackingKey="accountEmployeesRanges"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, accountEmployeesRanges: selected }))
                 setActiveFilter("accountEmployeesRanges")
@@ -162,6 +164,7 @@ export function AccountFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.accountCenterEmployees}
               selected={pendingFilters.accountCenterEmployees}
+              trackingKey="accountCenterEmployees"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, accountCenterEmployees: selected }))
                 setActiveFilter("accountCenterEmployees")
@@ -306,6 +309,7 @@ export function AccountFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.accountCountries || []}
               selected={pendingFilters.accountCountries}
+              trackingKey="accountCountries"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, accountCountries: selected }))
                 setActiveFilter("accountCountries")
@@ -319,6 +323,7 @@ export function AccountFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.accountPrimaryNatures}
               selected={pendingFilters.accountPrimaryNatures}
+              trackingKey="accountPrimaryNatures"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, accountPrimaryNatures: selected }))
                 setActiveFilter("accountPrimaryNatures")
@@ -332,6 +337,7 @@ export function AccountFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.accountPrimaryCategories}
               selected={pendingFilters.accountPrimaryCategories}
+              trackingKey="accountPrimaryCategories"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, accountPrimaryCategories: selected }))
                 setActiveFilter("accountPrimaryCategories")
@@ -345,6 +351,7 @@ export function AccountFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.accountIndustries}
               selected={pendingFilters.accountIndustries}
+              trackingKey="accountIndustries"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, accountIndustries: selected }))
                 setActiveFilter("accountIndustries")
@@ -358,6 +365,7 @@ export function AccountFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.accountNasscomStatuses}
               selected={pendingFilters.accountNasscomStatuses}
+              trackingKey="accountNasscomStatuses"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, accountNasscomStatuses: selected }))
                 setActiveFilter("accountNasscomStatuses")
@@ -458,6 +466,7 @@ export function CenterFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.centerStatuses}
               selected={pendingFilters.centerStatuses}
+              trackingKey="centerStatuses"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, centerStatuses: selected }))
                 setActiveFilter("centerStatuses")
@@ -471,6 +480,7 @@ export function CenterFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.centerEmployees}
               selected={pendingFilters.centerEmployees}
+              trackingKey="centerEmployees"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, centerEmployees: selected }))
                 setActiveFilter("centerEmployees")
@@ -484,6 +494,7 @@ export function CenterFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.centerCountries}
               selected={pendingFilters.centerCountries}
+              trackingKey="centerCountries"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, centerCountries: selected }))
                 setActiveFilter("centerCountries")
@@ -497,6 +508,7 @@ export function CenterFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.centerStates}
               selected={pendingFilters.centerStates}
+              trackingKey="centerStates"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, centerStates: selected }))
                 setActiveFilter("centerStates")
@@ -510,6 +522,7 @@ export function CenterFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.centerCities}
               selected={pendingFilters.centerCities}
+              trackingKey="centerCities"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, centerCities: selected }))
                 setActiveFilter("centerCities")
@@ -523,6 +536,7 @@ export function CenterFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.centerFocus}
               selected={pendingFilters.centerFocus}
+              trackingKey="centerFocus"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, centerFocus: selected }))
                 setActiveFilter("centerFocus")
@@ -536,6 +550,7 @@ export function CenterFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.centerTypes}
               selected={pendingFilters.centerTypes}
+              trackingKey="centerTypes"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, centerTypes: selected }))
                 setActiveFilter("centerTypes")
@@ -550,6 +565,7 @@ export function CenterFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.functionTypes}
               selected={pendingFilters.functionTypes}
+              trackingKey="functionTypes"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, functionTypes: selected }))
                 setActiveFilter("functionTypes")
@@ -566,6 +582,7 @@ export function CenterFiltersSection({
                 setPendingFilters((prev) => ({ ...prev, centerSoftwareInUseKeywords: keywords }))
               }
               placeholder="e.g., SAP, Oracle, Workday..."
+              trackingKey="centerSoftwareInUseKeywords"
             />
           </div>
         </div>
@@ -591,6 +608,7 @@ export function ProspectFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.prospectDepartments || []}
               selected={pendingFilters.prospectDepartments}
+              trackingKey="prospectDepartments"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, prospectDepartments: selected }))
                 setActiveFilter("prospectDepartments")
@@ -604,6 +622,7 @@ export function ProspectFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.prospectLevels || []}
               selected={pendingFilters.prospectLevels}
+              trackingKey="prospectLevels"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, prospectLevels: selected }))
                 setActiveFilter("prospectLevels")
@@ -617,6 +636,7 @@ export function ProspectFiltersSection({
             <EnhancedMultiSelect
               options={availableOptions.prospectCities || []}
               selected={pendingFilters.prospectCities}
+              trackingKey="prospectCities"
               onChange={(selected) => {
                 setPendingFilters((prev) => ({ ...prev, prospectCities: selected }))
                 setActiveFilter("prospectCities")
@@ -631,6 +651,7 @@ export function ProspectFiltersSection({
               keywords={pendingFilters.prospectTitleKeywords}
               onChange={(keywords) => setPendingFilters((prev) => ({ ...prev, prospectTitleKeywords: keywords }))}
               placeholder="e.g., Manager, Director, VP..."
+              trackingKey="prospectTitleKeywords"
             />
           </div>
         </div>

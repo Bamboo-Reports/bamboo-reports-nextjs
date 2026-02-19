@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { getAllData, testConnection, getDatabaseStatus, clearCache } from "@/app/actions"
+import { captureEvent } from "@/lib/analytics/client"
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import type { Account, Center, Function, Service, Tech, Prospect } from "@/lib/types"
 
 interface UseDashboardDataOptions {
@@ -63,6 +65,7 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
   }, [])
 
   const loadData = useCallback(async () => {
+    const startedAt = Date.now()
     try {
       setLoading(true)
       setError(null)
@@ -72,12 +75,20 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
       if (status && !status.hasUrl) {
         setError("Database URL not configured. Please check environment variables.")
         setConnectionStatus("Database URL missing")
+        captureEvent(ANALYTICS_EVENTS.DATA_LOAD_FAILED, {
+          failure_reason: "database_url_missing",
+          duration_ms: Date.now() - startedAt,
+        })
         return
       }
 
       if (status && !status.hasConnection) {
         setError("Database connection could not be initialized.")
         setConnectionStatus("Connection initialization failed")
+        captureEvent(ANALYTICS_EVENTS.DATA_LOAD_FAILED, {
+          failure_reason: "connection_initialization_failed",
+          duration_ms: Date.now() - startedAt,
+        })
         return
       }
 
@@ -85,6 +96,10 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
       const connectionOk = await testDatabaseConnection()
       if (!connectionOk) {
         setError("Database connection test failed. Please check your database configuration.")
+        captureEvent(ANALYTICS_EVENTS.DATA_LOAD_FAILED, {
+          failure_reason: "connection_test_failed",
+          duration_ms: Date.now() - startedAt,
+        })
         return
       }
 
@@ -94,6 +109,11 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
       if (data.error) {
         setError(`Database error: ${data.error}`)
         setConnectionStatus("Data loading failed")
+        captureEvent(ANALYTICS_EVENTS.DATA_LOAD_FAILED, {
+          failure_reason: "database_error",
+          error_message: data.error,
+          duration_ms: Date.now() - startedAt,
+        })
         return
       }
 
@@ -114,6 +134,10 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
       ) {
         setError("No data found in database tables. Please check if your tables contain data.")
         setConnectionStatus("No data available")
+        captureEvent(ANALYTICS_EVENTS.DATA_LOAD_FAILED, {
+          failure_reason: "no_data_available",
+          duration_ms: Date.now() - startedAt,
+        })
         return
       }
 
@@ -127,11 +151,25 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
       setConnectionStatus(
         `Successfully loaded: ${accountsData.length} accounts, ${centersData.length} centers, ${functionsData.length} functions, ${servicesData.length} services, ${techData.length} tech, ${prospectsData.length} prospects`
       )
+      captureEvent(ANALYTICS_EVENTS.DATA_LOAD_SUCCEEDED, {
+        accounts_count: accountsData.length,
+        centers_count: centersData.length,
+        functions_count: functionsData.length,
+        services_count: servicesData.length,
+        tech_count: techData.length,
+        prospects_count: prospectsData.length,
+        duration_ms: Date.now() - startedAt,
+      })
     } catch (err) {
       console.error("Error loading data:", err)
       const errorMessage = err instanceof Error ? err.message : "Failed to load data from database"
       setError(errorMessage)
       setConnectionStatus("Database connection failed")
+      captureEvent(ANALYTICS_EVENTS.DATA_LOAD_FAILED, {
+        failure_reason: "load_data_exception",
+        error_message: errorMessage,
+        duration_ms: Date.now() - startedAt,
+      })
     } finally {
       setLoading(false)
     }

@@ -11,6 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { captureEvent, identifyUser } from "@/lib/analytics/client"
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import { signUpSchema, type SignUpValues } from "@/lib/validators/auth"
 
@@ -58,24 +60,22 @@ export default function SignUpPage() {
 
     if (signUpError) {
       setSubmitError(signUpError.message)
+      captureEvent(ANALYTICS_EVENTS.AUTH_SIGN_UP_FAILED, {
+        auth_provider: "email",
+        email_domain: values.email.includes("@") ? values.email.split("@")[1] : null,
+        error_message: signUpError.message,
+      })
       return
     }
 
-    let user = signUpData.user ?? null
-
-    if (!signUpData.session) {
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
-      if (signInError) {
-        setError("Please confirm your email before signing in.")
-        setIsSubmitting(false)
-        return
-      }
-      user = signInData.user ?? signInData.session?.user ?? null
-    }
-
-    const userId = user?.id
+    const userId = signUpData.user?.id
     if (!userId) {
       setSubmitError("Signup succeeded but the user record was missing.")
+      captureEvent(ANALYTICS_EVENTS.AUTH_SIGN_UP_FAILED, {
+        auth_provider: "email",
+        email_domain: values.email.includes("@") ? values.email.split("@")[1] : null,
+        error_message: "Missing user ID after signup",
+      })
       return
     }
 
@@ -90,14 +90,34 @@ export default function SignUpPage() {
 
       if (profileError) {
         setSubmitError(profileError.message)
+        captureEvent(ANALYTICS_EVENTS.AUTH_SIGN_UP_FAILED, {
+          auth_provider: "email",
+          email_domain: values.email.includes("@") ? values.email.split("@")[1] : null,
+          error_message: profileError.message,
+        })
         return
       }
 
+      identifyUser({
+        id: userId,
+        email: values.email,
+        authProvider: "email",
+      })
+      captureEvent(ANALYTICS_EVENTS.AUTH_SIGN_UP_SUCCEEDED, {
+        auth_provider: "email",
+        email_domain: values.email.includes("@") ? values.email.split("@")[1] : null,
+        requires_email_confirmation: false,
+      })
       await supabase.auth.signOut()
       router.replace("/signin?signup=success")
       return
     }
 
+    captureEvent(ANALYTICS_EVENTS.AUTH_SIGN_UP_SUCCEEDED, {
+      auth_provider: "email",
+      email_domain: values.email.includes("@") ? values.email.split("@")[1] : null,
+      requires_email_confirmation: true,
+    })
     router.replace("/signin?signup=pending")
   }
 

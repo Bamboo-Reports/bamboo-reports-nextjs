@@ -2,6 +2,8 @@
 
 import React, { useMemo, useState, useEffect, useLayoutEffect } from "react"
 import { Map as MapGL, Source, Layer, NavigationControl, FullscreenControl } from "@vis.gl/react-maplibre"
+import { captureEvent } from "@/lib/analytics/client"
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import type { Center } from "@/lib/types"
 import "maplibre-gl/dist/maplibre-gl.css"
 
@@ -182,6 +184,9 @@ export function CentersChoroplethMap({
   const mapRef = React.useRef<any>(null)
   const containerRef = React.useRef<HTMLDivElement | null>(null)
   const tooltipRef = React.useRef<HTMLDivElement | null>(null)
+  const lastMapMoveTrackedAtRef = React.useRef(0)
+  const lastZoomTrackedRef = React.useRef<number | null>(null)
+  const lastTooltipStateRef = React.useRef<string | null>(null)
 
   useEffect(() => {
     setIsClient(true)
@@ -212,6 +217,28 @@ export function CentersChoroplethMap({
     }
 
     setTooltipPosition({ x, y })
+  }, [hoverInfo])
+
+  useEffect(() => {
+    if (!hoverInfo) {
+      lastTooltipStateRef.current = null
+      return
+    }
+
+    const stateKey = `${hoverInfo.country}|${hoverInfo.state}`
+    if (lastTooltipStateRef.current === stateKey) {
+      return
+    }
+
+    captureEvent(ANALYTICS_EVENTS.MAP_TOOLTIP_VIEWED, {
+      map_kind: "state",
+      map_name: "centers_choropleth_map",
+      state: hoverInfo.state,
+      country: hoverInfo.country,
+      center_count: hoverInfo.count,
+      accounts_count: hoverInfo.accountsCount,
+    })
+    lastTooltipStateRef.current = stateKey
   }, [hoverInfo])
 
   useEffect(() => {
@@ -353,6 +380,10 @@ export function CentersChoroplethMap({
       zoom: 3.5,
       duration: 800,
     })
+    captureEvent(ANALYTICS_EVENTS.MAP_RECENTER_CLICKED, {
+      map_kind: "state",
+      map_name: "centers_choropleth_map",
+    })
   }
 
   if (error) {
@@ -426,6 +457,33 @@ export function CentersChoroplethMap({
           }, 200)
         }}
         interactiveLayerIds={["admin1-fill"]}
+        onMove={(event) => {
+          const now = Date.now()
+          const zoom = Number(event?.viewState?.zoom ?? 0)
+          const latitude = Number(event?.viewState?.latitude ?? 0)
+          const longitude = Number(event?.viewState?.longitude ?? 0)
+
+          if (now - lastMapMoveTrackedAtRef.current >= 1500) {
+            captureEvent(ANALYTICS_EVENTS.MAP_MOVED, {
+              map_kind: "state",
+              map_name: "centers_choropleth_map",
+              zoom: Number(zoom.toFixed(2)),
+              latitude: Number(latitude.toFixed(4)),
+              longitude: Number(longitude.toFixed(4)),
+              visible_state_count: stateKeysWithCounts.length,
+            })
+            lastMapMoveTrackedAtRef.current = now
+          }
+
+          if (lastZoomTrackedRef.current === null || Math.abs(lastZoomTrackedRef.current - zoom) >= 0.3) {
+            captureEvent(ANALYTICS_EVENTS.MAP_ZOOM_CHANGED, {
+              map_kind: "state",
+              map_name: "centers_choropleth_map",
+              zoom: Number(zoom.toFixed(2)),
+            })
+            lastZoomTrackedRef.current = zoom
+          }
+        }}
         onMouseMove={(e) => {
           const feature = e.features?.[0] as Admin1Feature | undefined
           if (!feature) {
@@ -462,6 +520,11 @@ export function CentersChoroplethMap({
         onError={(e) => {
           console.error("[CentersChoroplethMap] Map error:", e)
           setError(`Map error: ${e.error?.message || "Unknown error"}`)
+          captureEvent(ANALYTICS_EVENTS.MAP_ERROR_SHOWN, {
+            map_kind: "state",
+            map_name: "centers_choropleth_map",
+            error_message: e.error?.message || "Unknown map error",
+          })
         }}
       >
         <NavigationControl position="top-left" showCompass={true} showZoom={true} />
