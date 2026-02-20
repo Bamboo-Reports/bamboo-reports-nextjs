@@ -116,6 +116,11 @@ export const TechTreemap = memo(({
     return nodes
   }, [tech])
 
+  const totalLeafValue = React.useMemo(
+    () => data.reduce((sum, node) => sum + (typeof node.value === "number" ? node.value : 0), 0),
+    [data]
+  )
+
   if (data.length === 0) {
     return (
       <div className={cn("flex flex-col items-center justify-center gap-2 text-muted-foreground", heightClass)}>
@@ -141,9 +146,19 @@ export const TechTreemap = memo(({
             chart: {
               type: "treemap",
               backgroundColor: "transparent",
+              spacing: [0, 0, 0, 0],
+              margin: [0, 0, 0, 0],
+              style: {
+                fontFamily: "Google Sans, Poppins, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+              },
             },
             title: { text: showTitle ? title : undefined, align: "left" },
             credits: { enabled: false },
+            navigation: {
+              breadcrumbs: {
+                enabled: false,
+              },
+            },
             accessibility: {
               enabled: true,
               landmarkVerbosity: "one",
@@ -158,12 +173,20 @@ export const TechTreemap = memo(({
               borderWidth: 0,
               shadow: false,
               formatter: function () {
-                const point = this.point as Point & { category?: string; count?: number }
+                const point = this.point as Point & { count?: number; value?: number; name?: string }
+                const softwareName = point.name || "Unknown"
+                const value = typeof point.value === "number"
+                  ? point.value
+                  : (typeof point.count === "number" ? point.count : 0)
+                const percent = totalLeafValue > 0 ? (value / totalLeafValue) * 100 : 0
+                const roundedPercent = Math.round(percent * 10) / 10
+                const percentText = Number.isInteger(roundedPercent)
+                  ? `${roundedPercent.toFixed(0)}%`
+                  : `${roundedPercent.toFixed(1)}%`
                 return `
                   <div class="rounded-lg border border-border bg-background px-3 py-2 shadow-lg">
-                    <p class="text-xs font-semibold text-foreground">${point.name}</p>
-                    ${point.category ? `<p class="text-[11px] text-muted-foreground">Category: ${point.category}</p>` : ""}
-                    ${typeof point.count === "number" ? `<p class="text-[11px] text-muted-foreground">Instances: <span class="font-medium text-foreground">${point.count}</span></p>` : ""}
+                    <p class="text-xs font-semibold text-foreground">${softwareName}</p>
+                    ${value > 0 ? `<p class="text-sm font-semibold text-foreground">${percentText}</p>` : ""}
                   </div>
                 `
               },
@@ -173,6 +196,8 @@ export const TechTreemap = memo(({
                 layoutAlgorithm: "squarified",
                 allowTraversingTree: true,
                 alternateStartingDirection: true,
+                borderColor: "var(--treemap-border-color)",
+                borderWidth: 1,
                 dataLabels: {
                   format: "{point.name}",
                   style: {
@@ -188,6 +213,46 @@ export const TechTreemap = memo(({
                 type: "treemap",
                 name: "Tech Stack",
                 data,
+                breadcrumbs: {
+                  showFullPath: true,
+                  formatter: function (this: { level?: { levelOptions?: { name?: string } } }) {
+                    return this.level?.levelOptions?.name || ""
+                  },
+                  style: {
+                    color: "hsl(var(--foreground))",
+                    fill: "hsl(var(--foreground))",
+                  },
+                  buttonTheme: {
+                    fill: "transparent",
+                    "stroke-width": 0,
+                    style: {
+                      color: "hsl(var(--foreground))",
+                      fill: "hsl(var(--foreground))",
+                    },
+                    states: {
+                      hover: {
+                        fill: "transparent",
+                        style: {
+                          color: "hsl(var(--foreground))",
+                          fill: "hsl(var(--foreground))",
+                        },
+                      },
+                      select: {
+                        fill: "transparent",
+                        style: {
+                          color: "hsl(var(--foreground))",
+                          fill: "hsl(var(--foreground))",
+                        },
+                      },
+                    },
+                  },
+                  separator: {
+                    style: {
+                      color: "hsl(var(--muted-foreground))",
+                      fill: "hsl(var(--muted-foreground))",
+                    },
+                  },
+                },
                 levels: [
                   {
                     level: 1,
@@ -204,7 +269,6 @@ export const TechTreemap = memo(({
                       },
                     },
                     borderRadius: 3,
-                    borderWidth: 1,
                     colorByPoint: true,
                   },
                   {
@@ -212,6 +276,20 @@ export const TechTreemap = memo(({
                     dataLabels: {
                       enabled: true,
                       inside: false,
+                      formatter: function () {
+                        const point = this.point as Point & { value?: number; name?: string }
+                        const softwareName = point.name || ""
+                        const value = typeof point.value === "number" ? point.value : 0
+                        if (totalLeafValue <= 0) {
+                          return softwareName
+                        }
+                        const percent = (value / totalLeafValue) * 100
+                        const roundedPercent = Math.round(percent * 10) / 10
+                        const percentText = Number.isInteger(roundedPercent)
+                          ? `${roundedPercent.toFixed(0)}%`
+                          : `${roundedPercent.toFixed(1)}%`
+                        return `${softwareName}<br/>${percentText}`
+                      },
                     },
                   },
                 ],
@@ -231,3 +309,4 @@ export const TechTreemap = memo(({
 })
 
 TechTreemap.displayName = "TechTreemap"
+
