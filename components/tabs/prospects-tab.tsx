@@ -205,13 +205,13 @@ export function ProspectsTab({
         <div className="w-full mb-6 animate-fade-in">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <PieChartCard
-              title="Department Split"
+              title="Department Distribution"
               data={prospectChartData.departmentData}
               countLabel="Total Prospects"
               showBigPercentage
             />
             <PieChartCard
-              title="Level Split"
+              title="Level Distribution"
               data={prospectChartData.levelData}
               countLabel="Total Prospects"
               showBigPercentage

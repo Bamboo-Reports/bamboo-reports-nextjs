@@ -18,6 +18,7 @@ interface PieChartCardProps {
 }
 
 export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel = "Count", showBigPercentage = false }: PieChartCardProps) => {
+  const OTHERS_THRESHOLD_PERCENT = 5
   // Safety check: ensure data is an array
   const safeData = React.useMemo(() => data || [], [data])
   const [chartLib, setChartLib] = React.useState<{
@@ -60,7 +61,7 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
   }, [safeData, dataKey])
 
   const seriesData = React.useMemo(() => {
-    return safeData.map((item, index) => {
+    const mappedData = safeData.map((item, index) => {
       const rawValue = (item as Record<string, number | undefined>)[dataKey]
       return {
         name: item.name,
@@ -68,7 +69,33 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
         color: item.fill || CHART_COLORS[index % CHART_COLORS.length],
       }
     })
-  }, [safeData, dataKey])
+
+    if (total <= 0) {
+      return mappedData
+    }
+
+    const majorSegments: Array<{ name: string; y: number; color: string }> = []
+    let othersTotal = 0
+
+    mappedData.forEach((segment) => {
+      const percent = (segment.y / total) * 100
+      if (percent < OTHERS_THRESHOLD_PERCENT) {
+        othersTotal += segment.y
+      } else {
+        majorSegments.push(segment)
+      }
+    })
+
+    if (othersTotal > 0) {
+      majorSegments.push({
+        name: "Others",
+        y: othersTotal,
+        color: "hsl(var(--muted-foreground))",
+      })
+    }
+
+    return majorSegments
+  }, [safeData, dataKey, total])
 
   const options = React.useMemo<Options>(() => {
     return {
@@ -81,7 +108,7 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
       accessibility: {
         enabled: true,
         landmarkVerbosity: "one",
-        description: `${title}. ${safeData.length} segments. ${countLabel} total ${total.toLocaleString()}.`,
+        description: `${title}. ${seriesData.length} segments. ${countLabel} total ${total.toLocaleString()}.`,
         point: {
           valueDescriptionFormat: "{xDescription}. {point.y} {series.name}.",
         },

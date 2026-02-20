@@ -243,13 +243,13 @@ export function CentersTab({
               showBigPercentage
             />
             <PieChartCard
-              title="City Distribution (Top 5)"
+              title="City Distribution"
               data={centerChartData.cityData}
               countLabel="Total Centers"
               showBigPercentage
             />
             <PieChartCard
-              title="Functions Distribution"
+              title="Function Distribution"
               data={centerChartData.functionData}
               countLabel="Total Centers"
               showBigPercentage
