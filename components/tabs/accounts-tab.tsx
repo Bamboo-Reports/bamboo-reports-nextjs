@@ -242,25 +242,25 @@ export function AccountsTab({
         <div className="w-full mb-6 animate-fade-in">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <PieChartCard
-              title="Region Split"
+              title="Region Distribution"
               data={accountChartData.regionData}
               countLabel="Total Accounts"
               showBigPercentage
             />
             <PieChartCard
-              title="Primary Nature Split"
+              title="Primary Nature Distribution"
               data={accountChartData.primaryNatureData}
               countLabel="Total Accounts"
               showBigPercentage
             />
             <PieChartCard
-              title="Revenue Range Split"
+              title="Revenue Range Distribution"
               data={accountChartData.revenueRangeData}
               countLabel="Total Accounts"
               showBigPercentage
             />
             <PieChartCard
-              title="Employees Range Split"
+              title="Employee Range Distribution"
               data={accountChartData.employeesRangeData}
               countLabel="Total Accounts"
               showBigPercentage
