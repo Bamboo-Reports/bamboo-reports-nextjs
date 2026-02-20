@@ -40,6 +40,7 @@
     --chart-3: 28 88% 53%;
     --chart-4: 195 88% 45%;
     --chart-5: 35 92% 48%;
+    --treemap-border-color: #ffffff;
     --radius: 0.5rem;
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 214 45% 15%;
@@ -75,6 +76,7 @@
     --chart-3: 28 88% 60%;
     --chart-4: 210 75% 67%;
     --chart-5: 43 96% 56%;
+    --treemap-border-color: hsl(var(--background));
     --sidebar-background: 0 0% 10%;
     --sidebar-foreground: 0 0% 95%;
     --sidebar-primary: 204 92% 56%;

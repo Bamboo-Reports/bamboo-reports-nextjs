@@ -102,7 +102,7 @@ export function AccountDetailsDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[85vw] max-h-[90vh] overflow-y-auto glassmorphism-dialog">
+        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto glassmorphism-dialog">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center gap-3">
               <CompanyLogo
