@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PieChartIcon } from "lucide-react"
 import { captureEvent } from "@/lib/analytics/client"
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
-import { CHART_COLORS } from "@/lib/utils/chart-helpers"
+import { PIE_CHART_COLORS } from "@/lib/utils/chart-helpers"
 import type { ChartData } from "@/lib/types"
 import type { Options, Point } from "highcharts"
 
@@ -66,7 +66,7 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
       return {
         name: item.name,
         y: typeof rawValue === "number" ? rawValue : 0,
-        color: item.fill || CHART_COLORS[index % CHART_COLORS.length],
+        color: item.fill || PIE_CHART_COLORS[index % PIE_CHART_COLORS.length],
       }
     })
 
@@ -90,7 +90,7 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
       majorSegments.push({
         name: "Others",
         y: othersTotal,
-        color: "hsl(var(--muted-foreground))",
+        color: PIE_CHART_COLORS[PIE_CHART_COLORS.length - 1],
       })
     }
 
@@ -125,7 +125,7 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
           const point = this.point as Point
           const value = typeof point.y === "number" ? point.y : 0
           const percent = total > 0 ? Math.round((value / total) * 100) : 0
-          const color = point.color || CHART_COLORS[0]
+          const color = point.color || PIE_CHART_COLORS[0]
           return `
             <div class="rounded-lg border border-border bg-background px-4 py-3 shadow-lg">
               <p class="text-sm font-semibold text-foreground mb-2">${point.name}</p>
@@ -167,7 +167,8 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
             },
           },
           showInLegend: false,
-          borderWidth: 0,
+          borderWidth: 1,
+          borderColor: "hsl(var(--background))",
           point: {
             events: {
               click: function () {
