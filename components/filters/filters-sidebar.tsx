@@ -22,7 +22,6 @@ interface FiltersSidebarProps {
   onToggleCollapse: () => void
   revenueRange: { min: number; max: number }
   yearsInIndiaRange: { min: number; max: number }
-  firstCenterYearRange: { min: number; max: number }
   centerIncYearRange: { min: number; max: number }
   accountNames: string[]
 
@@ -35,9 +34,6 @@ interface FiltersSidebarProps {
   handleMinYearsInIndiaChange: (value: string) => void
   handleMaxYearsInIndiaChange: (value: string) => void
   handleYearsInIndiaRangeChange: (value: [number, number]) => void
-  handleMinFirstCenterYearChange: (value: string) => void
-  handleMaxFirstCenterYearChange: (value: string) => void
-  handleFirstCenterYearRangeChange: (value: [number, number]) => void
   handleMinCenterIncYearChange: (value: string) => void
   handleMaxCenterIncYearChange: (value: string) => void
   handleCenterIncYearRangeChange: (value: [number, number]) => void
@@ -56,7 +52,6 @@ export function FiltersSidebar({
   onToggleCollapse,
   revenueRange,
   yearsInIndiaRange,
-  firstCenterYearRange,
   centerIncYearRange,
   accountNames,
   setPendingFilters,
@@ -68,9 +63,6 @@ export function FiltersSidebar({
   handleMinYearsInIndiaChange,
   handleMaxYearsInIndiaChange,
   handleYearsInIndiaRangeChange,
-  handleMinFirstCenterYearChange,
-  handleMaxFirstCenterYearChange,
-  handleFirstCenterYearRangeChange,
   handleMinCenterIncYearChange,
   handleMaxCenterIncYearChange,
   handleCenterIncYearRangeChange,
@@ -207,16 +199,12 @@ export function FiltersSidebar({
                 accountNames={accountNames}
                 revenueRange={revenueRange}
                 yearsInIndiaRange={yearsInIndiaRange}
-                firstCenterYearRange={firstCenterYearRange}
                 handleMinRevenueChange={handleMinRevenueChange}
                 handleMaxRevenueChange={handleMaxRevenueChange}
                 handleRevenueRangeChange={handleRevenueRangeChange}
                 handleMinYearsInIndiaChange={handleMinYearsInIndiaChange}
                 handleMaxYearsInIndiaChange={handleMaxYearsInIndiaChange}
                 handleYearsInIndiaRangeChange={handleYearsInIndiaRangeChange}
-                handleMinFirstCenterYearChange={handleMinFirstCenterYearChange}
-                handleMaxFirstCenterYearChange={handleMaxFirstCenterYearChange}
-                handleFirstCenterYearRangeChange={handleFirstCenterYearRangeChange}
                 formatRevenueInMillions={formatRevenueInMillions}
               />
             </AccordionContent>

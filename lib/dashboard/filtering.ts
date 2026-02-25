@@ -31,8 +31,6 @@ export type RevenueRangeFilterState = Pick<
   | "accountCenterEmployees"
   | "accountYearsInIndiaRange"
   | "includeNullYearsInIndia"
-  | "accountFirstCenterYearRange"
-  | "includeNullFirstCenterYear"
 >
 
 type AvailableOptionsFilterState = Pick<
@@ -46,8 +44,6 @@ type AvailableOptionsFilterState = Pick<
   | "accountCenterEmployees"
   | "accountYearsInIndiaRange"
   | "includeNullYearsInIndia"
-  | "accountFirstCenterYearRange"
-  | "includeNullFirstCenterYear"
   | "centerTypes"
   | "centerFocus"
   | "centerCities"
@@ -132,8 +128,6 @@ export function getFilteredData(
     rangeFilterMatch(filters.accountRevenueRange, value, filters.includeNullRevenue, parseRevenueValue)
   const matchAccountYearsInIndia = (value: number | string | null | undefined) =>
     rangeFilterMatch(filters.accountYearsInIndiaRange, value, filters.includeNullYearsInIndia)
-  const matchAccountFirstCenterYear = (value: number | string | null | undefined) =>
-    rangeFilterMatch(filters.accountFirstCenterYearRange, value, filters.includeNullFirstCenterYear)
 
   const matchCenterType = createValueMatcher(filters.centerTypes)
   const matchCenterFocus = createValueMatcher(filters.centerFocus)
@@ -167,9 +161,6 @@ export function getFilteredData(
     filters.accountYearsInIndiaRange[0] > 0 ||
     filters.accountYearsInIndiaRange[1] < Number.MAX_SAFE_INTEGER ||
     filters.includeNullYearsInIndia ||
-    filters.accountFirstCenterYearRange[0] > 0 ||
-    filters.accountFirstCenterYearRange[1] < Number.MAX_SAFE_INTEGER ||
-    filters.includeNullFirstCenterYear ||
     filters.accountNameKeywords.length > 0
 
   const hasProspectFilters =
@@ -200,8 +191,7 @@ export function getFilteredData(
     if (!matchAccountEmployeesRange(account.account_hq_employee_range)) continue
     if (!matchAccountCenterEmployees(account.account_center_employees_range || "")) continue
     if (!matchAccountRevenue(account.account_hq_revenue)) continue
-    if (!matchAccountYearsInIndia(account.account_center_employees)) continue
-    if (!matchAccountFirstCenterYear(account.account_first_center_year)) continue
+    if (!matchAccountYearsInIndia(account.years_in_india)) continue
     if (!matchAccountName(account.account_global_legal_name)) continue
 
     filteredAccounts.push(account)
@@ -312,8 +302,6 @@ export function getDynamicRevenueRange(accounts: Account[], filters: RevenueRang
   const matchCenterEmployees = createValueMatcher(filters.accountCenterEmployees)
   const matchYearsInIndiaRange = (value: number | string | null | undefined) =>
     rangeFilterMatch(filters.accountYearsInIndiaRange, value, filters.includeNullYearsInIndia)
-  const matchFirstCenterYearRange = (value: number | string | null | undefined) =>
-    rangeFilterMatch(filters.accountFirstCenterYearRange, value, filters.includeNullFirstCenterYear)
 
   const tempFilteredAccounts = accounts.filter((account) => {
     return (
@@ -324,8 +312,7 @@ export function getDynamicRevenueRange(accounts: Account[], filters: RevenueRang
       matchNasscom(account.account_nasscom_status) &&
       matchEmployeesRange(account.account_hq_employee_range) &&
       matchCenterEmployees(account.account_center_employees_range || "") &&
-      matchYearsInIndiaRange(account.account_center_employees) &&
-      matchFirstCenterYearRange(account.account_first_center_year)
+      matchYearsInIndiaRange(account.years_in_india)
     )
   })
 
@@ -361,8 +348,6 @@ export function getAvailableOptions(
   const matchAccountName = createKeywordMatcher(filters.accountNameKeywords)
   const matchAccountYearsInIndia = (value: number | string | null | undefined) =>
     rangeFilterMatch(filters.accountYearsInIndiaRange, value, filters.includeNullYearsInIndia)
-  const matchAccountFirstCenterYear = (value: number | string | null | undefined) =>
-    rangeFilterMatch(filters.accountFirstCenterYearRange, value, filters.includeNullFirstCenterYear)
 
   const matchCenterType = createValueMatcher(filters.centerTypes)
   const matchCenterFocus = createValueMatcher(filters.centerFocus)
@@ -404,11 +389,8 @@ export function getAvailableOptions(
 
     if (!matchesRevenue) return
 
-    const matchesYearsInIndia = matchAccountYearsInIndia(account.account_center_employees)
+    const matchesYearsInIndia = matchAccountYearsInIndia(account.years_in_india)
     if (!matchesYearsInIndia) return
-
-    const matchesFirstCenterYear = matchAccountFirstCenterYear(account.account_first_center_year)
-    if (!matchesFirstCenterYear) return
 
     const country = account.account_hq_country
     const industry = account.account_hq_industry

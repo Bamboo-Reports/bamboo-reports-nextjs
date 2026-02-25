@@ -48,7 +48,6 @@ export const buildTrackedFiltersSnapshot = (
   baselineRanges: Partial<{
     accountRevenueRange: [number, number]
     accountYearsInIndiaRange: [number, number]
-    accountFirstCenterYearRange: [number, number]
     centerIncYearRange: [number, number]
   }> = {}
 ) => {
@@ -81,13 +80,6 @@ export const buildTrackedFiltersSnapshot = (
       : true
   )
   pushIfActive("includeNullYearsInIndia", filters.includeNullYearsInIndia)
-  pushIfActive(
-    "accountFirstCenterYearRange",
-    baselineRanges.accountFirstCenterYearRange
-      ? hasRangeChanged(filters.accountFirstCenterYearRange, baselineRanges.accountFirstCenterYearRange)
-      : true
-  )
-  pushIfActive("includeNullFirstCenterYear", filters.includeNullFirstCenterYear)
   pushIfActive("accountNameKeywords", filters.accountNameKeywords.length > 0)
   pushIfActive("centerTypes", filters.centerTypes.length > 0)
   pushIfActive("centerFocus", filters.centerFocus.length > 0)
@@ -126,9 +118,6 @@ export const buildTrackedFiltersSnapshot = (
     account_years_in_india_range_min: filters.accountYearsInIndiaRange[0],
     account_years_in_india_range_max: filters.accountYearsInIndiaRange[1],
     include_null_years_in_india: filters.includeNullYearsInIndia,
-    account_first_center_year_range_min: filters.accountFirstCenterYearRange[0],
-    account_first_center_year_range_max: filters.accountFirstCenterYearRange[1],
-    include_null_first_center_year: filters.includeNullFirstCenterYear,
     account_name_keywords: toTrackedFilterValueArray(filters.accountNameKeywords),
     center_types: toTrackedFilterValueArray(filters.centerTypes),
     center_focus: toTrackedFilterValueArray(filters.centerFocus),

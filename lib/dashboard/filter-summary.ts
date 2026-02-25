@@ -35,10 +35,6 @@ export function calculateActiveFilters(filters: Filters) {
   const [minYearsInIndia, maxYearsInIndia] = filters.accountYearsInIndiaRange || DEFAULT_YEARS_IN_INDIA_RANGE
   const yearsInIndiaFilterActive =
     minYearsInIndia !== DEFAULT_YEARS_IN_INDIA_RANGE[0] || maxYearsInIndia !== DEFAULT_YEARS_IN_INDIA_RANGE[1]
-  const [minFirstCenterYear, maxFirstCenterYear] =
-    filters.accountFirstCenterYearRange || DEFAULT_FIRST_CENTER_YEAR_RANGE
-  const firstCenterYearFilterActive =
-    minFirstCenterYear !== DEFAULT_FIRST_CENTER_YEAR_RANGE[0] || maxFirstCenterYear !== DEFAULT_FIRST_CENTER_YEAR_RANGE[1]
   const [minCenterIncYear, maxCenterIncYear] = filters.centerIncYearRange || DEFAULT_CENTER_INC_YEAR_RANGE
   const centerIncYearFilterActive =
     minCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[0] || maxCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[1]
@@ -55,8 +51,6 @@ export function calculateActiveFilters(filters: Filters) {
     (filters.includeNullRevenue ? 1 : 0) +
     (yearsInIndiaFilterActive ? 1 : 0) +
     (filters.includeNullYearsInIndia ? 1 : 0) +
-    (firstCenterYearFilterActive ? 1 : 0) +
-    (filters.includeNullFirstCenterYear ? 1 : 0) +
     filters.accountNameKeywords.length +
     filters.centerTypes.length +
     filters.centerFocus.length +

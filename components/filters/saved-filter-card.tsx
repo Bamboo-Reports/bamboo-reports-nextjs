@@ -8,7 +8,6 @@ import type { Filters } from "@/lib/types"
 import { calculateActiveFilters } from "@/lib/dashboard/filter-summary"
 import {
   DEFAULT_CENTER_INC_YEAR_RANGE,
-  DEFAULT_FIRST_CENTER_YEAR_RANGE,
   DEFAULT_REVENUE_RANGE,
   DEFAULT_YEARS_IN_INDIA_RANGE,
 } from "@/lib/dashboard/defaults"
@@ -44,10 +43,6 @@ export const SavedFilterCard = memo(({
   const [minYearsInIndia, maxYearsInIndia] = filter.filters.accountYearsInIndiaRange || DEFAULT_YEARS_IN_INDIA_RANGE
   const yearsInIndiaFilterActive =
     minYearsInIndia !== DEFAULT_YEARS_IN_INDIA_RANGE[0] || maxYearsInIndia !== DEFAULT_YEARS_IN_INDIA_RANGE[1]
-  const [minFirstCenterYear, maxFirstCenterYear] =
-    filter.filters.accountFirstCenterYearRange || DEFAULT_FIRST_CENTER_YEAR_RANGE
-  const firstCenterYearFilterActive =
-    minFirstCenterYear !== DEFAULT_FIRST_CENTER_YEAR_RANGE[0] || maxFirstCenterYear !== DEFAULT_FIRST_CENTER_YEAR_RANGE[1]
   const [minCenterIncYear, maxCenterIncYear] = filter.filters.centerIncYearRange || DEFAULT_CENTER_INC_YEAR_RANGE
   const centerIncYearFilterActive =
     minCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[0] || maxCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[1]
@@ -135,20 +130,11 @@ export const SavedFilterCard = memo(({
             )}
             {yearsInIndiaFilterActive && (
               <FilterBadge
-                filterKey="India Headcount"
+                filterKey="Years In India"
                 value={`${minYearsInIndia.toLocaleString()} - ${maxYearsInIndia.toLocaleString()}`}
               />
             )}
             {filter.filters.includeNullYearsInIndia && (
-              <FilterBadge filterKey="India Headcount" value="Include null/zero" />
-            )}
-            {firstCenterYearFilterActive && (
-              <FilterBadge
-                filterKey="Years In India"
-                value={`${minFirstCenterYear.toLocaleString()} - ${maxFirstCenterYear.toLocaleString()}`}
-              />
-            )}
-            {filter.filters.includeNullFirstCenterYear && (
               <FilterBadge filterKey="Years In India" value="Include null/zero" />
             )}
             {centerIncYearFilterActive && (
