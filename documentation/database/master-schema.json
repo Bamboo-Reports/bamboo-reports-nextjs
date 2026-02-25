@@ -3,10 +3,18 @@
     "columns": [
       {
         "Table": "accounts",
+        "Column": "uuid",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "accounts",
         "Column": "account_last_update_date",
         "Type": "TIMESTAMP",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -14,7 +22,7 @@
         "Column": "account_nasscom_status",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -22,7 +30,31 @@
         "Column": "account_nasscom_member_status",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "accounts",
+        "Column": "account_data_coverage",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "accounts",
+        "Column": "account_source",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "accounts",
+        "Column": "account_type",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -30,7 +62,7 @@
         "Column": "account_global_legal_name",
         "Type": "TEXT",
         "Nullable": "NO",
-        "Default": "",
+        "Default": "None",
         "PK": "YES"
       },
       {
@@ -38,7 +70,7 @@
         "Column": "account_about",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -46,7 +78,7 @@
         "Column": "account_hq_address",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -54,7 +86,7 @@
         "Column": "account_hq_city",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -62,7 +94,7 @@
         "Column": "account_hq_state",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -70,7 +102,7 @@
         "Column": "account_hq_zip_code",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -78,7 +110,7 @@
         "Column": "account_hq_country",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -86,7 +118,7 @@
         "Column": "account_hq_region",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -94,7 +126,7 @@
         "Column": "account_hq_boardline",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -102,7 +134,15 @@
         "Column": "account_hq_website",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "accounts",
+        "Column": "account_hq_linkedin_link",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -110,7 +150,7 @@
         "Column": "account_hq_key_offerings",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -118,7 +158,7 @@
         "Column": "account_key_offerings_source_link",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -126,7 +166,7 @@
         "Column": "account_hq_sub_industry",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -134,7 +174,7 @@
         "Column": "account_hq_industry",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -142,7 +182,7 @@
         "Column": "account_primary_category",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -150,7 +190,7 @@
         "Column": "account_primary_nature",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -158,7 +198,7 @@
         "Column": "account_hq_forbes_2000_rank",
         "Type": "INTEGER",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -166,7 +206,7 @@
         "Column": "account_hq_fortune_500_rank",
         "Type": "INTEGER",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -174,7 +214,7 @@
         "Column": "account_hq_company_type",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -182,7 +222,7 @@
         "Column": "account_hq_revenue",
         "Type": "BIGINT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -190,7 +230,7 @@
         "Column": "account_hq_revenue_range",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -198,7 +238,7 @@
         "Column": "account_hq_fy_end",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -206,7 +246,7 @@
         "Column": "account_hq_revenue_year",
         "Type": "INTEGER",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -214,7 +254,7 @@
         "Column": "account_hq_revenue_source_type",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -222,7 +262,7 @@
         "Column": "account_hq_revenue_source_link",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -230,7 +270,7 @@
         "Column": "account_hq_employee_count",
         "Type": "INTEGER",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -238,7 +278,7 @@
         "Column": "account_hq_employee_range",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -246,7 +286,7 @@
         "Column": "account_hq_employee_source_type",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -254,7 +294,7 @@
         "Column": "account_hq_employee_source_link",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -262,7 +302,7 @@
         "Column": "account_center_employees",
         "Type": "INTEGER",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -270,7 +310,7 @@
         "Column": "account_center_employees_range",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -278,7 +318,7 @@
         "Column": "years_in_india",
         "Type": "INTEGER",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -286,7 +326,7 @@
         "Column": "account_first_center_year",
         "Type": "INTEGER",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -294,7 +334,7 @@
         "Column": "account_comments",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -302,24 +342,32 @@
         "Column": "account_coverage",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       }
     ],
     "statistics": {
       "Table": "accounts",
-      "Rows": 2450,
-      "Size (MB)": 2.734
+      "Rows": 2454,
+      "Size (MB)": 3.898
     }
   },
   "centers": {
     "columns": [
       {
         "Table": "centers",
+        "Column": "uuid",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "centers",
         "Column": "last_update_date",
         "Type": "TIMESTAMP",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -327,7 +375,7 @@
         "Column": "cn_unique_key",
         "Type": "TEXT",
         "Nullable": "NO",
-        "Default": "",
+        "Default": "None",
         "PK": "YES"
       },
       {
@@ -335,7 +383,7 @@
         "Column": "account_global_legal_name",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -343,7 +391,7 @@
         "Column": "center_status",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -351,7 +399,23 @@
         "Column": "center_inc_year",
         "Type": "INTEGER",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "centers",
+        "Column": "announced_year",
+        "Type": "INTEGER",
+        "Nullable": "YES",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "centers",
+        "Column": "announced_month",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -359,7 +423,7 @@
         "Column": "center_inc_year_notes",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -367,7 +431,7 @@
         "Column": "center_inc_year_updated_link",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -375,7 +439,7 @@
         "Column": "center_timeline",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -383,7 +447,7 @@
         "Column": "center_end_year",
         "Type": "INTEGER",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -391,7 +455,7 @@
         "Column": "center_account_website",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -399,7 +463,7 @@
         "Column": "center_name",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -407,7 +471,7 @@
         "Column": "center_business_segment",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -415,7 +479,7 @@
         "Column": "center_business_sub_segment",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -423,7 +487,7 @@
         "Column": "center_management_partner",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -431,7 +495,7 @@
         "Column": "center_jv_status",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -439,7 +503,7 @@
         "Column": "center_jv_name",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -447,7 +511,7 @@
         "Column": "center_type",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -455,7 +519,7 @@
         "Column": "center_focus",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -463,7 +527,7 @@
         "Column": "center_source_link",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -471,7 +535,7 @@
         "Column": "center_website",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -479,7 +543,7 @@
         "Column": "center_linkedin",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -487,7 +551,7 @@
         "Column": "center_address",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -495,7 +559,7 @@
         "Column": "center_city",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -503,7 +567,7 @@
         "Column": "center_state",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -511,7 +575,7 @@
         "Column": "center_zip_code",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -519,7 +583,15 @@
         "Column": "center_country",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "centers",
+        "Column": "center_country_iso2",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -527,7 +599,7 @@
         "Column": "lat",
         "Type": "DOUBLE PRECISION",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -535,7 +607,7 @@
         "Column": "lng",
         "Type": "DOUBLE PRECISION",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -543,7 +615,7 @@
         "Column": "center_region",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -551,7 +623,7 @@
         "Column": "center_boardline",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -559,7 +631,7 @@
         "Column": "center_employees",
         "Type": "INTEGER",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -567,7 +639,7 @@
         "Column": "center_employees_range",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -575,7 +647,7 @@
         "Column": "center_employees_range_source_link",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -583,7 +655,7 @@
         "Column": "center_services",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -591,7 +663,7 @@
         "Column": "center_first_year",
         "Type": "INTEGER",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -599,24 +671,32 @@
         "Column": "center_comments",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       }
     ],
     "statistics": {
       "Table": "centers",
-      "Rows": 6161,
-      "Size (MB)": 8.703
+      "Rows": 5886,
+      "Size (MB)": 9.477
     }
   },
   "services": {
     "columns": [
       {
         "Table": "services",
+        "Column": "uuid",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "services",
         "Column": "last_update_date",
         "Type": "TIMESTAMP",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -624,7 +704,7 @@
         "Column": "account_global_legal_name",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -632,7 +712,7 @@
         "Column": "cn_unique_key",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -640,7 +720,7 @@
         "Column": "center_name",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -648,7 +728,7 @@
         "Column": "center_type",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -656,7 +736,7 @@
         "Column": "center_focus",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -664,7 +744,7 @@
         "Column": "center_city",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -672,7 +752,7 @@
         "Column": "primary_service",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -680,7 +760,7 @@
         "Column": "focus_region",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -688,7 +768,7 @@
         "Column": "service_it",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -696,7 +776,7 @@
         "Column": "service_erd",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -704,7 +784,7 @@
         "Column": "service_fna",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -712,7 +792,7 @@
         "Column": "service_hr",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -720,7 +800,7 @@
         "Column": "service_procurement",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -728,7 +808,7 @@
         "Column": "service_sales_marketing",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -736,7 +816,7 @@
         "Column": "service_customer_support",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -744,7 +824,7 @@
         "Column": "service_others",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -752,7 +832,7 @@
         "Column": "software_vendor",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -760,24 +840,32 @@
         "Column": "software_in_use",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       }
     ],
     "statistics": {
       "Table": "services",
-      "Rows": 6131,
-      "Size (MB)": 3.148
+      "Rows": 5856,
+      "Size (MB)": 3.656
     }
   },
   "functions": {
     "columns": [
       {
         "Table": "functions",
+        "Column": "uuid",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "functions",
         "Column": "cn_unique_key",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -785,24 +873,89 @@
         "Column": "function_name",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       }
     ],
     "statistics": {
       "Table": "functions",
-      "Rows": 13883,
-      "Size (MB)": 1.219
+      "Rows": 13194,
+      "Size (MB)": 2.242
+    }
+  },
+  "tech": {
+    "columns": [
+      {
+        "Table": "tech",
+        "Column": "uuid",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "tech",
+        "Column": "account_global_legal_name",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "tech",
+        "Column": "cn_unique_key",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "tech",
+        "Column": "software_in_use",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "tech",
+        "Column": "software_vendor",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "tech",
+        "Column": "software_category",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
+        "PK": ""
+      }
+    ],
+    "statistics": {
+      "Table": "tech",
+      "Rows": 5856,
+      "Size (MB)": 1.5
     }
   },
   "prospects": {
     "columns": [
       {
         "Table": "prospects",
+        "Column": "uuid",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "prospects",
         "Column": "last_update_date",
         "Type": "TIMESTAMP",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -810,7 +963,7 @@
         "Column": "account_global_legal_name",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -818,7 +971,7 @@
         "Column": "center_name",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -826,7 +979,7 @@
         "Column": "prospect_full_name",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -834,7 +987,7 @@
         "Column": "prospect_first_name",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -842,7 +995,7 @@
         "Column": "prospect_last_name",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -850,7 +1003,7 @@
         "Column": "prospect_title",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -858,7 +1011,7 @@
         "Column": "prospect_department",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -866,7 +1019,7 @@
         "Column": "prospect_level",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -874,7 +1027,7 @@
         "Column": "prospect_linkedin_url",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -882,7 +1035,7 @@
         "Column": "prospect_email",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -890,7 +1043,7 @@
         "Column": "prospect_city",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -898,7 +1051,7 @@
         "Column": "prospect_state",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       },
       {
@@ -906,14 +1059,14 @@
         "Column": "prospect_country",
         "Type": "TEXT",
         "Nullable": "YES",
-        "Default": "",
+        "Default": "None",
         "PK": ""
       }
     ],
     "statistics": {
       "Table": "prospects",
-      "Rows": 38612,
-      "Size (MB)": 9.984
+      "Rows": 62809,
+      "Size (MB)": 25.508
     }
   }
 }
