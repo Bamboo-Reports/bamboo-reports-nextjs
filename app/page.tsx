@@ -50,7 +50,6 @@ function DashboardContent(): JSX.Element | null {
     isApplying,
     revenueRange,
     yearsInIndiaRange,
-    firstCenterYearRange,
     centerIncYearRange,
     accountNames,
     availableOptions,
@@ -66,9 +65,6 @@ function DashboardContent(): JSX.Element | null {
     handleMinYearsInIndiaChange,
     handleMaxYearsInIndiaChange,
     handleYearsInIndiaRangeChange,
-    handleMinFirstCenterYearChange,
-    handleMaxFirstCenterYearChange,
-    handleFirstCenterYearRangeChange,
     handleMinCenterIncYearChange,
     handleMaxCenterIncYearChange,
     handleCenterIncYearRangeChange,
@@ -324,7 +320,6 @@ function DashboardContent(): JSX.Element | null {
         filters_snapshot: buildTrackedFiltersSnapshot(filters, {
           accountRevenueRange: [revenueRange.min, revenueRange.max],
           accountYearsInIndiaRange: [yearsInIndiaRange.min, yearsInIndiaRange.max],
-          accountFirstCenterYearRange: [firstCenterYearRange.min, firstCenterYearRange.max],
           centerIncYearRange: [centerIncYearRange.min, centerIncYearRange.max],
         }),
       })
@@ -347,8 +342,6 @@ function DashboardContent(): JSX.Element | null {
     revenueRange.max,
     yearsInIndiaRange.min,
     yearsInIndiaRange.max,
-    firstCenterYearRange.min,
-    firstCenterYearRange.max,
     centerIncYearRange.min,
     centerIncYearRange.max,
   ])
@@ -546,7 +539,6 @@ function DashboardContent(): JSX.Element | null {
             onToggleCollapse={handleToggleSidebar}
             revenueRange={revenueRange}
             yearsInIndiaRange={yearsInIndiaRange}
-            firstCenterYearRange={firstCenterYearRange}
             centerIncYearRange={centerIncYearRange}
             accountNames={accountNames}
             setPendingFilters={setPendingFilters}
@@ -558,9 +550,6 @@ function DashboardContent(): JSX.Element | null {
             handleMinYearsInIndiaChange={handleMinYearsInIndiaChange}
             handleMaxYearsInIndiaChange={handleMaxYearsInIndiaChange}
             handleYearsInIndiaRangeChange={handleYearsInIndiaRangeChange}
-            handleMinFirstCenterYearChange={handleMinFirstCenterYearChange}
-            handleMaxFirstCenterYearChange={handleMaxFirstCenterYearChange}
-            handleFirstCenterYearRangeChange={handleFirstCenterYearRangeChange}
             handleMinCenterIncYearChange={handleMinCenterIncYearChange}
             handleMaxCenterIncYearChange={handleMaxCenterIncYearChange}
             handleCenterIncYearRangeChange={handleCenterIncYearRangeChange}

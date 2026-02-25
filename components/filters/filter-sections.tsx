@@ -21,16 +21,12 @@ interface AccountFilterSectionProps extends FilterSectionBaseProps {
   accountNames: string[]
   revenueRange: { min: number; max: number }
   yearsInIndiaRange: { min: number; max: number }
-  firstCenterYearRange: { min: number; max: number }
   handleMinRevenueChange: (value: string) => void
   handleMaxRevenueChange: (value: string) => void
   handleRevenueRangeChange: (value: [number, number]) => void
   handleMinYearsInIndiaChange: (value: string) => void
   handleMaxYearsInIndiaChange: (value: string) => void
   handleYearsInIndiaRangeChange: (value: [number, number]) => void
-  handleMinFirstCenterYearChange: (value: string) => void
-  handleMaxFirstCenterYearChange: (value: string) => void
-  handleFirstCenterYearRangeChange: (value: [number, number]) => void
   formatRevenueInMillions: (value: number) => string
 }
 
@@ -53,16 +49,12 @@ export function AccountFiltersSection({
   accountNames,
   revenueRange,
   yearsInIndiaRange,
-  firstCenterYearRange,
   handleMinRevenueChange,
   handleMaxRevenueChange,
   handleRevenueRangeChange,
   handleMinYearsInIndiaChange,
   handleMaxYearsInIndiaChange,
   handleYearsInIndiaRangeChange,
-  handleMinFirstCenterYearChange,
-  handleMaxFirstCenterYearChange,
-  handleFirstCenterYearRangeChange,
   formatRevenueInMillions,
 }: AccountFilterSectionProps) {
   return (
@@ -176,7 +168,7 @@ export function AccountFiltersSection({
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-xs font-medium">Total India Headcount</Label>
+              <Label className="text-xs font-medium">Years In India</Label>
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="include-null-years-in-india"
@@ -236,71 +228,6 @@ export function AccountFiltersSection({
             <div className="flex justify-between text-xs text-muted-foreground px-2">
               <span>{yearsInIndiaRange.min.toLocaleString()}</span>
               <span>{yearsInIndiaRange.max.toLocaleString()}</span>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-medium">Years In India</Label>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="include-null-first-center-year"
-                  checked={pendingFilters.includeNullFirstCenterYear}
-                  onCheckedChange={(checked) =>
-                    setPendingFilters((prev) => ({
-                      ...prev,
-                      includeNullFirstCenterYear: checked === true,
-                    }))
-                  }
-                  className="h-3.5 w-3.5"
-                />
-                <Label
-                  htmlFor="include-null-first-center-year"
-                  className="text-xs text-muted-foreground cursor-pointer select-none"
-                >
-                  Include all
-                </Label>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label htmlFor="min-first-center-year" className="text-xs">Min</Label>
-                <Input
-                  id="min-first-center-year"
-                  type="number"
-                  value={pendingFilters.accountFirstCenterYearRange[0]}
-                  onChange={(e) => handleMinFirstCenterYearChange(e.target.value)}
-                  min={firstCenterYearRange.min}
-                  max={pendingFilters.accountFirstCenterYearRange[1]}
-                  className="text-xs h-8"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="max-first-center-year" className="text-xs">Max</Label>
-                <Input
-                  id="max-first-center-year"
-                  type="number"
-                  value={pendingFilters.accountFirstCenterYearRange[1]}
-                  onChange={(e) => handleMaxFirstCenterYearChange(e.target.value)}
-                  min={pendingFilters.accountFirstCenterYearRange[0]}
-                  max={firstCenterYearRange.max}
-                  className="text-xs h-8"
-                />
-              </div>
-            </div>
-            <div className="px-2">
-              <Slider
-                value={pendingFilters.accountFirstCenterYearRange}
-                onValueChange={(value) => handleFirstCenterYearRangeChange(value as [number, number])}
-                min={firstCenterYearRange.min}
-                max={firstCenterYearRange.max}
-                step={1}
-                className="w-full"
-              />
-            </div>
-            <div className="flex justify-between text-xs text-muted-foreground px-2">
-              <span>{firstCenterYearRange.min.toLocaleString()}</span>
-              <span>{firstCenterYearRange.max.toLocaleString()}</span>
             </div>
           </div>
 
