@@ -46,7 +46,7 @@ const hasRangeChanged = (range: [number, number], baseline: [number, number]) =>
 export const buildTrackedFiltersSnapshot = (
   filters: Filters,
   baselineRanges: Partial<{
-    accountRevenueRange: [number, number]
+    accountHqRevenueRange: [number, number]
     accountYearsInIndiaRange: [number, number]
     centerIncYearRange: [number, number]
   }> = {}
@@ -59,85 +59,85 @@ export const buildTrackedFiltersSnapshot = (
     }
   }
 
-  pushIfActive("accountCountries", filters.accountCountries.length > 0)
-  pushIfActive("accountIndustries", filters.accountIndustries.length > 0)
-  pushIfActive("accountDataCoverage", filters.accountDataCoverage.length > 0)
-  pushIfActive("accountSources", filters.accountSources.length > 0)
-  pushIfActive("accountPrimaryCategories", filters.accountPrimaryCategories.length > 0)
-  pushIfActive("accountPrimaryNatures", filters.accountPrimaryNatures.length > 0)
-  pushIfActive("accountNasscomStatuses", filters.accountNasscomStatuses.length > 0)
-  pushIfActive("accountEmployeesRanges", filters.accountEmployeesRanges.length > 0)
-  pushIfActive("accountCenterEmployees", filters.accountCenterEmployees.length > 0)
+  pushIfActive("accountHqCountryValues", filters.accountHqCountryValues.length > 0)
+  pushIfActive("accountHqIndustryValues", filters.accountHqIndustryValues.length > 0)
+  pushIfActive("accountDataCoverageValues", filters.accountDataCoverageValues.length > 0)
+  pushIfActive("accountSourceValues", filters.accountSourceValues.length > 0)
+  pushIfActive("accountPrimaryCategoryValues", filters.accountPrimaryCategoryValues.length > 0)
+  pushIfActive("accountPrimaryNatureValues", filters.accountPrimaryNatureValues.length > 0)
+  pushIfActive("accountNasscomStatusValues", filters.accountNasscomStatusValues.length > 0)
+  pushIfActive("accountHqEmployeeRangeValues", filters.accountHqEmployeeRangeValues.length > 0)
+  pushIfActive("accountCenterEmployeesRangeValues", filters.accountCenterEmployeesRangeValues.length > 0)
   pushIfActive(
-    "accountRevenueRange",
-    baselineRanges.accountRevenueRange
-      ? hasRangeChanged(filters.accountRevenueRange, baselineRanges.accountRevenueRange)
+    "accountHqRevenueRange",
+    baselineRanges.accountHqRevenueRange
+      ? hasRangeChanged(filters.accountHqRevenueRange, baselineRanges.accountHqRevenueRange)
       : true
   )
-  pushIfActive("includeNullRevenue", filters.includeNullRevenue)
+  pushIfActive("accountHqRevenueIncludeNull", filters.accountHqRevenueIncludeNull)
   pushIfActive(
     "accountYearsInIndiaRange",
     baselineRanges.accountYearsInIndiaRange
       ? hasRangeChanged(filters.accountYearsInIndiaRange, baselineRanges.accountYearsInIndiaRange)
       : true
   )
-  pushIfActive("includeNullYearsInIndia", filters.includeNullYearsInIndia)
-  pushIfActive("accountNameKeywords", filters.accountNameKeywords.length > 0)
-  pushIfActive("centerTypes", filters.centerTypes.length > 0)
-  pushIfActive("centerFocus", filters.centerFocus.length > 0)
-  pushIfActive("centerCities", filters.centerCities.length > 0)
-  pushIfActive("centerStates", filters.centerStates.length > 0)
-  pushIfActive("centerCountries", filters.centerCountries.length > 0)
-  pushIfActive("centerEmployees", filters.centerEmployees.length > 0)
-  pushIfActive("centerStatuses", filters.centerStatuses.length > 0)
+  pushIfActive("yearsInIndiaIncludeNull", filters.yearsInIndiaIncludeNull)
+  pushIfActive("accountGlobalLegalNameKeywords", filters.accountGlobalLegalNameKeywords.length > 0)
+  pushIfActive("centerTypeValues", filters.centerTypeValues.length > 0)
+  pushIfActive("centerFocusValues", filters.centerFocusValues.length > 0)
+  pushIfActive("centerCityValues", filters.centerCityValues.length > 0)
+  pushIfActive("centerStateValues", filters.centerStateValues.length > 0)
+  pushIfActive("centerCountryValues", filters.centerCountryValues.length > 0)
+  pushIfActive("centerEmployeesRangeValues", filters.centerEmployeesRangeValues.length > 0)
+  pushIfActive("centerStatusValues", filters.centerStatusValues.length > 0)
   pushIfActive(
     "centerIncYearRange",
     baselineRanges.centerIncYearRange
       ? hasRangeChanged(filters.centerIncYearRange, baselineRanges.centerIncYearRange)
       : true
   )
-  pushIfActive("includeNullCenterIncYear", filters.includeNullCenterIncYear)
-  pushIfActive("functionTypes", filters.functionTypes.length > 0)
-  pushIfActive("centerSoftwareInUseKeywords", filters.centerSoftwareInUseKeywords.length > 0)
-  pushIfActive("prospectDepartments", filters.prospectDepartments.length > 0)
-  pushIfActive("prospectLevels", filters.prospectLevels.length > 0)
-  pushIfActive("prospectCities", filters.prospectCities.length > 0)
+  pushIfActive("centerIncYearIncludeNull", filters.centerIncYearIncludeNull)
+  pushIfActive("functionNameValues", filters.functionNameValues.length > 0)
+  pushIfActive("techSoftwareInUseKeywords", filters.techSoftwareInUseKeywords.length > 0)
+  pushIfActive("prospectDepartmentValues", filters.prospectDepartmentValues.length > 0)
+  pushIfActive("prospectLevelValues", filters.prospectLevelValues.length > 0)
+  pushIfActive("prospectCityValues", filters.prospectCityValues.length > 0)
   pushIfActive("prospectTitleKeywords", filters.prospectTitleKeywords.length > 0)
 
   return {
     active_filters_count: calculateActiveFilters(filters),
     active_filter_keys: activeFilterKeys,
-    account_countries: toTrackedFilterValueArray(filters.accountCountries),
-    account_industries: toTrackedFilterValueArray(filters.accountIndustries),
-    account_data_coverage: toTrackedFilterValueArray(filters.accountDataCoverage),
-    account_sources: toTrackedFilterValueArray(filters.accountSources),
-    account_primary_categories: toTrackedFilterValueArray(filters.accountPrimaryCategories),
-    account_primary_natures: toTrackedFilterValueArray(filters.accountPrimaryNatures),
-    account_nasscom_statuses: toTrackedFilterValueArray(filters.accountNasscomStatuses),
-    account_employees_ranges: toTrackedFilterValueArray(filters.accountEmployeesRanges),
-    account_center_employees: toTrackedFilterValueArray(filters.accountCenterEmployees),
-    account_revenue_range_min: filters.accountRevenueRange[0],
-    account_revenue_range_max: filters.accountRevenueRange[1],
-    include_null_revenue: filters.includeNullRevenue,
+    account_countries: toTrackedFilterValueArray(filters.accountHqCountryValues),
+    account_industries: toTrackedFilterValueArray(filters.accountHqIndustryValues),
+    account_data_coverage: toTrackedFilterValueArray(filters.accountDataCoverageValues),
+    account_sources: toTrackedFilterValueArray(filters.accountSourceValues),
+    account_primary_categories: toTrackedFilterValueArray(filters.accountPrimaryCategoryValues),
+    account_primary_natures: toTrackedFilterValueArray(filters.accountPrimaryNatureValues),
+    account_nasscom_statuses: toTrackedFilterValueArray(filters.accountNasscomStatusValues),
+    account_employees_ranges: toTrackedFilterValueArray(filters.accountHqEmployeeRangeValues),
+    account_center_employees: toTrackedFilterValueArray(filters.accountCenterEmployeesRangeValues),
+    account_revenue_range_min: filters.accountHqRevenueRange[0],
+    account_revenue_range_max: filters.accountHqRevenueRange[1],
+    include_null_revenue: filters.accountHqRevenueIncludeNull,
     account_years_in_india_range_min: filters.accountYearsInIndiaRange[0],
     account_years_in_india_range_max: filters.accountYearsInIndiaRange[1],
-    include_null_years_in_india: filters.includeNullYearsInIndia,
-    account_name_keywords: toTrackedFilterValueArray(filters.accountNameKeywords),
-    center_types: toTrackedFilterValueArray(filters.centerTypes),
-    center_focus: toTrackedFilterValueArray(filters.centerFocus),
-    center_cities: toTrackedFilterValueArray(filters.centerCities),
-    center_states: toTrackedFilterValueArray(filters.centerStates),
-    center_countries: toTrackedFilterValueArray(filters.centerCountries),
-    center_employees: toTrackedFilterValueArray(filters.centerEmployees),
-    center_statuses: toTrackedFilterValueArray(filters.centerStatuses),
+    include_null_years_in_india: filters.yearsInIndiaIncludeNull,
+    account_name_keywords: toTrackedFilterValueArray(filters.accountGlobalLegalNameKeywords),
+    center_types: toTrackedFilterValueArray(filters.centerTypeValues),
+    center_focus: toTrackedFilterValueArray(filters.centerFocusValues),
+    center_cities: toTrackedFilterValueArray(filters.centerCityValues),
+    center_states: toTrackedFilterValueArray(filters.centerStateValues),
+    center_countries: toTrackedFilterValueArray(filters.centerCountryValues),
+    center_employees: toTrackedFilterValueArray(filters.centerEmployeesRangeValues),
+    center_statuses: toTrackedFilterValueArray(filters.centerStatusValues),
     center_inc_year_range_min: filters.centerIncYearRange[0],
     center_inc_year_range_max: filters.centerIncYearRange[1],
-    include_null_center_inc_year: filters.includeNullCenterIncYear,
-    function_types: toTrackedFilterValueArray(filters.functionTypes),
-    center_software_in_use_keywords: toTrackedFilterValueArray(filters.centerSoftwareInUseKeywords),
-    prospect_departments: toTrackedFilterValueArray(filters.prospectDepartments),
-    prospect_levels: toTrackedFilterValueArray(filters.prospectLevels),
-    prospect_cities: toTrackedFilterValueArray(filters.prospectCities),
+    include_null_center_inc_year: filters.centerIncYearIncludeNull,
+    function_types: toTrackedFilterValueArray(filters.functionNameValues),
+    center_software_in_use_keywords: toTrackedFilterValueArray(filters.techSoftwareInUseKeywords),
+    prospect_departments: toTrackedFilterValueArray(filters.prospectDepartmentValues),
+    prospect_levels: toTrackedFilterValueArray(filters.prospectLevelValues),
+    prospect_cities: toTrackedFilterValueArray(filters.prospectCityValues),
     prospect_title_keywords: toTrackedFilterValueArray(filters.prospectTitleKeywords),
   }
 }

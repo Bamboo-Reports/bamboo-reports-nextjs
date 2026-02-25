@@ -38,7 +38,7 @@ export const SavedFilterCard = memo(({
     return calculateActiveFilters(filter.filters)
   }, [filter.filters])
 
-  const [minRevenue, maxRevenue] = filter.filters.accountRevenueRange || DEFAULT_REVENUE_RANGE
+  const [minRevenue, maxRevenue] = filter.filters.accountHqRevenueRange || DEFAULT_REVENUE_RANGE
   const revenueFilterActive = minRevenue !== DEFAULT_REVENUE_RANGE[0] || maxRevenue !== DEFAULT_REVENUE_RANGE[1]
   const [minYearsInIndia, maxYearsInIndia] = filter.filters.accountYearsInIndiaRange || DEFAULT_YEARS_IN_INDIA_RANGE
   const yearsInIndiaFilterActive =
@@ -98,28 +98,28 @@ export const SavedFilterCard = memo(({
             </Button>
           </div>
           <div className="flex flex-wrap gap-1">
-            {renderFilterValues(filter.filters.accountNameKeywords, "Account Name")}
-            {renderFilterValues(filter.filters.accountCountries, "Country")}
-            {renderFilterValues(filter.filters.accountIndustries, "Industry")}
-            {renderFilterValues(filter.filters.accountDataCoverage, "Data Coverage")}
-            {renderFilterValues(filter.filters.accountSources, "Account Source")}
-            {renderFilterValues(filter.filters.accountPrimaryCategories, "Category")}
-            {renderFilterValues(filter.filters.accountPrimaryNatures, "Nature")}
-            {renderFilterValues(filter.filters.accountNasscomStatuses, "NASSCOM")}
-            {renderFilterValues(filter.filters.accountEmployeesRanges, "Emp Range")}
-            {renderFilterValues(filter.filters.accountCenterEmployees, "Center Emp")}
-            {renderFilterValues(filter.filters.centerTypes, "Type")}
-            {renderFilterValues(filter.filters.centerFocus, "Focus")}
-            {renderFilterValues(filter.filters.centerCities, "City")}
-            {renderFilterValues(filter.filters.centerStates, "State")}
-            {renderFilterValues(filter.filters.centerCountries, "Center Country")}
-            {renderFilterValues(filter.filters.centerEmployees, "Center Employees")}
-            {renderFilterValues(filter.filters.centerStatuses, "Center Status")}
-            {renderFilterValues(filter.filters.functionTypes, "Function")}
-            {renderFilterValues(filter.filters.centerSoftwareInUseKeywords, "Software In Use")}
-            {renderFilterValues(filter.filters.prospectDepartments, "Department")}
-            {renderFilterValues(filter.filters.prospectLevels, "Prospect Level")}
-            {renderFilterValues(filter.filters.prospectCities, "Prospect City")}
+            {renderFilterValues(filter.filters.accountGlobalLegalNameKeywords, "Account Name")}
+            {renderFilterValues(filter.filters.accountHqCountryValues, "Country")}
+            {renderFilterValues(filter.filters.accountHqIndustryValues, "Industry")}
+            {renderFilterValues(filter.filters.accountDataCoverageValues, "Data Coverage")}
+            {renderFilterValues(filter.filters.accountSourceValues, "Account Source")}
+            {renderFilterValues(filter.filters.accountPrimaryCategoryValues, "Category")}
+            {renderFilterValues(filter.filters.accountPrimaryNatureValues, "Nature")}
+            {renderFilterValues(filter.filters.accountNasscomStatusValues, "NASSCOM")}
+            {renderFilterValues(filter.filters.accountHqEmployeeRangeValues, "Emp Range")}
+            {renderFilterValues(filter.filters.accountCenterEmployeesRangeValues, "Center Emp")}
+            {renderFilterValues(filter.filters.centerTypeValues, "Type")}
+            {renderFilterValues(filter.filters.centerFocusValues, "Focus")}
+            {renderFilterValues(filter.filters.centerCityValues, "City")}
+            {renderFilterValues(filter.filters.centerStateValues, "State")}
+            {renderFilterValues(filter.filters.centerCountryValues, "Center Country")}
+            {renderFilterValues(filter.filters.centerEmployeesRangeValues, "Center Employees")}
+            {renderFilterValues(filter.filters.centerStatusValues, "Center Status")}
+            {renderFilterValues(filter.filters.functionNameValues, "Function")}
+            {renderFilterValues(filter.filters.techSoftwareInUseKeywords, "Software In Use")}
+            {renderFilterValues(filter.filters.prospectDepartmentValues, "Department")}
+            {renderFilterValues(filter.filters.prospectLevelValues, "Prospect Level")}
+            {renderFilterValues(filter.filters.prospectCityValues, "Prospect City")}
             {renderFilterValues(filter.filters.prospectTitleKeywords, "Job Title")}
             {revenueFilterActive && (
               <FilterBadge
@@ -127,7 +127,7 @@ export const SavedFilterCard = memo(({
                 value={`${minRevenue.toLocaleString()} - ${maxRevenue.toLocaleString()}`}
               />
             )}
-            {filter.filters.includeNullRevenue && (
+            {filter.filters.accountHqRevenueIncludeNull && (
               <FilterBadge filterKey="Revenue" value="Include null revenue" />
             )}
             {yearsInIndiaFilterActive && (
@@ -136,7 +136,7 @@ export const SavedFilterCard = memo(({
                 value={`${minYearsInIndia.toLocaleString()} - ${maxYearsInIndia.toLocaleString()}`}
               />
             )}
-            {filter.filters.includeNullYearsInIndia && (
+            {filter.filters.yearsInIndiaIncludeNull && (
               <FilterBadge filterKey="Years In India" value="Include null/zero" />
             )}
             {centerIncYearFilterActive && (
@@ -145,7 +145,7 @@ export const SavedFilterCard = memo(({
                 value={`${minCenterIncYear.toLocaleString()} - ${maxCenterIncYear.toLocaleString()}`}
               />
             )}
-            {filter.filters.includeNullCenterIncYear && (
+            {filter.filters.centerIncYearIncludeNull && (
               <FilterBadge filterKey="Timeline" value="Include null/zero" />
             )}
           </div>

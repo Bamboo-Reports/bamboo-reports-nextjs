@@ -318,7 +318,7 @@ function DashboardContent(): JSX.Element | null {
         active_section: activeSection,
         active_view: currentScreenView,
         filters_snapshot: buildTrackedFiltersSnapshot(filters, {
-          accountRevenueRange: [revenueRange.min, revenueRange.max],
+          accountHqRevenueRange: [revenueRange.min, revenueRange.max],
           accountYearsInIndiaRange: [yearsInIndiaRange.min, yearsInIndiaRange.max],
           centerIncYearRange: [centerIncYearRange.min, centerIncYearRange.max],
         }),

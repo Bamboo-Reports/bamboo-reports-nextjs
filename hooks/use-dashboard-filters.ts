@@ -79,14 +79,14 @@ export function useDashboardFilters({
 
     setFilters((prev) => ({
       ...prev,
-      accountRevenueRange: baseRevenue,
+      accountHqRevenueRange: baseRevenue,
       accountYearsInIndiaRange: baseYears,
       centerIncYearRange: baseCenterInc,
     }))
 
     setPendingFilters((prev) => ({
       ...prev,
-      accountRevenueRange: baseRevenue,
+      accountHqRevenueRange: baseRevenue,
       accountYearsInIndiaRange: baseYears,
       centerIncYearRange: baseCenterInc,
     }))
@@ -122,30 +122,30 @@ export function useDashboardFilters({
 
   const filterStateForRevenue: RevenueRangeFilterState = useMemo(
     () => ({
-      accountCountries: filters.accountCountries,
-      accountIndustries: filters.accountIndustries,
-      accountDataCoverage: filters.accountDataCoverage,
-      accountSources: filters.accountSources,
-      accountPrimaryCategories: filters.accountPrimaryCategories,
-      accountPrimaryNatures: filters.accountPrimaryNatures,
-      accountNasscomStatuses: filters.accountNasscomStatuses,
-      accountEmployeesRanges: filters.accountEmployeesRanges,
-      accountCenterEmployees: filters.accountCenterEmployees,
+      accountHqCountryValues: filters.accountHqCountryValues,
+      accountHqIndustryValues: filters.accountHqIndustryValues,
+      accountDataCoverageValues: filters.accountDataCoverageValues,
+      accountSourceValues: filters.accountSourceValues,
+      accountPrimaryCategoryValues: filters.accountPrimaryCategoryValues,
+      accountPrimaryNatureValues: filters.accountPrimaryNatureValues,
+      accountNasscomStatusValues: filters.accountNasscomStatusValues,
+      accountHqEmployeeRangeValues: filters.accountHqEmployeeRangeValues,
+      accountCenterEmployeesRangeValues: filters.accountCenterEmployeesRangeValues,
       accountYearsInIndiaRange: filters.accountYearsInIndiaRange,
-      includeNullYearsInIndia: filters.includeNullYearsInIndia,
+      yearsInIndiaIncludeNull: filters.yearsInIndiaIncludeNull,
     }),
     [
-      filters.accountCountries,
-      filters.accountIndustries,
-      filters.accountDataCoverage,
-      filters.accountSources,
-      filters.accountPrimaryCategories,
-      filters.accountPrimaryNatures,
-      filters.accountNasscomStatuses,
-      filters.accountEmployeesRanges,
-      filters.accountCenterEmployees,
+      filters.accountHqCountryValues,
+      filters.accountHqIndustryValues,
+      filters.accountDataCoverageValues,
+      filters.accountSourceValues,
+      filters.accountPrimaryCategoryValues,
+      filters.accountPrimaryNatureValues,
+      filters.accountNasscomStatusValues,
+      filters.accountHqEmployeeRangeValues,
+      filters.accountCenterEmployeesRangeValues,
       filters.accountYearsInIndiaRange,
-      filters.includeNullYearsInIndia,
+      filters.yearsInIndiaIncludeNull,
     ]
   )
 
@@ -160,25 +160,25 @@ export function useDashboardFilters({
     setPendingFilters((prev) => {
       if (isRevenueRangeAutoRef.current) {
         if (
-          prev.accountRevenueRange[0] !== dynamicRevenueRange.min ||
-          prev.accountRevenueRange[1] !== dynamicRevenueRange.max
+          prev.accountHqRevenueRange[0] !== dynamicRevenueRange.min ||
+          prev.accountHqRevenueRange[1] !== dynamicRevenueRange.max
         ) {
           return {
             ...prev,
-            accountRevenueRange: [dynamicRevenueRange.min, dynamicRevenueRange.max] as [number, number],
+            accountHqRevenueRange: [dynamicRevenueRange.min, dynamicRevenueRange.max] as [number, number],
           }
         }
 
         return prev
       }
 
-      const newMin = Math.max(prev.accountRevenueRange[0], dynamicRevenueRange.min)
-      const newMax = Math.min(prev.accountRevenueRange[1], dynamicRevenueRange.max)
+      const newMin = Math.max(prev.accountHqRevenueRange[0], dynamicRevenueRange.min)
+      const newMax = Math.min(prev.accountHqRevenueRange[1], dynamicRevenueRange.max)
 
-      if (newMin !== prev.accountRevenueRange[0] || newMax !== prev.accountRevenueRange[1]) {
+      if (newMin !== prev.accountHqRevenueRange[0] || newMax !== prev.accountHqRevenueRange[1]) {
         return {
           ...prev,
-          accountRevenueRange: [newMin, newMax] as [number, number],
+          accountHqRevenueRange: [newMin, newMax] as [number, number],
         }
       }
 
@@ -188,34 +188,34 @@ export function useDashboardFilters({
 
   const filterStateForOptions = useMemo(
     () => ({
-      accountCountries: filters.accountCountries,
-      accountIndustries: filters.accountIndustries,
-      accountDataCoverage: filters.accountDataCoverage,
-      accountSources: filters.accountSources,
-      accountPrimaryCategories: filters.accountPrimaryCategories,
-      accountPrimaryNatures: filters.accountPrimaryNatures,
-      accountNasscomStatuses: filters.accountNasscomStatuses,
-      accountEmployeesRanges: filters.accountEmployeesRanges,
-      accountCenterEmployees: filters.accountCenterEmployees,
+      accountHqCountryValues: filters.accountHqCountryValues,
+      accountHqIndustryValues: filters.accountHqIndustryValues,
+      accountDataCoverageValues: filters.accountDataCoverageValues,
+      accountSourceValues: filters.accountSourceValues,
+      accountPrimaryCategoryValues: filters.accountPrimaryCategoryValues,
+      accountPrimaryNatureValues: filters.accountPrimaryNatureValues,
+      accountNasscomStatusValues: filters.accountNasscomStatusValues,
+      accountHqEmployeeRangeValues: filters.accountHqEmployeeRangeValues,
+      accountCenterEmployeesRangeValues: filters.accountCenterEmployeesRangeValues,
       accountYearsInIndiaRange: filters.accountYearsInIndiaRange,
-      includeNullYearsInIndia: filters.includeNullYearsInIndia,
-      centerTypes: filters.centerTypes,
-      centerFocus: filters.centerFocus,
-      centerCities: filters.centerCities,
-      centerStates: filters.centerStates,
-      centerCountries: filters.centerCountries,
-      centerEmployees: filters.centerEmployees,
-      centerStatuses: filters.centerStatuses,
+      yearsInIndiaIncludeNull: filters.yearsInIndiaIncludeNull,
+      centerTypeValues: filters.centerTypeValues,
+      centerFocusValues: filters.centerFocusValues,
+      centerCityValues: filters.centerCityValues,
+      centerStateValues: filters.centerStateValues,
+      centerCountryValues: filters.centerCountryValues,
+      centerEmployeesRangeValues: filters.centerEmployeesRangeValues,
+      centerStatusValues: filters.centerStatusValues,
       centerIncYearRange: filters.centerIncYearRange,
-      includeNullCenterIncYear: filters.includeNullCenterIncYear,
-      functionTypes: filters.functionTypes,
-      centerSoftwareInUseKeywords: filters.centerSoftwareInUseKeywords,
-      prospectDepartments: filters.prospectDepartments,
-      prospectLevels: filters.prospectLevels,
-      prospectCities: filters.prospectCities,
-      accountNameKeywords: filters.accountNameKeywords,
-      accountRevenueRange: filters.accountRevenueRange,
-      includeNullRevenue: filters.includeNullRevenue,
+      centerIncYearIncludeNull: filters.centerIncYearIncludeNull,
+      functionNameValues: filters.functionNameValues,
+      techSoftwareInUseKeywords: filters.techSoftwareInUseKeywords,
+      prospectDepartmentValues: filters.prospectDepartmentValues,
+      prospectLevelValues: filters.prospectLevelValues,
+      prospectCityValues: filters.prospectCityValues,
+      accountGlobalLegalNameKeywords: filters.accountGlobalLegalNameKeywords,
+      accountHqRevenueRange: filters.accountHqRevenueRange,
+      accountHqRevenueIncludeNull: filters.accountHqRevenueIncludeNull,
     }),
     [filters]
   )
@@ -228,43 +228,43 @@ export function useDashboardFilters({
   const getActiveFilterCountFor = useCallback(
     (sourceFilters: Filters) => {
       return (
-        sourceFilters.accountCountries.length +
-        sourceFilters.accountIndustries.length +
-        sourceFilters.accountDataCoverage.length +
-        sourceFilters.accountSources.length +
-        sourceFilters.accountPrimaryCategories.length +
-        sourceFilters.accountPrimaryNatures.length +
-        sourceFilters.accountNasscomStatuses.length +
-        sourceFilters.accountEmployeesRanges.length +
-        sourceFilters.accountCenterEmployees.length +
-        (sourceFilters.accountRevenueRange[0] !== revenueRange.min ||
-        sourceFilters.accountRevenueRange[1] !== revenueRange.max
+        sourceFilters.accountHqCountryValues.length +
+        sourceFilters.accountHqIndustryValues.length +
+        sourceFilters.accountDataCoverageValues.length +
+        sourceFilters.accountSourceValues.length +
+        sourceFilters.accountPrimaryCategoryValues.length +
+        sourceFilters.accountPrimaryNatureValues.length +
+        sourceFilters.accountNasscomStatusValues.length +
+        sourceFilters.accountHqEmployeeRangeValues.length +
+        sourceFilters.accountCenterEmployeesRangeValues.length +
+        (sourceFilters.accountHqRevenueRange[0] !== revenueRange.min ||
+        sourceFilters.accountHqRevenueRange[1] !== revenueRange.max
           ? 1
           : 0) +
-        (sourceFilters.includeNullRevenue ? 1 : 0) +
+        (sourceFilters.accountHqRevenueIncludeNull ? 1 : 0) +
         (sourceFilters.accountYearsInIndiaRange[0] !== yearsInIndiaRange.min ||
         sourceFilters.accountYearsInIndiaRange[1] !== yearsInIndiaRange.max
           ? 1
           : 0) +
-        (sourceFilters.includeNullYearsInIndia ? 1 : 0) +
-        sourceFilters.accountNameKeywords.length +
-        sourceFilters.centerTypes.length +
-        sourceFilters.centerFocus.length +
-        sourceFilters.centerCities.length +
-        sourceFilters.centerStates.length +
-        sourceFilters.centerCountries.length +
-        sourceFilters.centerEmployees.length +
-        sourceFilters.centerStatuses.length +
+        (sourceFilters.yearsInIndiaIncludeNull ? 1 : 0) +
+        sourceFilters.accountGlobalLegalNameKeywords.length +
+        sourceFilters.centerTypeValues.length +
+        sourceFilters.centerFocusValues.length +
+        sourceFilters.centerCityValues.length +
+        sourceFilters.centerStateValues.length +
+        sourceFilters.centerCountryValues.length +
+        sourceFilters.centerEmployeesRangeValues.length +
+        sourceFilters.centerStatusValues.length +
         (sourceFilters.centerIncYearRange[0] !== centerIncYearRange.min ||
         sourceFilters.centerIncYearRange[1] !== centerIncYearRange.max
           ? 1
           : 0) +
-        (sourceFilters.includeNullCenterIncYear ? 1 : 0) +
-        sourceFilters.functionTypes.length +
-        sourceFilters.centerSoftwareInUseKeywords.length +
-        sourceFilters.prospectDepartments.length +
-        sourceFilters.prospectLevels.length +
-        sourceFilters.prospectCities.length +
+        (sourceFilters.centerIncYearIncludeNull ? 1 : 0) +
+        sourceFilters.functionNameValues.length +
+        sourceFilters.techSoftwareInUseKeywords.length +
+        sourceFilters.prospectDepartmentValues.length +
+        sourceFilters.prospectLevelValues.length +
+        sourceFilters.prospectCityValues.length +
         sourceFilters.prospectTitleKeywords.length
       )
     },
@@ -274,7 +274,7 @@ export function useDashboardFilters({
   const resetFilters = useCallback(() => {
     const previousActiveFiltersCount = getActiveFilterCountFor(filters)
     const emptyFilters = createDefaultFilters({
-      accountRevenueRange: [baseRanges.revenueRange.min, baseRanges.revenueRange.max],
+      accountHqRevenueRange: [baseRanges.revenueRange.min, baseRanges.revenueRange.max],
       accountYearsInIndiaRange: [baseRanges.yearsInIndiaRange.min, baseRanges.yearsInIndiaRange.max],
       centerIncYearRange: [baseRanges.centerIncYearRange.min, baseRanges.centerIncYearRange.max],
     })
@@ -287,12 +287,12 @@ export function useDashboardFilters({
       captureEvent(ANALYTICS_EVENTS.FILTERS_RESET, {
         previous_active_filters_count: previousActiveFiltersCount,
         previous_filters_snapshot: buildTrackedFiltersSnapshot(filters, {
-          accountRevenueRange: [baseRanges.revenueRange.min, baseRanges.revenueRange.max],
+          accountHqRevenueRange: [baseRanges.revenueRange.min, baseRanges.revenueRange.max],
           accountYearsInIndiaRange: [baseRanges.yearsInIndiaRange.min, baseRanges.yearsInIndiaRange.max],
           centerIncYearRange: [baseRanges.centerIncYearRange.min, baseRanges.centerIncYearRange.max],
         }),
         reset_to_filters_snapshot: buildTrackedFiltersSnapshot(emptyFilters, {
-          accountRevenueRange: [baseRanges.revenueRange.min, baseRanges.revenueRange.max],
+          accountHqRevenueRange: [baseRanges.revenueRange.min, baseRanges.revenueRange.max],
           accountYearsInIndiaRange: [baseRanges.yearsInIndiaRange.min, baseRanges.yearsInIndiaRange.max],
           centerIncYearRange: [baseRanges.centerIncYearRange.min, baseRanges.centerIncYearRange.max],
         }),
@@ -309,34 +309,34 @@ export function useDashboardFilters({
   const handleMinRevenueChange = useCallback(
     (value: string) => {
       const numValue = Number.parseFloat(value) || revenueRange.min
-      const clampedValue = Math.max(revenueRange.min, Math.min(numValue, pendingFilters.accountRevenueRange[1]))
+      const clampedValue = Math.max(revenueRange.min, Math.min(numValue, pendingFilters.accountHqRevenueRange[1]))
       isRevenueRangeAutoRef.current = false
       setPendingFilters((prev) => ({
         ...prev,
-        accountRevenueRange: [clampedValue, prev.accountRevenueRange[1]],
+        accountHqRevenueRange: [clampedValue, prev.accountHqRevenueRange[1]],
       }))
     },
-    [pendingFilters.accountRevenueRange, revenueRange]
+    [pendingFilters.accountHqRevenueRange, revenueRange]
   )
 
   const handleMaxRevenueChange = useCallback(
     (value: string) => {
       const numValue = Number.parseFloat(value) || revenueRange.max
-      const clampedValue = Math.min(revenueRange.max, Math.max(numValue, pendingFilters.accountRevenueRange[0]))
+      const clampedValue = Math.min(revenueRange.max, Math.max(numValue, pendingFilters.accountHqRevenueRange[0]))
       isRevenueRangeAutoRef.current = false
       setPendingFilters((prev) => ({
         ...prev,
-        accountRevenueRange: [prev.accountRevenueRange[0], clampedValue],
+        accountHqRevenueRange: [prev.accountHqRevenueRange[0], clampedValue],
       }))
     },
-    [pendingFilters.accountRevenueRange, revenueRange]
+    [pendingFilters.accountHqRevenueRange, revenueRange]
   )
 
   const handleRevenueRangeChange = useCallback((value: [number, number]) => {
     isRevenueRangeAutoRef.current = false
     setPendingFilters((prev) => ({
       ...prev,
-      accountRevenueRange: value,
+      accountHqRevenueRange: value,
     }))
   }, [])
 
