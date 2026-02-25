@@ -38,7 +38,7 @@ export function AccountAutocomplete({
   const [highlightedIndex, setHighlightedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const sourceFilterKey = trackingKey ?? "accountNameKeywords"
+  const sourceFilterKey = trackingKey ?? "accountGlobalLegalNameKeywords"
   const comboboxId = useId()
 
   // Debounce input value for performance

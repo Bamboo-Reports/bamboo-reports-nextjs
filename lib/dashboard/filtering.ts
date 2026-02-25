@@ -22,49 +22,49 @@ export type FilteredData = {
 
 export type RevenueRangeFilterState = Pick<
   Filters,
-  | "accountCountries"
-  | "accountIndustries"
-  | "accountDataCoverage"
-  | "accountSources"
-  | "accountPrimaryCategories"
-  | "accountPrimaryNatures"
-  | "accountNasscomStatuses"
-  | "accountEmployeesRanges"
-  | "accountCenterEmployees"
+  | "accountHqCountryValues"
+  | "accountHqIndustryValues"
+  | "accountDataCoverageValues"
+  | "accountSourceValues"
+  | "accountPrimaryCategoryValues"
+  | "accountPrimaryNatureValues"
+  | "accountNasscomStatusValues"
+  | "accountHqEmployeeRangeValues"
+  | "accountCenterEmployeesRangeValues"
   | "accountYearsInIndiaRange"
-  | "includeNullYearsInIndia"
+  | "yearsInIndiaIncludeNull"
 >
 
 type AvailableOptionsFilterState = Pick<
   Filters,
-  | "accountCountries"
-  | "accountIndustries"
-  | "accountDataCoverage"
-  | "accountSources"
-  | "accountPrimaryCategories"
-  | "accountPrimaryNatures"
-  | "accountNasscomStatuses"
-  | "accountEmployeesRanges"
-  | "accountCenterEmployees"
+  | "accountHqCountryValues"
+  | "accountHqIndustryValues"
+  | "accountDataCoverageValues"
+  | "accountSourceValues"
+  | "accountPrimaryCategoryValues"
+  | "accountPrimaryNatureValues"
+  | "accountNasscomStatusValues"
+  | "accountHqEmployeeRangeValues"
+  | "accountCenterEmployeesRangeValues"
   | "accountYearsInIndiaRange"
-  | "includeNullYearsInIndia"
-  | "centerTypes"
-  | "centerFocus"
-  | "centerCities"
-  | "centerStates"
-  | "centerCountries"
-  | "centerEmployees"
-  | "centerStatuses"
+  | "yearsInIndiaIncludeNull"
+  | "centerTypeValues"
+  | "centerFocusValues"
+  | "centerCityValues"
+  | "centerStateValues"
+  | "centerCountryValues"
+  | "centerEmployeesRangeValues"
+  | "centerStatusValues"
   | "centerIncYearRange"
-  | "includeNullCenterIncYear"
-  | "functionTypes"
-  | "centerSoftwareInUseKeywords"
-  | "prospectDepartments"
-  | "prospectLevels"
-  | "prospectCities"
-  | "accountNameKeywords"
-  | "accountRevenueRange"
-  | "includeNullRevenue"
+  | "centerIncYearIncludeNull"
+  | "functionNameValues"
+  | "techSoftwareInUseKeywords"
+  | "prospectDepartmentValues"
+  | "prospectLevelValues"
+  | "prospectCityValues"
+  | "accountGlobalLegalNameKeywords"
+  | "accountHqRevenueRange"
+  | "accountHqRevenueIncludeNull"
 >
 
 const normalizeNumber = (value: number | string | null | undefined) => {
@@ -120,65 +120,65 @@ export function getFilteredData(
   tech: Tech[],
   filters: Filters
 ): FilteredData {
-  const matchAccountCountry = createValueMatcher(filters.accountCountries)
-  const matchAccountIndustry = createValueMatcher(filters.accountIndustries)
-  const matchAccountDataCoverage = createValueMatcher(filters.accountDataCoverage)
-  const matchAccountSource = createValueMatcher(filters.accountSources)
-  const matchAccountPrimaryCategory = createValueMatcher(filters.accountPrimaryCategories)
-  const matchAccountPrimaryNature = createValueMatcher(filters.accountPrimaryNatures)
-  const matchAccountNasscom = createValueMatcher(filters.accountNasscomStatuses)
-  const matchAccountEmployeesRange = createValueMatcher(filters.accountEmployeesRanges)
-  const matchAccountCenterEmployees = createValueMatcher(filters.accountCenterEmployees)
-  const matchAccountName = createKeywordMatcher(filters.accountNameKeywords)
+  const matchAccountCountry = createValueMatcher(filters.accountHqCountryValues)
+  const matchAccountIndustry = createValueMatcher(filters.accountHqIndustryValues)
+  const matchAccountDataCoverage = createValueMatcher(filters.accountDataCoverageValues)
+  const matchAccountSource = createValueMatcher(filters.accountSourceValues)
+  const matchAccountPrimaryCategory = createValueMatcher(filters.accountPrimaryCategoryValues)
+  const matchAccountPrimaryNature = createValueMatcher(filters.accountPrimaryNatureValues)
+  const matchAccountNasscom = createValueMatcher(filters.accountNasscomStatusValues)
+  const matchAccountEmployeesRange = createValueMatcher(filters.accountHqEmployeeRangeValues)
+  const matchAccountCenterEmployees = createValueMatcher(filters.accountCenterEmployeesRangeValues)
+  const matchAccountName = createKeywordMatcher(filters.accountGlobalLegalNameKeywords)
   const matchAccountRevenue = (value: number | string | null | undefined) =>
-    rangeFilterMatch(filters.accountRevenueRange, value, filters.includeNullRevenue, parseRevenueValue)
+    rangeFilterMatch(filters.accountHqRevenueRange, value, filters.accountHqRevenueIncludeNull, parseRevenueValue)
   const matchAccountYearsInIndia = (value: number | string | null | undefined) =>
-    rangeFilterMatch(filters.accountYearsInIndiaRange, value, filters.includeNullYearsInIndia)
+    rangeFilterMatch(filters.accountYearsInIndiaRange, value, filters.yearsInIndiaIncludeNull)
 
-  const matchCenterType = createValueMatcher(filters.centerTypes)
-  const matchCenterFocus = createValueMatcher(filters.centerFocus)
-  const matchCenterCity = createValueMatcher(filters.centerCities)
-  const matchCenterState = createValueMatcher(filters.centerStates)
-  const matchCenterCountry = createValueMatcher(filters.centerCountries)
-  const matchCenterEmployees = createValueMatcher(filters.centerEmployees)
-  const matchCenterStatus = createValueMatcher(filters.centerStatuses)
+  const matchCenterType = createValueMatcher(filters.centerTypeValues)
+  const matchCenterFocus = createValueMatcher(filters.centerFocusValues)
+  const matchCenterCity = createValueMatcher(filters.centerCityValues)
+  const matchCenterState = createValueMatcher(filters.centerStateValues)
+  const matchCenterCountry = createValueMatcher(filters.centerCountryValues)
+  const matchCenterEmployees = createValueMatcher(filters.centerEmployeesRangeValues)
+  const matchCenterStatus = createValueMatcher(filters.centerStatusValues)
   const matchCenterIncYear = (value: number | string | null | undefined) =>
-    rangeFilterMatch(filters.centerIncYearRange, value, filters.includeNullCenterIncYear)
+    rangeFilterMatch(filters.centerIncYearRange, value, filters.centerIncYearIncludeNull)
 
-  const matchFunctionType = createValueMatcher(filters.functionTypes)
-  const matchCenterSoftwareInUse = createKeywordMatcher(filters.centerSoftwareInUseKeywords)
+  const matchFunctionType = createValueMatcher(filters.functionNameValues)
+  const matchCenterSoftwareInUse = createKeywordMatcher(filters.techSoftwareInUseKeywords)
 
-  const matchProspectDepartment = createValueMatcher(filters.prospectDepartments)
-  const matchProspectLevel = createValueMatcher(filters.prospectLevels)
-  const matchProspectCity = createValueMatcher(filters.prospectCities)
+  const matchProspectDepartment = createValueMatcher(filters.prospectDepartmentValues)
+  const matchProspectLevel = createValueMatcher(filters.prospectLevelValues)
+  const matchProspectCity = createValueMatcher(filters.prospectCityValues)
   const matchProspectTitle = createKeywordMatcher(filters.prospectTitleKeywords)
 
   const hasAccountFilters =
-    filters.accountCountries.length > 0 ||
-    filters.accountIndustries.length > 0 ||
-    filters.accountDataCoverage.length > 0 ||
-    filters.accountSources.length > 0 ||
-    filters.accountPrimaryCategories.length > 0 ||
-    filters.accountPrimaryNatures.length > 0 ||
-    filters.accountNasscomStatuses.length > 0 ||
-    filters.accountEmployeesRanges.length > 0 ||
-    filters.accountCenterEmployees.length > 0 ||
-    filters.accountRevenueRange[0] > 0 ||
-    filters.accountRevenueRange[1] < Number.MAX_SAFE_INTEGER ||
-    filters.includeNullRevenue ||
+    filters.accountHqCountryValues.length > 0 ||
+    filters.accountHqIndustryValues.length > 0 ||
+    filters.accountDataCoverageValues.length > 0 ||
+    filters.accountSourceValues.length > 0 ||
+    filters.accountPrimaryCategoryValues.length > 0 ||
+    filters.accountPrimaryNatureValues.length > 0 ||
+    filters.accountNasscomStatusValues.length > 0 ||
+    filters.accountHqEmployeeRangeValues.length > 0 ||
+    filters.accountCenterEmployeesRangeValues.length > 0 ||
+    filters.accountHqRevenueRange[0] > 0 ||
+    filters.accountHqRevenueRange[1] < Number.MAX_SAFE_INTEGER ||
+    filters.accountHqRevenueIncludeNull ||
     filters.accountYearsInIndiaRange[0] > 0 ||
     filters.accountYearsInIndiaRange[1] < Number.MAX_SAFE_INTEGER ||
-    filters.includeNullYearsInIndia ||
-    filters.accountNameKeywords.length > 0
+    filters.yearsInIndiaIncludeNull ||
+    filters.accountGlobalLegalNameKeywords.length > 0
 
   const hasProspectFilters =
-    filters.prospectDepartments.length > 0 ||
-    filters.prospectLevels.length > 0 ||
-    filters.prospectCities.length > 0 ||
+    filters.prospectDepartmentValues.length > 0 ||
+    filters.prospectLevelValues.length > 0 ||
+    filters.prospectCityValues.length > 0 ||
     filters.prospectTitleKeywords.length > 0
 
-  const hasFunctionFilters = filters.functionTypes.length > 0
-  const hasCenterSoftwareFilters = filters.centerSoftwareInUseKeywords.length > 0
+  const hasFunctionFilters = filters.functionNameValues.length > 0
+  const hasCenterSoftwareFilters = filters.techSoftwareInUseKeywords.length > 0
 
   let filteredAccounts: Account[] = []
   let filteredCenters: Center[] = []
@@ -303,17 +303,17 @@ export function getFilteredData(
 }
 
 export function getDynamicRevenueRange(accounts: Account[], filters: RevenueRangeFilterState) {
-  const matchCountry = createValueMatcher(filters.accountCountries)
-  const matchIndustry = createValueMatcher(filters.accountIndustries)
-  const matchDataCoverage = createValueMatcher(filters.accountDataCoverage)
-  const matchSource = createValueMatcher(filters.accountSources)
-  const matchPrimaryCategory = createValueMatcher(filters.accountPrimaryCategories)
-  const matchPrimaryNature = createValueMatcher(filters.accountPrimaryNatures)
-  const matchNasscom = createValueMatcher(filters.accountNasscomStatuses)
-  const matchEmployeesRange = createValueMatcher(filters.accountEmployeesRanges)
-  const matchCenterEmployees = createValueMatcher(filters.accountCenterEmployees)
+  const matchCountry = createValueMatcher(filters.accountHqCountryValues)
+  const matchIndustry = createValueMatcher(filters.accountHqIndustryValues)
+  const matchDataCoverage = createValueMatcher(filters.accountDataCoverageValues)
+  const matchSource = createValueMatcher(filters.accountSourceValues)
+  const matchPrimaryCategory = createValueMatcher(filters.accountPrimaryCategoryValues)
+  const matchPrimaryNature = createValueMatcher(filters.accountPrimaryNatureValues)
+  const matchNasscom = createValueMatcher(filters.accountNasscomStatusValues)
+  const matchEmployeesRange = createValueMatcher(filters.accountHqEmployeeRangeValues)
+  const matchCenterEmployees = createValueMatcher(filters.accountCenterEmployeesRangeValues)
   const matchYearsInIndiaRange = (value: number | string | null | undefined) =>
-    rangeFilterMatch(filters.accountYearsInIndiaRange, value, filters.includeNullYearsInIndia)
+    rangeFilterMatch(filters.accountYearsInIndiaRange, value, filters.yearsInIndiaIncludeNull)
 
   const tempFilteredAccounts = accounts.filter((account) => {
     return (
@@ -352,33 +352,33 @@ export function getAvailableOptions(
   tech: Tech[],
   filters: AvailableOptionsFilterState
 ): AvailableOptions {
-  const matchAccountCountry = createValueMatcher(filters.accountCountries)
-  const matchAccountIndustry = createValueMatcher(filters.accountIndustries)
-  const matchAccountDataCoverage = createValueMatcher(filters.accountDataCoverage)
-  const matchAccountSource = createValueMatcher(filters.accountSources)
-  const matchAccountPrimaryCategory = createValueMatcher(filters.accountPrimaryCategories)
-  const matchAccountPrimaryNature = createValueMatcher(filters.accountPrimaryNatures)
-  const matchAccountNasscom = createValueMatcher(filters.accountNasscomStatuses)
-  const matchAccountEmployeesRange = createValueMatcher(filters.accountEmployeesRanges)
-  const matchAccountCenterEmployees = createValueMatcher(filters.accountCenterEmployees)
-  const matchAccountName = createKeywordMatcher(filters.accountNameKeywords)
+  const matchAccountCountry = createValueMatcher(filters.accountHqCountryValues)
+  const matchAccountIndustry = createValueMatcher(filters.accountHqIndustryValues)
+  const matchAccountDataCoverage = createValueMatcher(filters.accountDataCoverageValues)
+  const matchAccountSource = createValueMatcher(filters.accountSourceValues)
+  const matchAccountPrimaryCategory = createValueMatcher(filters.accountPrimaryCategoryValues)
+  const matchAccountPrimaryNature = createValueMatcher(filters.accountPrimaryNatureValues)
+  const matchAccountNasscom = createValueMatcher(filters.accountNasscomStatusValues)
+  const matchAccountEmployeesRange = createValueMatcher(filters.accountHqEmployeeRangeValues)
+  const matchAccountCenterEmployees = createValueMatcher(filters.accountCenterEmployeesRangeValues)
+  const matchAccountName = createKeywordMatcher(filters.accountGlobalLegalNameKeywords)
   const matchAccountYearsInIndia = (value: number | string | null | undefined) =>
-    rangeFilterMatch(filters.accountYearsInIndiaRange, value, filters.includeNullYearsInIndia)
+    rangeFilterMatch(filters.accountYearsInIndiaRange, value, filters.yearsInIndiaIncludeNull)
 
-  const matchCenterType = createValueMatcher(filters.centerTypes)
-  const matchCenterFocus = createValueMatcher(filters.centerFocus)
-  const matchCenterCity = createValueMatcher(filters.centerCities)
-  const matchCenterState = createValueMatcher(filters.centerStates)
-  const matchCenterCountry = createValueMatcher(filters.centerCountries)
-  const matchCenterEmployees = createValueMatcher(filters.centerEmployees)
-  const matchCenterStatus = createValueMatcher(filters.centerStatuses)
+  const matchCenterType = createValueMatcher(filters.centerTypeValues)
+  const matchCenterFocus = createValueMatcher(filters.centerFocusValues)
+  const matchCenterCity = createValueMatcher(filters.centerCityValues)
+  const matchCenterState = createValueMatcher(filters.centerStateValues)
+  const matchCenterCountry = createValueMatcher(filters.centerCountryValues)
+  const matchCenterEmployees = createValueMatcher(filters.centerEmployeesRangeValues)
+  const matchCenterStatus = createValueMatcher(filters.centerStatusValues)
   const matchCenterIncYear = (value: number | string | null | undefined) =>
-    rangeFilterMatch(filters.centerIncYearRange, value, filters.includeNullCenterIncYear)
-  const matchCenterSoftwareInUse = createKeywordMatcher(filters.centerSoftwareInUseKeywords)
+    rangeFilterMatch(filters.centerIncYearRange, value, filters.centerIncYearIncludeNull)
+  const matchCenterSoftwareInUse = createKeywordMatcher(filters.techSoftwareInUseKeywords)
 
-  const matchProspectDepartment = createValueMatcher(filters.prospectDepartments)
-  const matchProspectLevel = createValueMatcher(filters.prospectLevels)
-  const matchProspectCity = createValueMatcher(filters.prospectCities)
+  const matchProspectDepartment = createValueMatcher(filters.prospectDepartmentValues)
+  const matchProspectLevel = createValueMatcher(filters.prospectLevelValues)
+  const matchProspectCity = createValueMatcher(filters.prospectCityValues)
 
   const accountCounts = {
     countries: new Map<string, number>(),
@@ -389,7 +389,7 @@ export function getAvailableOptions(
     primaryNatures: new Map<string, number>(),
     nasscomStatuses: new Map<string, number>(),
     employeesRanges: new Map<string, number>(),
-    centerEmployees: new Map<string, number>(),
+    centerEmployeesRangeValues: new Map<string, number>(),
   }
 
   const validAccountNames = new Set<string>()
@@ -399,9 +399,9 @@ export function getAvailableOptions(
     if (!matchesAccountName) return
 
     const matchesRevenue = rangeFilterMatch(
-      filters.accountRevenueRange,
+      filters.accountHqRevenueRange,
       account.account_hq_revenue,
-      filters.includeNullRevenue,
+      filters.accountHqRevenueIncludeNull,
       parseRevenueValue
     )
 
@@ -536,7 +536,7 @@ export function getAvailableOptions(
       matchesNasscom &&
       matchesEmpRange
     ) {
-      accountCounts.centerEmployees.set(centerEmp, (accountCounts.centerEmployees.get(centerEmp) || 0) + 1)
+      accountCounts.centerEmployeesRangeValues.set(centerEmp, (accountCounts.centerEmployeesRangeValues.get(centerEmp) || 0) + 1)
     }
     
     if (
@@ -671,25 +671,25 @@ export function getAvailableOptions(
   }
 
   return {
-    accountCountries: mapToSortedArray(accountCounts.countries),
-    accountIndustries: mapToSortedArray(accountCounts.industries),
-    accountDataCoverage: mapToSortedArray(accountCounts.dataCoverage),
-    accountSources: mapToSortedArray(accountCounts.sources),
-    accountPrimaryCategories: mapToSortedArray(accountCounts.primaryCategories),
-    accountPrimaryNatures: mapToSortedArray(accountCounts.primaryNatures),
-    accountNasscomStatuses: mapToSortedArray(accountCounts.nasscomStatuses),
-    accountEmployeesRanges: mapToSortedArray(accountCounts.employeesRanges),
-    accountCenterEmployees: mapToSortedArray(accountCounts.centerEmployees),
-    centerTypes: mapToSortedArray(centerCounts.types),
-    centerFocus: mapToSortedArray(centerCounts.focus),
-    centerCities: mapToSortedArray(centerCounts.cities),
-    centerStates: mapToSortedArray(centerCounts.states),
-    centerCountries: mapToSortedArray(centerCounts.countries),
-    centerEmployees: mapToSortedArray(centerCounts.employees),
-    centerStatuses: mapToSortedArray(centerCounts.statuses),
-    functionTypes: mapToSortedArray(functionCounts),
-    prospectDepartments: mapToSortedArray(prospectCounts.departments),
-    prospectLevels: mapToSortedArray(prospectCounts.levels),
-    prospectCities: mapToSortedArray(prospectCounts.cities),
+    accountHqCountryValues: mapToSortedArray(accountCounts.countries),
+    accountHqIndustryValues: mapToSortedArray(accountCounts.industries),
+    accountDataCoverageValues: mapToSortedArray(accountCounts.dataCoverage),
+    accountSourceValues: mapToSortedArray(accountCounts.sources),
+    accountPrimaryCategoryValues: mapToSortedArray(accountCounts.primaryCategories),
+    accountPrimaryNatureValues: mapToSortedArray(accountCounts.primaryNatures),
+    accountNasscomStatusValues: mapToSortedArray(accountCounts.nasscomStatuses),
+    accountHqEmployeeRangeValues: mapToSortedArray(accountCounts.employeesRanges),
+    accountCenterEmployeesRangeValues: mapToSortedArray(accountCounts.centerEmployeesRangeValues),
+    centerTypeValues: mapToSortedArray(centerCounts.types),
+    centerFocusValues: mapToSortedArray(centerCounts.focus),
+    centerCityValues: mapToSortedArray(centerCounts.cities),
+    centerStateValues: mapToSortedArray(centerCounts.states),
+    centerCountryValues: mapToSortedArray(centerCounts.countries),
+    centerEmployeesRangeValues: mapToSortedArray(centerCounts.employees),
+    centerStatusValues: mapToSortedArray(centerCounts.statuses),
+    functionNameValues: mapToSortedArray(functionCounts),
+    prospectDepartmentValues: mapToSortedArray(prospectCounts.departments),
+    prospectLevelValues: mapToSortedArray(prospectCounts.levels),
+    prospectCityValues: mapToSortedArray(prospectCounts.cities),
   }
 }

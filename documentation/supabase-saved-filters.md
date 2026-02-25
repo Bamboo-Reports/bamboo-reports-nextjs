@@ -47,46 +47,50 @@ The `filters` column stores the **Application State**, not the Database Schema. 
 
 **Interface (TypeScript):**
 ```typescript
+interface FilterValue {
+  value: string;
+  mode: "include" | "exclude";
+}
+
 interface Filters {
   // Accounts
-  accountCountries: string[];
-  accountIndustries: string[];
-  accountDataCoverage: string[];
-  accountSources: string[];
-  accountPrimaryCategories: string[];
-  accountPrimaryNatures: string[];
-  accountNasscomStatuses: string[];
-  accountEmployeesRanges: string[];
-  accountCenterEmployees: string[];
-  accountRevenueRange: [number, number]; // e.g., [0, 1000000]
-  includeNullRevenue: boolean;
+  accountHqCountryValues: FilterValue[];
+  accountHqIndustryValues: FilterValue[];
+  accountDataCoverageValues: FilterValue[];
+  accountSourceValues: FilterValue[];
+  accountPrimaryCategoryValues: FilterValue[];
+  accountPrimaryNatureValues: FilterValue[];
+  accountNasscomStatusValues: FilterValue[];
+  accountHqEmployeeRangeValues: FilterValue[];
+  accountCenterEmployeesRangeValues: FilterValue[];
+  accountHqRevenueRange: [number, number]; // e.g., [0, 1000000]
+  accountHqRevenueIncludeNull: boolean;
   accountYearsInIndiaRange: [number, number];
-  includeNullYearsInIndia: boolean;
-  accountNameKeywords: string[];
+  yearsInIndiaIncludeNull: boolean;
+  accountGlobalLegalNameKeywords: FilterValue[];
 
   // Centers
-  centerTypes: string[];
-  centerFocus: string[];
-  centerCities: string[];
-  centerStates: string[];
-  centerCountries: string[];
-  centerEmployees: string[];
-  centerStatuses: string[];
+  centerTypeValues: FilterValue[];
+  centerFocusValues: FilterValue[];
+  centerCityValues: FilterValue[];
+  centerStateValues: FilterValue[];
+  centerCountryValues: FilterValue[];
+  centerEmployeesRangeValues: FilterValue[];
+  centerStatusValues: FilterValue[];
   centerIncYearRange: [number, number];
-  includeNullCenterIncYear: boolean;
+  centerIncYearIncludeNull: boolean;
   
   // Functions
-  functionTypes: string[];
+  functionNameValues: FilterValue[];
+  techSoftwareInUseKeywords: FilterValue[];
   
   // Prospects
-  prospectDepartments: string[];
-  prospectLevels: string[];
-  prospectCities: string[];
-  prospectTitleKeywords: string[];
+  prospectDepartmentValues: FilterValue[];
+  prospectLevelValues: FilterValue[];
+  prospectCityValues: FilterValue[];
+  prospectTitleKeywords: FilterValue[];
 }
 ```
-
-> **Migration Note:** If the frontend filter keys change (e.g., renaming `accountCountries` to `countries`), existing JSON blobs in this table will remain in the old format. The application logic (`withFilterDefaults` in `lib/dashboard/filter-summary.ts`) MUST handle parsing and normalizing these legacy keys to prevent crashes.
 
 ---
 
@@ -143,7 +147,7 @@ for each row execute function public.set_updated_at();
 
 ### 4.2 Application Integration
 - **Saving:** The frontend serializes the entire `filters` state object to JSON and sends it to Supabase.
-- **Loading:** The frontend fetches the JSON, parses it, and runs it through a normalization function (`withFilterDefaults`) to ensure all required keys exist, filling in defaults for any missing fields (crucial for backward compatibility).
+- **Loading:** The frontend fetches the JSON, parses it, and runs it through `withFilterDefaults` to ensure required keys and range defaults are present.
 
 
 
