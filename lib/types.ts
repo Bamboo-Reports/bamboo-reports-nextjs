@@ -1,20 +1,38 @@
 export interface Account {
+  uuid?: string | null
+  account_last_update_date?: string | null
   account_nasscom_status: string | null
+  account_nasscom_member_status?: string | null
+  account_data_coverage?: string | null
+  account_source?: string | null
+  account_type?: string | null
   account_global_legal_name: string
   account_hq_company_type?: string | null
   account_about?: string | null
   account_hq_key_offerings?: string | null
+  account_key_offerings_source_link?: string | null
+  account_hq_address?: string | null
   account_hq_city?: string | null
+  account_hq_state?: string | null
+  account_hq_zip_code?: string | null
   account_hq_country: string | null
   account_hq_region: string | null
+  account_hq_boardline?: string | null
   account_hq_sub_industry?: string | null
   account_hq_industry?: string | null
+  account_hq_linkedin_link?: string | null
   account_primary_category?: string | null
   account_primary_nature?: string | null
   account_hq_revenue?: number | null
   account_hq_revenue_range?: string | null
+  account_hq_fy_end?: string | null
+  account_hq_revenue_year?: number | null
+  account_hq_revenue_source_type?: string | null
+  account_hq_revenue_source_link?: string | null
   account_hq_employee_count?: number | null
   account_hq_employee_range?: string | null
+  account_hq_employee_source_type?: string | null
+  account_hq_employee_source_link?: string | null
   account_hq_forbes_2000_rank?: number | null
   account_hq_fortune_500_rank?: number | null
   account_first_center_year?: number | null
@@ -27,19 +45,40 @@ export interface Account {
 }
 
 export interface Center {
+  uuid?: string | null
+  last_update_date?: string | null
   account_global_legal_name: string
   cn_unique_key: string
   center_status: string | null
   center_inc_year?: number | null
+  announced_year?: number | null
+  announced_month?: string | null
+  center_inc_year_notes?: string | null
+  center_inc_year_updated_link?: string | null
+  center_timeline?: string | null
+  center_end_year?: number | null
   center_name: string | null
+  center_management_partner?: string | null
+  center_jv_status?: string | null
+  center_jv_name?: string | null
   center_type: string | null
   center_focus: string | null
+  center_source_link?: string | null
+  center_website?: string | null
+  center_linkedin?: string | null
+  center_address?: string | null
   center_city: string | null
   center_state: string | null
+  center_zip_code?: string | null
   center_country: string | null
   center_country_iso2?: string | null
+  center_region?: string | null
   center_employees?: number | null
   center_employees_range?: string | null
+  center_employees_range_source_link?: string | null
+  center_services?: string | null
+  center_first_year?: number | null
+  center_comments?: string | null
   center_business_segment?: string | null
   center_business_sub_segment?: string | null
   center_boardline?: string | null
@@ -49,11 +88,14 @@ export interface Center {
 }
 
 export interface Function {
+  uuid?: string | null
   cn_unique_key: string
   function_name: string
 }
 
 export interface Service {
+  uuid?: string | null
+  last_update_date?: string | null
   cn_unique_key: string
   center_name: string | null
   center_type: string | null
@@ -75,6 +117,7 @@ export interface Service {
 }
 
 export interface Tech {
+  uuid?: string | null
   account_global_legal_name: string | null
   cn_unique_key: string | null
   software_in_use: string | null
@@ -83,6 +126,8 @@ export interface Tech {
 }
 
 export interface Prospect {
+  uuid?: string | null
+  last_update_date?: string | null
   account_global_legal_name: string
   center_name: string | null
   prospect_full_name?: string | null
