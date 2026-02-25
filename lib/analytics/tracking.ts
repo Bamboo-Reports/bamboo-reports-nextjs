@@ -61,6 +61,8 @@ export const buildTrackedFiltersSnapshot = (
 
   pushIfActive("accountCountries", filters.accountCountries.length > 0)
   pushIfActive("accountIndustries", filters.accountIndustries.length > 0)
+  pushIfActive("accountDataCoverage", filters.accountDataCoverage.length > 0)
+  pushIfActive("accountSources", filters.accountSources.length > 0)
   pushIfActive("accountPrimaryCategories", filters.accountPrimaryCategories.length > 0)
   pushIfActive("accountPrimaryNatures", filters.accountPrimaryNatures.length > 0)
   pushIfActive("accountNasscomStatuses", filters.accountNasscomStatuses.length > 0)
@@ -107,6 +109,8 @@ export const buildTrackedFiltersSnapshot = (
     active_filter_keys: activeFilterKeys,
     account_countries: toTrackedFilterValueArray(filters.accountCountries),
     account_industries: toTrackedFilterValueArray(filters.accountIndustries),
+    account_data_coverage: toTrackedFilterValueArray(filters.accountDataCoverage),
+    account_sources: toTrackedFilterValueArray(filters.accountSources),
     account_primary_categories: toTrackedFilterValueArray(filters.accountPrimaryCategories),
     account_primary_natures: toTrackedFilterValueArray(filters.accountPrimaryNatures),
     account_nasscom_statuses: toTrackedFilterValueArray(filters.accountNasscomStatuses),

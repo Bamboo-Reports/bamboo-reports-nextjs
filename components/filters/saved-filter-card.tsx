@@ -101,6 +101,8 @@ export const SavedFilterCard = memo(({
             {renderFilterValues(filter.filters.accountNameKeywords, "Account Name")}
             {renderFilterValues(filter.filters.accountCountries, "Country")}
             {renderFilterValues(filter.filters.accountIndustries, "Industry")}
+            {renderFilterValues(filter.filters.accountDataCoverage, "Data Coverage")}
+            {renderFilterValues(filter.filters.accountSources, "Account Source")}
             {renderFilterValues(filter.filters.accountPrimaryCategories, "Category")}
             {renderFilterValues(filter.filters.accountPrimaryNatures, "Nature")}
             {renderFilterValues(filter.filters.accountNasscomStatuses, "NASSCOM")}

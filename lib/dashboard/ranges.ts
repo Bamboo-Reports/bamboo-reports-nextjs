@@ -22,10 +22,6 @@ export function calculateBaseRanges(accounts: Account[], centers: Center[]) {
     accounts.map((account) => Number(account.years_in_india ?? 0))
   )
 
-  const firstCenterYearRange = getMinMaxRange(
-    accounts.map((account) => Number(account.account_first_center_year ?? 0))
-  )
-
   const centerIncYearRange = getMinMaxRange(
     centers.map((center) => Number(center.center_inc_year ?? 0))
   )
@@ -33,7 +29,6 @@ export function calculateBaseRanges(accounts: Account[], centers: Center[]) {
   return {
     revenueRange,
     yearsInIndiaRange,
-    firstCenterYearRange,
     centerIncYearRange,
   }
 }

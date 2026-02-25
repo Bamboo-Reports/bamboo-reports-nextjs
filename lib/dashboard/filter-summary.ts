@@ -2,7 +2,6 @@ import type { Filters } from "@/lib/types"
 import {
   createDefaultFilters,
   DEFAULT_CENTER_INC_YEAR_RANGE,
-  DEFAULT_FIRST_CENTER_YEAR_RANGE,
   DEFAULT_REVENUE_RANGE,
   DEFAULT_YEARS_IN_INDIA_RANGE,
 } from "@/lib/dashboard/defaults"
@@ -24,7 +23,6 @@ export function withFilterDefaults(filters: Partial<Filters> | null | undefined)
     ...filters,
     accountRevenueRange: coerceRange(filters?.accountRevenueRange, DEFAULT_REVENUE_RANGE),
     accountYearsInIndiaRange: coerceRange(filters?.accountYearsInIndiaRange, DEFAULT_YEARS_IN_INDIA_RANGE),
-    accountFirstCenterYearRange: coerceRange(filters?.accountFirstCenterYearRange, DEFAULT_FIRST_CENTER_YEAR_RANGE),
     centerIncYearRange: coerceRange(filters?.centerIncYearRange, DEFAULT_CENTER_INC_YEAR_RANGE),
   }
 }
@@ -42,6 +40,8 @@ export function calculateActiveFilters(filters: Filters) {
   return (
     filters.accountCountries.length +
     filters.accountIndustries.length +
+    filters.accountDataCoverage.length +
+    filters.accountSources.length +
     filters.accountPrimaryCategories.length +
     filters.accountPrimaryNatures.length +
     filters.accountNasscomStatuses.length +

@@ -51,6 +51,8 @@ interface Filters {
   // Accounts
   accountCountries: string[];
   accountIndustries: string[];
+  accountDataCoverage: string[];
+  accountSources: string[];
   accountPrimaryCategories: string[];
   accountPrimaryNatures: string[];
   accountNasscomStatuses: string[];
@@ -60,8 +62,6 @@ interface Filters {
   includeNullRevenue: boolean;
   accountYearsInIndiaRange: [number, number];
   includeNullYearsInIndia: boolean;
-  accountFirstCenterYearRange: [number, number];
-  includeNullFirstCenterYear: boolean;
   accountNameKeywords: string[];
 
   // Centers
