@@ -288,6 +288,34 @@ export function AccountFiltersSection({
             />
           </div>
           <div className="space-y-2">
+            <Label className="text-xs font-medium">Data Coverage</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.accountDataCoverage}
+              selected={pendingFilters.accountDataCoverage}
+              trackingKey="accountDataCoverage"
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, accountDataCoverage: selected }))
+                setActiveFilter("accountDataCoverage")
+              }}
+              placeholder="Select data coverage..."
+              isApplying={isApplying && activeFilter === "accountDataCoverage"}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Account Source</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.accountSources}
+              selected={pendingFilters.accountSources}
+              trackingKey="accountSources"
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, accountSources: selected }))
+                setActiveFilter("accountSources")
+              }}
+              placeholder="Select account source..."
+              isApplying={isApplying && activeFilter === "accountSources"}
+            />
+          </div>
+          <div className="space-y-2">
             <Label className="text-xs font-medium">NASSCOM Status</Label>
             <EnhancedMultiSelect
               options={availableOptions.accountNasscomStatuses}

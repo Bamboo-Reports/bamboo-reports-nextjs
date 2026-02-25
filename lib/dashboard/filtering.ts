@@ -24,6 +24,8 @@ export type RevenueRangeFilterState = Pick<
   Filters,
   | "accountCountries"
   | "accountIndustries"
+  | "accountDataCoverage"
+  | "accountSources"
   | "accountPrimaryCategories"
   | "accountPrimaryNatures"
   | "accountNasscomStatuses"
@@ -37,6 +39,8 @@ type AvailableOptionsFilterState = Pick<
   Filters,
   | "accountCountries"
   | "accountIndustries"
+  | "accountDataCoverage"
+  | "accountSources"
   | "accountPrimaryCategories"
   | "accountPrimaryNatures"
   | "accountNasscomStatuses"
@@ -118,6 +122,8 @@ export function getFilteredData(
 ): FilteredData {
   const matchAccountCountry = createValueMatcher(filters.accountCountries)
   const matchAccountIndustry = createValueMatcher(filters.accountIndustries)
+  const matchAccountDataCoverage = createValueMatcher(filters.accountDataCoverage)
+  const matchAccountSource = createValueMatcher(filters.accountSources)
   const matchAccountPrimaryCategory = createValueMatcher(filters.accountPrimaryCategories)
   const matchAccountPrimaryNature = createValueMatcher(filters.accountPrimaryNatures)
   const matchAccountNasscom = createValueMatcher(filters.accountNasscomStatuses)
@@ -150,6 +156,8 @@ export function getFilteredData(
   const hasAccountFilters =
     filters.accountCountries.length > 0 ||
     filters.accountIndustries.length > 0 ||
+    filters.accountDataCoverage.length > 0 ||
+    filters.accountSources.length > 0 ||
     filters.accountPrimaryCategories.length > 0 ||
     filters.accountPrimaryNatures.length > 0 ||
     filters.accountNasscomStatuses.length > 0 ||
@@ -185,6 +193,8 @@ export function getFilteredData(
   for (const account of accounts) {
     if (!matchAccountCountry(account.account_hq_country)) continue
     if (!matchAccountIndustry(account.account_hq_industry)) continue
+    if (!matchAccountDataCoverage(account.account_data_coverage)) continue
+    if (!matchAccountSource(account.account_source)) continue
     if (!matchAccountPrimaryCategory(account.account_primary_category)) continue
     if (!matchAccountPrimaryNature(account.account_primary_nature)) continue
     if (!matchAccountNasscom(account.account_nasscom_status)) continue
@@ -295,6 +305,8 @@ export function getFilteredData(
 export function getDynamicRevenueRange(accounts: Account[], filters: RevenueRangeFilterState) {
   const matchCountry = createValueMatcher(filters.accountCountries)
   const matchIndustry = createValueMatcher(filters.accountIndustries)
+  const matchDataCoverage = createValueMatcher(filters.accountDataCoverage)
+  const matchSource = createValueMatcher(filters.accountSources)
   const matchPrimaryCategory = createValueMatcher(filters.accountPrimaryCategories)
   const matchPrimaryNature = createValueMatcher(filters.accountPrimaryNatures)
   const matchNasscom = createValueMatcher(filters.accountNasscomStatuses)
@@ -307,6 +319,8 @@ export function getDynamicRevenueRange(accounts: Account[], filters: RevenueRang
     return (
       matchCountry(account.account_hq_country) &&
       matchIndustry(account.account_hq_industry) &&
+      matchDataCoverage(account.account_data_coverage) &&
+      matchSource(account.account_source) &&
       matchPrimaryCategory(account.account_primary_category) &&
       matchPrimaryNature(account.account_primary_nature) &&
       matchNasscom(account.account_nasscom_status) &&
@@ -340,6 +354,8 @@ export function getAvailableOptions(
 ): AvailableOptions {
   const matchAccountCountry = createValueMatcher(filters.accountCountries)
   const matchAccountIndustry = createValueMatcher(filters.accountIndustries)
+  const matchAccountDataCoverage = createValueMatcher(filters.accountDataCoverage)
+  const matchAccountSource = createValueMatcher(filters.accountSources)
   const matchAccountPrimaryCategory = createValueMatcher(filters.accountPrimaryCategories)
   const matchAccountPrimaryNature = createValueMatcher(filters.accountPrimaryNatures)
   const matchAccountNasscom = createValueMatcher(filters.accountNasscomStatuses)
@@ -367,6 +383,8 @@ export function getAvailableOptions(
   const accountCounts = {
     countries: new Map<string, number>(),
     industries: new Map<string, number>(),
+    dataCoverage: new Map<string, number>(),
+    sources: new Map<string, number>(),
     primaryCategories: new Map<string, number>(),
     primaryNatures: new Map<string, number>(),
     nasscomStatuses: new Map<string, number>(),
@@ -394,6 +412,8 @@ export function getAvailableOptions(
 
     const country = account.account_hq_country
     const industry = account.account_hq_industry
+    const dataCoverage = account.account_data_coverage
+    const source = account.account_source
     const category = account.account_primary_category
     const nature = account.account_primary_nature
     const nasscom = account.account_nasscom_status
@@ -402,6 +422,8 @@ export function getAvailableOptions(
 
     const matchesCountry = matchAccountCountry(country)
     const matchesIndustry = matchAccountIndustry(industry)
+    const matchesDataCoverage = matchAccountDataCoverage(dataCoverage)
+    const matchesSource = matchAccountSource(source)
     const matchesCategory = matchAccountPrimaryCategory(category)
     const matchesNature = matchAccountPrimaryNature(nature)
     const matchesNasscom = matchAccountNasscom(nasscom)
@@ -410,6 +432,8 @@ export function getAvailableOptions(
 
     if (
       matchesIndustry &&
+      matchesDataCoverage &&
+      matchesSource &&
       matchesCategory &&
       matchesNature &&
       matchesNasscom &&
@@ -420,6 +444,8 @@ export function getAvailableOptions(
     }
     if (
       matchesCountry &&
+      matchesDataCoverage &&
+      matchesSource &&
       matchesCategory &&
       matchesNature &&
       matchesNasscom &&
@@ -431,6 +457,32 @@ export function getAvailableOptions(
     if (
       matchesCountry &&
       matchesIndustry &&
+      matchesSource &&
+      matchesCategory &&
+      matchesNature &&
+      matchesNasscom &&
+      matchesEmpRange &&
+      matchesCenterEmp
+    ) {
+      accountCounts.dataCoverage.set(dataCoverage, (accountCounts.dataCoverage.get(dataCoverage) || 0) + 1)
+    }
+    if (
+      matchesCountry &&
+      matchesIndustry &&
+      matchesDataCoverage &&
+      matchesCategory &&
+      matchesNature &&
+      matchesNasscom &&
+      matchesEmpRange &&
+      matchesCenterEmp
+    ) {
+      accountCounts.sources.set(source, (accountCounts.sources.get(source) || 0) + 1)
+    }
+    if (
+      matchesCountry &&
+      matchesIndustry &&
+      matchesDataCoverage &&
+      matchesSource &&
       matchesNature &&
       matchesNasscom &&
       matchesEmpRange &&
@@ -441,6 +493,8 @@ export function getAvailableOptions(
     if (
       matchesCountry &&
       matchesIndustry &&
+      matchesDataCoverage &&
+      matchesSource &&
       matchesCategory &&
       matchesNasscom &&
       matchesEmpRange &&
@@ -451,6 +505,8 @@ export function getAvailableOptions(
     if (
       matchesCountry &&
       matchesIndustry &&
+      matchesDataCoverage &&
+      matchesSource &&
       matchesCategory &&
       matchesNature &&
       matchesEmpRange &&
@@ -461,6 +517,8 @@ export function getAvailableOptions(
     if (
       matchesCountry &&
       matchesIndustry &&
+      matchesDataCoverage &&
+      matchesSource &&
       matchesCategory &&
       matchesNature &&
       matchesNasscom &&
@@ -471,6 +529,8 @@ export function getAvailableOptions(
     if (
       matchesCountry &&
       matchesIndustry &&
+      matchesDataCoverage &&
+      matchesSource &&
       matchesCategory &&
       matchesNature &&
       matchesNasscom &&
@@ -478,10 +538,12 @@ export function getAvailableOptions(
     ) {
       accountCounts.centerEmployees.set(centerEmp, (accountCounts.centerEmployees.get(centerEmp) || 0) + 1)
     }
-
+    
     if (
       matchesCountry &&
       matchesIndustry &&
+      matchesDataCoverage &&
+      matchesSource &&
       matchesCategory &&
       matchesNature &&
       matchesNasscom &&
@@ -611,6 +673,8 @@ export function getAvailableOptions(
   return {
     accountCountries: mapToSortedArray(accountCounts.countries),
     accountIndustries: mapToSortedArray(accountCounts.industries),
+    accountDataCoverage: mapToSortedArray(accountCounts.dataCoverage),
+    accountSources: mapToSortedArray(accountCounts.sources),
     accountPrimaryCategories: mapToSortedArray(accountCounts.primaryCategories),
     accountPrimaryNatures: mapToSortedArray(accountCounts.primaryNatures),
     accountNasscomStatuses: mapToSortedArray(accountCounts.nasscomStatuses),

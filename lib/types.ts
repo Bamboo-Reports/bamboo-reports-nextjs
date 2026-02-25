@@ -160,6 +160,8 @@ export interface FilterValue {
 export interface Filters {
   accountCountries: FilterValue[]
   accountIndustries: FilterValue[]
+  accountDataCoverage: FilterValue[]
+  accountSources: FilterValue[]
   accountPrimaryCategories: FilterValue[]
   accountPrimaryNatures: FilterValue[]
   accountNasscomStatuses: FilterValue[]
@@ -169,8 +171,6 @@ export interface Filters {
   includeNullRevenue: boolean
   accountYearsInIndiaRange: [number, number]
   includeNullYearsInIndia: boolean
-  accountFirstCenterYearRange: [number, number]
-  includeNullFirstCenterYear: boolean
   accountNameKeywords: FilterValue[]
   centerTypes: FilterValue[]
   centerFocus: FilterValue[]
@@ -198,6 +198,8 @@ export interface FilterOption {
 export interface AvailableOptions {
   accountCountries: FilterOption[]
   accountIndustries: FilterOption[]
+  accountDataCoverage: FilterOption[]
+  accountSources: FilterOption[]
   accountPrimaryCategories: FilterOption[]
   accountPrimaryNatures: FilterOption[]
   accountNasscomStatuses: FilterOption[]

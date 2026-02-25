@@ -61,7 +61,6 @@ export function useDashboardFilters({
 
   const [revenueRange, setRevenueRange] = useState(baseRanges.revenueRange)
   const [yearsInIndiaRange, setYearsInIndiaRange] = useState(baseRanges.yearsInIndiaRange)
-  const [firstCenterYearRange, setFirstCenterYearRange] = useState(baseRanges.firstCenterYearRange)
   const [centerIncYearRange, setCenterIncYearRange] = useState(baseRanges.centerIncYearRange)
 
   const isRevenueRangeAutoRef = useRef(true)
@@ -72,22 +71,16 @@ export function useDashboardFilters({
     isRevenueRangeAutoRef.current = true
     setRevenueRange(baseRanges.revenueRange)
     setYearsInIndiaRange(baseRanges.yearsInIndiaRange)
-    setFirstCenterYearRange(baseRanges.firstCenterYearRange)
     setCenterIncYearRange(baseRanges.centerIncYearRange)
 
     const baseRevenue: [number, number] = [baseRanges.revenueRange.min, baseRanges.revenueRange.max]
     const baseYears: [number, number] = [baseRanges.yearsInIndiaRange.min, baseRanges.yearsInIndiaRange.max]
-    const baseFirstCenter: [number, number] = [
-      baseRanges.firstCenterYearRange.min,
-      baseRanges.firstCenterYearRange.max,
-    ]
     const baseCenterInc: [number, number] = [baseRanges.centerIncYearRange.min, baseRanges.centerIncYearRange.max]
 
     setFilters((prev) => ({
       ...prev,
       accountRevenueRange: baseRevenue,
       accountYearsInIndiaRange: baseYears,
-      accountFirstCenterYearRange: baseFirstCenter,
       centerIncYearRange: baseCenterInc,
     }))
 
@@ -95,7 +88,6 @@ export function useDashboardFilters({
       ...prev,
       accountRevenueRange: baseRevenue,
       accountYearsInIndiaRange: baseYears,
-      accountFirstCenterYearRange: baseFirstCenter,
       centerIncYearRange: baseCenterInc,
     }))
   }, [baseRanges])
@@ -132,6 +124,8 @@ export function useDashboardFilters({
     () => ({
       accountCountries: filters.accountCountries,
       accountIndustries: filters.accountIndustries,
+      accountDataCoverage: filters.accountDataCoverage,
+      accountSources: filters.accountSources,
       accountPrimaryCategories: filters.accountPrimaryCategories,
       accountPrimaryNatures: filters.accountPrimaryNatures,
       accountNasscomStatuses: filters.accountNasscomStatuses,
@@ -143,6 +137,8 @@ export function useDashboardFilters({
     [
       filters.accountCountries,
       filters.accountIndustries,
+      filters.accountDataCoverage,
+      filters.accountSources,
       filters.accountPrimaryCategories,
       filters.accountPrimaryNatures,
       filters.accountNasscomStatuses,
@@ -194,6 +190,8 @@ export function useDashboardFilters({
     () => ({
       accountCountries: filters.accountCountries,
       accountIndustries: filters.accountIndustries,
+      accountDataCoverage: filters.accountDataCoverage,
+      accountSources: filters.accountSources,
       accountPrimaryCategories: filters.accountPrimaryCategories,
       accountPrimaryNatures: filters.accountPrimaryNatures,
       accountNasscomStatuses: filters.accountNasscomStatuses,
@@ -232,6 +230,8 @@ export function useDashboardFilters({
       return (
         sourceFilters.accountCountries.length +
         sourceFilters.accountIndustries.length +
+        sourceFilters.accountDataCoverage.length +
+        sourceFilters.accountSources.length +
         sourceFilters.accountPrimaryCategories.length +
         sourceFilters.accountPrimaryNatures.length +
         sourceFilters.accountNasscomStatuses.length +
@@ -276,7 +276,6 @@ export function useDashboardFilters({
     const emptyFilters = createDefaultFilters({
       accountRevenueRange: [baseRanges.revenueRange.min, baseRanges.revenueRange.max],
       accountYearsInIndiaRange: [baseRanges.yearsInIndiaRange.min, baseRanges.yearsInIndiaRange.max],
-      accountFirstCenterYearRange: [baseRanges.firstCenterYearRange.min, baseRanges.firstCenterYearRange.max],
       centerIncYearRange: [baseRanges.centerIncYearRange.min, baseRanges.centerIncYearRange.max],
     })
 
@@ -369,43 +368,6 @@ export function useDashboardFilters({
     setPendingFilters((prev) => ({
       ...prev,
       accountYearsInIndiaRange: value,
-    }))
-  }, [])
-
-  const handleMinFirstCenterYearChange = useCallback(
-    (value: string) => {
-      const numValue = Number.parseFloat(value) || firstCenterYearRange.min
-      const clampedValue = Math.max(
-        firstCenterYearRange.min,
-        Math.min(numValue, pendingFilters.accountFirstCenterYearRange[1])
-      )
-      setPendingFilters((prev) => ({
-        ...prev,
-        accountFirstCenterYearRange: [clampedValue, prev.accountFirstCenterYearRange[1]],
-      }))
-    },
-    [pendingFilters.accountFirstCenterYearRange, firstCenterYearRange]
-  )
-
-  const handleMaxFirstCenterYearChange = useCallback(
-    (value: string) => {
-      const numValue = Number.parseFloat(value) || firstCenterYearRange.max
-      const clampedValue = Math.min(
-        firstCenterYearRange.max,
-        Math.max(numValue, pendingFilters.accountFirstCenterYearRange[0])
-      )
-      setPendingFilters((prev) => ({
-        ...prev,
-        accountFirstCenterYearRange: [prev.accountFirstCenterYearRange[0], clampedValue],
-      }))
-    },
-    [pendingFilters.accountFirstCenterYearRange, firstCenterYearRange]
-  )
-
-  const handleFirstCenterYearRangeChange = useCallback((value: [number, number]) => {
-    setPendingFilters((prev) => ({
-      ...prev,
-      accountFirstCenterYearRange: value,
     }))
   }, [])
 
@@ -601,7 +563,6 @@ export function useDashboardFilters({
     isApplying,
     revenueRange,
     yearsInIndiaRange,
-    firstCenterYearRange,
     centerIncYearRange,
     accountNames,
     availableOptions,
@@ -617,9 +578,6 @@ export function useDashboardFilters({
     handleMinYearsInIndiaChange,
     handleMaxYearsInIndiaChange,
     handleYearsInIndiaRangeChange,
-    handleMinFirstCenterYearChange,
-    handleMaxFirstCenterYearChange,
-    handleFirstCenterYearRangeChange,
     handleMinCenterIncYearChange,
     handleMaxCenterIncYearChange,
     handleCenterIncYearRangeChange,
