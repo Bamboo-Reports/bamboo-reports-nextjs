@@ -209,8 +209,9 @@ The app delegates identity management to **Supabase Auth**.
 -   **Sign Up/Login:** Standard Email/Password flow.
 -   **Session Persistence:** Handled via HTTP-only cookies (Next.js Middleware).
 -   **User Data:**
-    -   **`public.profiles`**: Stores user metadata (First Name, Last Name, Role).
+    -   **`public.profiles`**: Stores user metadata (First Name, Last Name, Role: `viewer` or `admin`).
     -   **`public.saved_filters`**: Stores JSON blobs of user's filter configurations.
+    -   **Export Access:** Only `admin` users can export data.
 -   **Security:** Row Level Security (RLS) ensures full data isolation between users.
 
 > **Setup Guide:** Follow the [Supabase Auth Setup](documentation/supabase-auth-setup.md) guide to initialize your Supabase project tables.
