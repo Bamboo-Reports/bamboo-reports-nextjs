@@ -40,7 +40,6 @@ function DashboardContent(): JSX.Element | null {
     connectionStatus,
     databaseStatus,
     loadData,
-    handleClearCache,
   } = useDashboardData({ enabled: authReady && !!userId })
 
   const {
@@ -463,11 +462,6 @@ function DashboardContent(): JSX.Element | null {
     loadData()
   }, [loadData])
 
-  const handleErrorClearCache = useCallback(() => {
-    captureEvent(ANALYTICS_EVENTS.ERROR_CLEAR_CACHE_CLICKED)
-    handleClearCache()
-  }, [handleClearCache])
-
   const handleExportAll = useCallback(() => {
     setExportDialogOpen(true)
   }, [])
@@ -498,7 +492,6 @@ function DashboardContent(): JSX.Element | null {
         error={error}
         dbStatus={databaseStatus}
         onRetry={handleErrorRetry}
-        onClearCache={handleErrorClearCache}
       />
     )
   }

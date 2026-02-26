@@ -6,8 +6,6 @@ interface DatabaseStatus {
   hasConnection: boolean
   urlLength: number
   environment: string
-  cacheSize: number
-  cacheKeys: string[]
   error?: string
 }
 

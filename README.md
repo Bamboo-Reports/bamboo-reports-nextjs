@@ -89,7 +89,7 @@ graph TD
 ### Data Fetching Strategy
 1.  **Initial Load:** `Promise.all` fetches metadata (Filters, Counts) and initial page data concurrently.
 2.  **Filtering:** User actions trigger Server Actions (`app/actions.ts`) which construct dynamic SQL queries.
-3.  **Caching:** In-memory `Map` cache (5-minute TTL) prevents redundant DB hits for static reference data (Countries, Industries).
+3.  **Runtime Behavior on Vercel:** No custom in-memory cross-request cache is used; server actions fetch fresh data with retry logic.
 
 ---
 

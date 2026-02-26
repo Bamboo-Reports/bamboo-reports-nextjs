@@ -9,8 +9,6 @@ interface DatabaseStatus {
   hasConnection: boolean
   urlLength: number
   environment: string
-  cacheSize: number
-  cacheKeys: string[]
   error?: string
 }
 
@@ -18,10 +16,9 @@ interface ErrorStateProps {
   error: string
   dbStatus?: DatabaseStatus | null
   onRetry: () => void
-  onClearCache: () => void
 }
 
-export function ErrorState({ error, dbStatus, onRetry, onClearCache }: ErrorStateProps) {
+export function ErrorState({ error, dbStatus, onRetry }: ErrorStateProps) {
   const isUrlMissing = dbStatus && !dbStatus.hasUrl
 
   return (
@@ -161,10 +158,6 @@ export function ErrorState({ error, dbStatus, onRetry, onClearCache }: ErrorStat
               <Button onClick={onRetry} className="flex items-center gap-2">
                 <RefreshCw className="h-4 w-4" />
                 Retry Connection
-              </Button>
-              <Button onClick={onClearCache} variant="outline" className="flex items-center gap-2">
-                <Database className="h-4 w-4" />
-                Clear Cache
               </Button>
             </div>
           </div>

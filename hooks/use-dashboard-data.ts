@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { getAllData, testConnection, getDatabaseStatus, clearCache } from "@/app/actions"
+import { getAllData, testConnection, getDatabaseStatus } from "@/app/actions"
 import { captureEvent } from "@/lib/analytics/client"
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import type { Account, Center, Function, Service, Tech, Prospect } from "@/lib/types"
@@ -13,8 +13,6 @@ interface DatabaseStatus {
   hasConnection: boolean
   urlLength: number
   environment: string
-  cacheSize: number
-  cacheKeys: string[]
   error?: string
 }
 
@@ -175,17 +173,6 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
     }
   }, [checkDatabaseStatus, testDatabaseConnection])
 
-  const handleClearCache = useCallback(async () => {
-    try {
-      setConnectionStatus("Clearing cache...")
-      await clearCache()
-      await loadData()
-    } catch (err) {
-      console.error("Error clearing cache:", err)
-      setError("Failed to clear cache")
-    }
-  }, [loadData])
-
   useEffect(() => {
     if (!enabled) return
     loadData()
@@ -203,6 +190,5 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
     connectionStatus,
     databaseStatus,
     loadData,
-    handleClearCache,
   }
 }

@@ -1,7 +1,6 @@
 "use server"
 
 import { getSqlOrThrow, fetchWithRetry } from "@/lib/db/connection"
-import { getCachedData, setCachedData, invalidateCache } from "@/lib/db/cache"
 
 // ============================================
 // TYPESCRIPT INTERFACES
@@ -32,17 +31,14 @@ export async function saveFilterSet(
     const sqlClient = getSqlOrThrow()
 
     console.log("Saving filter set:", name)
-    const result = await fetchWithRetry(
+    const result = (await fetchWithRetry(
       () => sqlClient`
         INSERT INTO saved_filters (name, filters)
         VALUES (${name}, ${JSON.stringify(filters)})
         RETURNING id, name, created_at
       `
-    )
+    )) as unknown[]
     console.log("Successfully saved filter set:", result[0])
-
-    // Invalidate saved filters cache
-    invalidateCache("saved_filters")
 
     return { success: true, data: result[0] }
   } catch (error) {
@@ -55,23 +51,15 @@ export async function getSavedFilters(): Promise<FilterSet[]> {
   try {
     const sqlClient = getSqlOrThrow()
 
-    // Check cache first
-    const cacheKey = "saved_filters"
-    const cached = getCachedData<FilterSet[]>(cacheKey)
-    if (cached) return cached
-
     console.log("Fetching saved filters...")
-    const savedFilters = await fetchWithRetry(
+    const savedFilters = (await fetchWithRetry(
       () => sqlClient`
         SELECT id, name, filters, created_at, updated_at 
         FROM saved_filters 
         ORDER BY created_at DESC
       `
-    )
+    )) as FilterSet[]
     console.log(`Successfully fetched ${savedFilters.length} saved filters`)
-
-    // Cache the result
-    setCachedData(cacheKey, savedFilters)
 
     return savedFilters
   } catch (error) {
@@ -87,17 +75,14 @@ export async function deleteSavedFilter(
     const sqlClient = getSqlOrThrow()
 
     console.log("Deleting saved filter:", id)
-    const result = await fetchWithRetry(
+    const result = (await fetchWithRetry(
       () => sqlClient`
         DELETE FROM saved_filters 
         WHERE id = ${id}
         RETURNING id, name
       `
-    )
+    )) as unknown[]
     console.log("Successfully deleted filter set:", result[0])
-
-    // Invalidate saved filters cache
-    invalidateCache("saved_filters")
 
     return { success: true, data: result[0] }
   } catch (error) {
@@ -115,18 +100,15 @@ export async function updateSavedFilter(
     const sqlClient = getSqlOrThrow()
 
     console.log("Updating saved filter:", id, name)
-    const result = await fetchWithRetry(
+    const result = (await fetchWithRetry(
       () => sqlClient`
         UPDATE saved_filters 
         SET name = ${name}, filters = ${JSON.stringify(filters)}, updated_at = CURRENT_TIMESTAMP
         WHERE id = ${id}
         RETURNING id, name, updated_at
       `
-    )
+    )) as unknown[]
     console.log("Successfully updated filter set:", result[0])
-
-    // Invalidate saved filters cache
-    invalidateCache("saved_filters")
 
     return { success: true, data: result[0] }
   } catch (error) {

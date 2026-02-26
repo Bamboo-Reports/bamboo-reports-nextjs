@@ -1,7 +1,6 @@
 "use server"
 
 import { getSqlOrThrow, fetchWithRetry, getSql } from "@/lib/db/connection"
-import { getCacheStats } from "@/lib/db/cache"
 
 // ============================================
 // DATABASE HEALTH & DIAGNOSTICS
@@ -42,22 +41,17 @@ export async function getDatabaseStatus(): Promise<{
   hasConnection: boolean
   urlLength: number
   environment: string
-  cacheSize: number
-  cacheKeys: string[]
   error?: string
 }> {
   try {
     const hasUrl = !!process.env.DATABASE_URL
     const hasConnection = !!getSql()
-    const cacheStats = getCacheStats();
 
     return {
       hasUrl,
       hasConnection,
       urlLength: process.env.DATABASE_URL ? process.env.DATABASE_URL.length : 0,
       environment: process.env.NODE_ENV || "unknown",
-      cacheSize: cacheStats.size,
-      cacheKeys: cacheStats.keys,
     }
   } catch (error) {
     return {
@@ -65,8 +59,6 @@ export async function getDatabaseStatus(): Promise<{
       hasConnection: false,
       urlLength: 0,
       environment: "unknown",
-      cacheSize: 0,
-      cacheKeys: [],
       error: error instanceof Error ? error.message : "Unknown error",
     }
   }

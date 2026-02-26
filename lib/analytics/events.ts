@@ -55,7 +55,6 @@ export const ANALYTICS_EVENTS = {
   NO_RESULTS_AFTER_FILTER: "no_results_after_filter",
   ERROR_STATE_SHOWN: "error_state_shown",
   ERROR_RETRY_CLICKED: "error_retry_clicked",
-  ERROR_CLEAR_CACHE_CLICKED: "error_clear_cache_clicked",
 } as const
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[keyof typeof ANALYTICS_EVENTS]
