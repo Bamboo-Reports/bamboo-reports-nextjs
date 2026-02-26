@@ -2,7 +2,6 @@
 
 import type { Account, Center, Function, Service, Tech, Prospect } from "@/lib/types"
 import { getSqlOrThrow, fetchWithRetry } from "@/lib/db/connection"
-import { getCachedData, setCachedData } from "@/lib/db/cache"
 
 // ============================================
 // BASIC DATA FETCHING FUNCTIONS
@@ -12,19 +11,11 @@ export async function getAccounts(): Promise<Account[]> {
   try {
     const sqlClient = getSqlOrThrow()
 
-    // Check cache first
-    const cacheKey = "accounts"
-    const cached = getCachedData<Account[]>(cacheKey)
-    if (cached) return cached
-
     console.log("Fetching accounts from database...")
-    const accounts = await fetchWithRetry(
+    const accounts = (await fetchWithRetry(
       () => sqlClient`SELECT * FROM accounts ORDER BY account_global_legal_name`
-    )
+    )) as Account[]
     console.log(`Successfully fetched ${accounts.length} accounts`)
-
-    // Cache the result
-    setCachedData(cacheKey, accounts)
 
     return accounts
   } catch (error) {
@@ -37,17 +28,9 @@ export async function getCenters(): Promise<Center[]> {
   try {
     const sqlClient = getSqlOrThrow()
 
-    // Check cache first
-    const cacheKey = "centers"
-    const cached = getCachedData<Center[]>(cacheKey)
-    if (cached) return cached
-
     console.log("Fetching centers from database...")
-    const centers = await fetchWithRetry(() => sqlClient`SELECT * FROM centers ORDER BY center_name`)
+    const centers = (await fetchWithRetry(() => sqlClient`SELECT * FROM centers ORDER BY center_name`)) as Center[]
     console.log(`Successfully fetched ${centers.length} centers`)
-
-    // Cache the result
-    setCachedData(cacheKey, centers)
 
     return centers
   } catch (error) {
@@ -60,17 +43,9 @@ export async function getFunctions(): Promise<Function[]> {
   try {
     const sqlClient = getSqlOrThrow()
 
-    // Check cache first
-    const cacheKey = "functions"
-    const cached = getCachedData<Function[]>(cacheKey)
-    if (cached) return cached
-
     console.log("Fetching functions from database...")
-    const functions = await fetchWithRetry(() => sqlClient`SELECT * FROM functions ORDER BY cn_unique_key`)
+    const functions = (await fetchWithRetry(() => sqlClient`SELECT * FROM functions ORDER BY cn_unique_key`)) as Function[]
     console.log(`Successfully fetched ${functions.length} functions`)
-
-    // Cache the result
-    setCachedData(cacheKey, functions)
 
     return functions
   } catch (error) {
@@ -83,17 +58,9 @@ export async function getServices(): Promise<Service[]> {
   try {
     const sqlClient = getSqlOrThrow()
 
-    // Check cache first
-    const cacheKey = "services"
-    const cached = getCachedData<Service[]>(cacheKey)
-    if (cached) return cached
-
     console.log("Fetching services from database...")
-    const services = await fetchWithRetry(() => sqlClient`SELECT * FROM services ORDER BY center_name`)
+    const services = (await fetchWithRetry(() => sqlClient`SELECT * FROM services ORDER BY center_name`)) as Service[]
     console.log(`Successfully fetched ${services.length} services`)
-
-    // Cache the result
-    setCachedData(cacheKey, services)
 
     return services
   } catch (error) {
@@ -106,17 +73,11 @@ export async function getTech(): Promise<Tech[]> {
   try {
     const sqlClient = getSqlOrThrow()
 
-    const cacheKey = "tech"
-    const cached = getCachedData<Tech[]>(cacheKey)
-    if (cached) return cached
-
     console.log("Fetching tech stack from database...")
-    const tech = await fetchWithRetry(
+    const tech = (await fetchWithRetry(
       () => sqlClient`SELECT * FROM tech ORDER BY account_global_legal_name, software_category, software_in_use`
-    )
+    )) as Tech[]
     console.log(`Successfully fetched ${tech.length} tech stack rows`)
-
-    setCachedData(cacheKey, tech)
 
     return tech
   } catch (error) {
@@ -129,19 +90,11 @@ export async function getProspects(): Promise<Prospect[]> {
   try {
     const sqlClient = getSqlOrThrow()
 
-    // Check cache first
-    const cacheKey = "prospects"
-    const cached = getCachedData<Prospect[]>(cacheKey)
-    if (cached) return cached
-
     console.log("Fetching prospects from database...")
-    const prospects = await fetchWithRetry(
+    const prospects = (await fetchWithRetry(
       () => sqlClient`SELECT * FROM prospects ORDER BY prospect_last_name, prospect_first_name`
-    )
+    )) as Prospect[]
     console.log(`Successfully fetched ${prospects.length} prospects`)
-
-    // Cache the result
-    setCachedData(cacheKey, prospects)
 
     return prospects
   } catch (error) {
@@ -200,14 +153,6 @@ export async function getAllData(): Promise<AllDataResult> {
         }
     }
 
-    // Check cache first for all data
-    const cacheKey = "all_data"
-    const cached = getCachedData<AllDataResult>(cacheKey)
-    if (cached) {
-      console.log("Returning all data from cache")
-      return cached
-    }
-
     // Fetch all data in parallel with retry logic
     console.time("getAllData parallel fetch")
     const [accounts, centers, functions, services, tech, prospects] = await Promise.all([
@@ -259,7 +204,7 @@ export async function getAllData(): Promise<AllDataResult> {
       prospects: prospects.length,
     })
 
-    const allData = {
+    const allData: AllDataResult = {
       accounts,
       centers,
       functions,
@@ -268,9 +213,6 @@ export async function getAllData(): Promise<AllDataResult> {
       prospects,
       error: null,
     }
-
-    // Cache all data together
-    setCachedData(cacheKey, allData)
 
     console.timeEnd("getAllData total")
     return allData
@@ -318,7 +260,7 @@ export async function getFilteredAccounts(filters: {
 
     query = sqlClient`${query} ORDER BY account_global_legal_name`
 
-    const results = await fetchWithRetry(() => query)
+    const results = (await fetchWithRetry(() => query)) as Account[]
     console.log(`Filtered accounts: ${results.length} results`)
 
     return { success: true, data: results }

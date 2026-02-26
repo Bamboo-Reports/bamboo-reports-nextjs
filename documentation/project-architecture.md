@@ -19,9 +19,10 @@ The application uses the **Next.js App Router** with a heavy reliance on **Serve
 
 ### 2.1 `app/` (Routes & Actions)
 -   **`actions.ts`**: The "Backend" of the frontend.
-    -   Contains all direct SQL queries using `@neondatabase/serverless`.
-    -   Implements retries and in-memory caching (`dataCache` Map).
-    -   **Rule:** Database connection logic lives ONLY here. Components should never import DB drivers directly.
+    -   Re-exports server action modules for data, saved filters, and diagnostics.
+    -   Direct SQL queries are implemented in `app/actions/data.ts` and `app/actions/saved-filters.ts` using `@neondatabase/serverless`.
+    -   Database calls use retry logic (`fetchWithRetry`).
+    -   **Rule:** Database access is isolated to `app/actions/*` and `lib/db/connection.ts`. Components should never import DB drivers directly.
 -   **`page.tsx`**: The entry point and UI orchestrator. Wires auth, data loading, filtering hooks, and layout composition.
 
 ### 2.2 `components/` (UI Composition)
@@ -60,7 +61,7 @@ We use raw SQL (via template literals) instead of an ORM (like Prisma) for maxim
 
 ### Query Pattern
 ```typescript
-// app/actions.ts
+// app/actions/data.ts
 const results = await fetchWithRetry(() => sql`
   SELECT * FROM accounts 
   WHERE account_region = ${region}
