@@ -158,10 +158,12 @@ export interface FilterValue {
 }
 
 export interface Filters {
+  accountHqRegionValues: FilterValue[]
   accountHqCountryValues: FilterValue[]
   accountHqIndustryValues: FilterValue[]
   accountDataCoverageValues: FilterValue[]
   accountSourceValues: FilterValue[]
+  accountTypeValues: FilterValue[]
   accountPrimaryCategoryValues: FilterValue[]
   accountPrimaryNatureValues: FilterValue[]
   accountNasscomStatusValues: FilterValue[]
@@ -196,10 +198,12 @@ export interface FilterOption {
 }
 
 export interface AvailableOptions {
+  accountHqRegionValues: FilterOption[]
   accountHqCountryValues: FilterOption[]
   accountHqIndustryValues: FilterOption[]
   accountDataCoverageValues: FilterOption[]
   accountSourceValues: FilterOption[]
+  accountTypeValues: FilterOption[]
   accountPrimaryCategoryValues: FilterOption[]
   accountPrimaryNatureValues: FilterOption[]
   accountNasscomStatusValues: FilterOption[]

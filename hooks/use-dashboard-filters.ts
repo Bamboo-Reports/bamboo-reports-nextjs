@@ -122,10 +122,12 @@ export function useDashboardFilters({
 
   const filterStateForRevenue: RevenueRangeFilterState = useMemo(
     () => ({
+      accountHqRegionValues: filters.accountHqRegionValues,
       accountHqCountryValues: filters.accountHqCountryValues,
       accountHqIndustryValues: filters.accountHqIndustryValues,
       accountDataCoverageValues: filters.accountDataCoverageValues,
       accountSourceValues: filters.accountSourceValues,
+      accountTypeValues: filters.accountTypeValues,
       accountPrimaryCategoryValues: filters.accountPrimaryCategoryValues,
       accountPrimaryNatureValues: filters.accountPrimaryNatureValues,
       accountNasscomStatusValues: filters.accountNasscomStatusValues,
@@ -135,10 +137,12 @@ export function useDashboardFilters({
       yearsInIndiaIncludeNull: filters.yearsInIndiaIncludeNull,
     }),
     [
+      filters.accountHqRegionValues,
       filters.accountHqCountryValues,
       filters.accountHqIndustryValues,
       filters.accountDataCoverageValues,
       filters.accountSourceValues,
+      filters.accountTypeValues,
       filters.accountPrimaryCategoryValues,
       filters.accountPrimaryNatureValues,
       filters.accountNasscomStatusValues,
@@ -188,10 +192,12 @@ export function useDashboardFilters({
 
   const filterStateForOptions = useMemo(
     () => ({
+      accountHqRegionValues: filters.accountHqRegionValues,
       accountHqCountryValues: filters.accountHqCountryValues,
       accountHqIndustryValues: filters.accountHqIndustryValues,
       accountDataCoverageValues: filters.accountDataCoverageValues,
       accountSourceValues: filters.accountSourceValues,
+      accountTypeValues: filters.accountTypeValues,
       accountPrimaryCategoryValues: filters.accountPrimaryCategoryValues,
       accountPrimaryNatureValues: filters.accountPrimaryNatureValues,
       accountNasscomStatusValues: filters.accountNasscomStatusValues,
@@ -228,10 +234,12 @@ export function useDashboardFilters({
   const getActiveFilterCountFor = useCallback(
     (sourceFilters: Filters) => {
       return (
+        sourceFilters.accountHqRegionValues.length +
         sourceFilters.accountHqCountryValues.length +
         sourceFilters.accountHqIndustryValues.length +
         sourceFilters.accountDataCoverageValues.length +
         sourceFilters.accountSourceValues.length +
+        sourceFilters.accountTypeValues.length +
         sourceFilters.accountPrimaryCategoryValues.length +
         sourceFilters.accountPrimaryNatureValues.length +
         sourceFilters.accountNasscomStatusValues.length +

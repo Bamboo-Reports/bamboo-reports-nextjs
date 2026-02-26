@@ -59,10 +59,12 @@ export const buildTrackedFiltersSnapshot = (
     }
   }
 
+  pushIfActive("accountHqRegionValues", filters.accountHqRegionValues.length > 0)
   pushIfActive("accountHqCountryValues", filters.accountHqCountryValues.length > 0)
   pushIfActive("accountHqIndustryValues", filters.accountHqIndustryValues.length > 0)
   pushIfActive("accountDataCoverageValues", filters.accountDataCoverageValues.length > 0)
   pushIfActive("accountSourceValues", filters.accountSourceValues.length > 0)
+  pushIfActive("accountTypeValues", filters.accountTypeValues.length > 0)
   pushIfActive("accountPrimaryCategoryValues", filters.accountPrimaryCategoryValues.length > 0)
   pushIfActive("accountPrimaryNatureValues", filters.accountPrimaryNatureValues.length > 0)
   pushIfActive("accountNasscomStatusValues", filters.accountNasscomStatusValues.length > 0)
@@ -107,10 +109,12 @@ export const buildTrackedFiltersSnapshot = (
   return {
     active_filters_count: calculateActiveFilters(filters),
     active_filter_keys: activeFilterKeys,
+    account_regions: toTrackedFilterValueArray(filters.accountHqRegionValues),
     account_countries: toTrackedFilterValueArray(filters.accountHqCountryValues),
     account_industries: toTrackedFilterValueArray(filters.accountHqIndustryValues),
     account_data_coverage: toTrackedFilterValueArray(filters.accountDataCoverageValues),
     account_sources: toTrackedFilterValueArray(filters.accountSourceValues),
+    account_types: toTrackedFilterValueArray(filters.accountTypeValues),
     account_primary_categories: toTrackedFilterValueArray(filters.accountPrimaryCategoryValues),
     account_primary_natures: toTrackedFilterValueArray(filters.accountPrimaryNatureValues),
     account_nasscom_statuses: toTrackedFilterValueArray(filters.accountNasscomStatusValues),

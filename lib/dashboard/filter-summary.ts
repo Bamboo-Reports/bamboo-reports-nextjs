@@ -41,10 +41,12 @@ export function calculateActiveFilters(filters: Filters) {
     minCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[0] || maxCenterIncYear !== DEFAULT_CENTER_INC_YEAR_RANGE[1]
 
   return (
+    filters.accountHqRegionValues.length +
     filters.accountHqCountryValues.length +
     filters.accountHqIndustryValues.length +
     filters.accountDataCoverageValues.length +
     filters.accountSourceValues.length +
+    filters.accountTypeValues.length +
     filters.accountPrimaryCategoryValues.length +
     filters.accountPrimaryNatureValues.length +
     filters.accountNasscomStatusValues.length +
