@@ -219,6 +219,7 @@ export function useDashboardFilters({
       prospectDepartmentValues: filters.prospectDepartmentValues,
       prospectLevelValues: filters.prospectLevelValues,
       prospectCityValues: filters.prospectCityValues,
+      prospectTitleKeywords: filters.prospectTitleKeywords,
       accountGlobalLegalNameKeywords: filters.accountGlobalLegalNameKeywords,
       accountHqRevenueRange: filters.accountHqRevenueRange,
       accountHqRevenueIncludeNull: filters.accountHqRevenueIncludeNull,
