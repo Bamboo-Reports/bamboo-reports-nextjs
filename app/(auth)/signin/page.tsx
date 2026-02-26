@@ -7,11 +7,11 @@ import { Loader2 } from "lucide-react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AuthShell } from "@/components/auth/auth-shell"
 import { captureEvent, identifyUser } from "@/lib/analytics/client"
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import { getSupabaseBrowserClient, setSupabaseAuthStoragePreference } from "@/lib/supabase/client"
@@ -105,95 +105,95 @@ function SignInForm() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-6">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-2">
-          <CardTitle className="text-2xl">Welcome back</CardTitle>
-          <p className="text-sm text-muted-foreground">Sign in to access Bamboo Reports.</p>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                {...register("email")}
+    <AuthShell
+      eyebrow="Secure Login"
+      title="Welcome back"
+      description="Sign in to access Bamboo Reports."
+      footer={
+        <>
+          New here?{" "}
+          <Link className="font-medium text-primary hover:underline" href="/signup">
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-[13px] font-medium text-foreground/90">
+            Email
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            className="h-10 rounded-lg"
+            {...register("email")}
+          />
+          {errors.email ? <p className="text-xs text-destructive">{errors.email.message}</p> : null}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-[13px] font-medium text-foreground/90">
+            Password
+          </Label>
+          <Input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            className="h-10 rounded-lg"
+            {...register("password")}
+          />
+          {errors.password ? <p className="text-xs text-destructive">{errors.password.message}</p> : null}
+        </div>
+        <div className="flex items-center gap-2 rounded-md border border-border/60 bg-muted/20 px-3 py-2">
+          <Controller
+            control={control}
+            name="rememberMe"
+            render={({ field }) => (
+              <Checkbox
+                id="rememberMe"
+                checked={field.value}
+                onCheckedChange={(checked) => field.onChange(checked === true)}
               />
-              {errors.email ? (
-                <p className="text-xs text-destructive">{errors.email.message}</p>
-              ) : null}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                {...register("password")}
-              />
-              {errors.password ? (
-                <p className="text-xs text-destructive">{errors.password.message}</p>
-              ) : null}
-            </div>
-            <div className="flex items-center gap-2">
-              <Controller
-                control={control}
-                name="rememberMe"
-                render={({ field }) => (
-                  <Checkbox
-                    id="rememberMe"
-                    checked={field.value}
-                    onCheckedChange={(checked) => field.onChange(checked === true)}
-                  />
-                )}
-              />
-              <Label htmlFor="rememberMe" className="text-sm font-normal text-muted-foreground">
-                Remember me
-              </Label>
-            </div>
-            {submitError ? (
-              <Alert variant="destructive">
-                <AlertDescription>{submitError}</AlertDescription>
-              </Alert>
-            ) : null}
-            {signupStatus === "success" ? (
-              <Alert>
-                <AlertDescription>
-                  Account created. Please sign in to continue.
-                </AlertDescription>
-              </Alert>
-            ) : null}
-            {signupStatus === "pending" ? (
-              <Alert>
-                <AlertDescription>
-                  Check your email to confirm your account, then sign in.
-                </AlertDescription>
-              </Alert>
-            ) : null}
-            <Button className="w-full" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in
-                </>
-              ) : (
-                "Sign in"
-              )}
-            </Button>
-          </form>
-          <div className="mt-4 text-sm text-muted-foreground">
-            New here?{" "}
-            <Link className="text-primary hover:underline" href="/signup">
-              Create an account
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+            )}
+          />
+          <Label htmlFor="rememberMe" className="text-sm font-normal text-muted-foreground">
+            Remember me
+          </Label>
+        </div>
+        {submitError ? (
+          <Alert variant="destructive" className="border-destructive/40 bg-destructive/5">
+            <AlertDescription>{submitError}</AlertDescription>
+          </Alert>
+        ) : null}
+        {signupStatus === "success" ? (
+          <Alert className="border-blue-500/30 bg-blue-500/10 text-foreground">
+            <AlertDescription>Account created. Please sign in to continue.</AlertDescription>
+          </Alert>
+        ) : null}
+        {signupStatus === "pending" ? (
+          <Alert className="border-amber-500/40 bg-amber-500/10 text-foreground">
+            <AlertDescription>Check your email to confirm your account, then sign in.</AlertDescription>
+          </Alert>
+        ) : null}
+        <Button
+          className="h-10 w-full rounded-lg bg-gradient-to-r from-blue-600 via-blue-600 to-sky-500 text-white shadow-[0_14px_30px_-14px_rgba(37,99,235,0.85)] hover:from-blue-600 hover:via-blue-500 hover:to-sky-500"
+          type="submit"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Signing in
+            </>
+          ) : (
+            "Sign in"
+          )}
+        </Button>
+      </form>
+    </AuthShell>
   )
 }
 
