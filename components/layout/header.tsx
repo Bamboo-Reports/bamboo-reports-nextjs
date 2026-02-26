@@ -104,7 +104,7 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JS
               />
             </div>
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-foreground">Bamboo Reports Intelligence</p>
+              <p className="truncate text-lg font-bold text-foreground">Bamboo Reports</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
