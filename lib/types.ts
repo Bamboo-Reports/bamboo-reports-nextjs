@@ -1,3 +1,5 @@
+import type { UserRole } from "@/lib/auth/roles"
+
 export interface Account {
   uuid?: string | null
   account_last_update_date?: string | null
@@ -150,6 +152,7 @@ export interface Profile {
   last_name: string
   email: string
   phone: string | null
+  role?: UserRole | null
 }
 
 export interface FilterValue {

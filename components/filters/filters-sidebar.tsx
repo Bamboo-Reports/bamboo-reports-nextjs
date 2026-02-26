@@ -28,6 +28,7 @@ interface FiltersSidebarProps {
   setPendingFilters: React.Dispatch<React.SetStateAction<Filters>>
   resetFilters: () => void
   handleExportAll: () => void
+  canExport: boolean
   handleMinRevenueChange: (value: string) => void
   handleMaxRevenueChange: (value: string) => void
   handleRevenueRangeChange: (value: [number, number]) => void
@@ -57,6 +58,7 @@ export function FiltersSidebar({
   setPendingFilters,
   resetFilters,
   handleExportAll,
+  canExport,
   handleMinRevenueChange,
   handleMaxRevenueChange,
   handleRevenueRangeChange,
@@ -176,6 +178,8 @@ export function FiltersSidebar({
               totalActiveFilters={totalActiveFilters}
               onReset={resetFilters}
               onExport={handleExportAll}
+              canExport={canExport}
+              exportBlockedMessage="You are not allowed to export data. Please contact an admin."
             />
           </div>
         </div>

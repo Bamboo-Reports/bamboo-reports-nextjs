@@ -39,6 +39,7 @@ create table if not exists public.profiles (
   last_name text not null,
   email text not null,
   phone text,
+  role text not null default 'viewer' check (role in ('viewer', 'admin')),
   
   -- Metadata
   created_at timestamptz not null default now(),
@@ -101,6 +102,47 @@ before update on public.profiles
 for each row execute function public.set_updated_at();
 ```
 
+### 2.4 Add Roles to Existing `profiles` Tables
+
+If your `profiles` table already exists without the `role` column, run this migration:
+
+```sql
+alter table public.profiles add column if not exists role text;
+
+update public.profiles
+set role = 'viewer'
+where role is null;
+
+alter table public.profiles
+alter column role set default 'viewer';
+
+alter table public.profiles
+alter column role set not null;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'profiles_role_check'
+  ) then
+    alter table public.profiles
+    add constraint profiles_role_check
+    check (role in ('viewer', 'admin'));
+  end if;
+end $$;
+```
+
+Then assign your test/admin user:
+
+```sql
+update public.profiles
+set role = 'admin'
+where email = 'your-admin-email@example.com';
+```
+
+You can also run the same SQL from: `documentation/sql/profiles-role-migration.sql`.
+
 ---
 
 ## 3. Integration Logic
@@ -113,6 +155,7 @@ The application uses `@supabase/auth-helpers-nextjs` or `@supabase/ssr` (dependi
 - **Profile Fetching:**
     - On load, the app can fetch the user's profile using `supabase.from('profiles').select('*').single()`.
     - Because of RLS, this query requires no `where` clause security-wise, but `eq('user_id', user.id)` is good practice.
+    - Use `profile.role` for app-level permissions (example: only `admin` can export data).
 
 ### 3.2 Server-Side (Actions/API)
 When accessing data server-side (e.g., in `app/actions.ts` or API routes):

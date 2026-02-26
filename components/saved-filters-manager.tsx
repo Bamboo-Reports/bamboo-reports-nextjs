@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Save, FolderOpen, Settings, X, ChevronDown } from "lucide-react"
+import { Save, FolderOpen, Settings, X, ChevronDown, ShieldAlert } from "lucide-react"
 import { captureEvent } from "@/lib/analytics/client"
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import { buildTrackedFiltersSnapshot, normalizeTrackedText, toTrackedStringArray } from "@/lib/analytics/tracking"
@@ -46,6 +46,8 @@ interface SavedFiltersManagerProps {
   totalActiveFilters: number
   onReset?: () => void
   onExport?: () => void
+  canExport?: boolean
+  exportBlockedMessage?: string
 }
 
 export const SavedFiltersManager = memo(function SavedFiltersManager({
@@ -53,7 +55,9 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
   onLoadFilters,
   totalActiveFilters,
   onReset,
-  onExport
+  onExport,
+  canExport = true,
+  exportBlockedMessage = "You are not allowed to export data. Please contact an admin.",
 }: SavedFiltersManagerProps) {
   const { 
     savedFilters, 
@@ -73,6 +77,7 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
   
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [filterToDelete, setFilterToDelete] = useState<SavedFilter | null>(null)
+  const [exportAccessError, setExportAccessError] = useState<string | null>(null)
 
   const handleSaveFilter = useCallback(async () => {
     const success = await saveFilter(filterName, currentFilters)
@@ -124,6 +129,24 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
     setEditName(filter.name)
   }, [])
 
+  const handleExportAction = useCallback(() => {
+    if (!onExport) {
+      return
+    }
+
+    if (!canExport) {
+      setExportAccessError(exportBlockedMessage)
+      return
+    }
+
+    setExportAccessError(null)
+    onExport()
+  }, [onExport, canExport, exportBlockedMessage])
+
+  const handleDismissExportAccessError = useCallback(() => {
+    setExportAccessError(null)
+  }, [])
+
   useEffect(() => {
     if (!savedFiltersDropdownOpen) return
     captureEvent(ANALYTICS_EVENTS.SAVED_FILTERS_DROPDOWN_OPENED, {
@@ -159,6 +182,12 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
       saved_filter_snapshot: filterToDelete ? buildTrackedFiltersSnapshot(filterToDelete.filters) : null,
     })
   }, [deleteConfirmOpen, filterToDelete])
+
+  useEffect(() => {
+    if (canExport && exportAccessError) {
+      setExportAccessError(null)
+    }
+  }, [canExport, exportAccessError])
 
   return (
     <div className="flex flex-col gap-3 w-full bg-sidebar-accent/5 p-3 rounded-lg border border-sidebar-border/50">
@@ -295,14 +324,47 @@ export const SavedFiltersManager = memo(function SavedFiltersManager({
             <Button
               variant="default"
               size="sm"
-              onClick={onExport}
+              onClick={handleExportAction}
               className="w-full h-8 text-xs font-medium"
+              aria-label={canExport ? "Export data" : "Export data (admin only)"}
+              title={canExport ? "Export data" : "Only admins can export data"}
             >
               Export
             </Button>
           )}
         </div>
       )}
+
+      {exportAccessError ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="relative overflow-hidden rounded-lg border border-amber-400/40 bg-[linear-gradient(135deg,rgba(251,191,36,0.12),rgba(251,191,36,0.04))] p-2.5"
+        >
+          <div className="absolute inset-y-0 left-0 w-1 bg-amber-500/80" />
+          <div className="flex items-start gap-2.5 pl-2">
+            <div className="mt-0.5 rounded-md bg-amber-500/15 p-1 text-amber-700">
+              <ShieldAlert className="h-3.5 w-3.5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-700">
+                Export restricted
+              </p>
+              <p className="text-xs text-amber-900/90">{exportAccessError}</p>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-amber-800 hover:bg-amber-500/10 hover:text-amber-900"
+              onClick={handleDismissExportAccessError}
+              aria-label="Dismiss export access warning"
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       <Dialog open={manageDialogOpen} onOpenChange={setManageDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">

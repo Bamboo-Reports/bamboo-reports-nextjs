@@ -21,12 +21,13 @@ import {
 } from "@/lib/analytics/client"
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import { buildTrackedFiltersSnapshot } from "@/lib/analytics/tracking"
+import { canExportData } from "@/lib/auth/roles"
 import { formatRevenueInMillions } from "@/lib/utils/helpers"
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "br-dashboard-sidebar-collapsed"
 
 function DashboardContent(): JSX.Element | null {
-  const { authReady, userId, userEmail } = useAuthGuard()
+  const { authReady, userId, userEmail, userRole } = useAuthGuard()
 
   const {
     accounts,
@@ -87,6 +88,7 @@ function DashboardContent(): JSX.Element | null {
   const [activeSection, setActiveSection] = useState<"accounts" | "centers" | "prospects">("accounts")
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const canExport = canExportData(userRole)
 
   const hasTrackedDashboardLoadRef = useRef(false)
   const sessionStartRef = useRef<number | null>(null)
@@ -463,8 +465,11 @@ function DashboardContent(): JSX.Element | null {
   }, [loadData])
 
   const handleExportAll = useCallback(() => {
+    if (!canExport) {
+      return
+    }
     setExportDialogOpen(true)
-  }, [])
+  }, [canExport])
 
   const handleExportCompleted = useCallback(() => {
     exportCountRef.current += 1
@@ -537,6 +542,7 @@ function DashboardContent(): JSX.Element | null {
             setPendingFilters={setPendingFilters}
             resetFilters={resetFilters}
             handleExportAll={handleExportAll}
+            canExport={canExport}
             handleMinRevenueChange={handleMinRevenueChange}
             handleMaxRevenueChange={handleMaxRevenueChange}
             handleRevenueRangeChange={handleRevenueRangeChange}
