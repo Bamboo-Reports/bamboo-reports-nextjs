@@ -6,10 +6,12 @@ export const DEFAULT_CENTER_INC_YEAR_RANGE: [number, number] = [0, 1000000]
 
 export function createDefaultFilters(overrides: Partial<Filters> = {}): Filters {
   return {
+    accountHqRegionValues: overrides.accountHqRegionValues ?? [],
     accountHqCountryValues: overrides.accountHqCountryValues ?? [],
     accountHqIndustryValues: overrides.accountHqIndustryValues ?? [],
     accountDataCoverageValues: overrides.accountDataCoverageValues ?? [],
     accountSourceValues: overrides.accountSourceValues ?? [],
+    accountTypeValues: overrides.accountTypeValues ?? [],
     accountPrimaryCategoryValues: overrides.accountPrimaryCategoryValues ?? [],
     accountPrimaryNatureValues: overrides.accountPrimaryNatureValues ?? [],
     accountNasscomStatusValues: overrides.accountNasscomStatusValues ?? [],

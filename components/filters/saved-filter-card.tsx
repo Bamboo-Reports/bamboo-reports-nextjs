@@ -99,10 +99,12 @@ export const SavedFilterCard = memo(({
           </div>
           <div className="flex flex-wrap gap-1">
             {renderFilterValues(filter.filters.accountGlobalLegalNameKeywords, "Account Name")}
+            {renderFilterValues(filter.filters.accountHqRegionValues, "Region")}
             {renderFilterValues(filter.filters.accountHqCountryValues, "Country")}
             {renderFilterValues(filter.filters.accountHqIndustryValues, "Industry")}
             {renderFilterValues(filter.filters.accountDataCoverageValues, "Data Coverage")}
             {renderFilterValues(filter.filters.accountSourceValues, "Account Source")}
+            {renderFilterValues(filter.filters.accountTypeValues, "Account Type")}
             {renderFilterValues(filter.filters.accountPrimaryCategoryValues, "Category")}
             {renderFilterValues(filter.filters.accountPrimaryNatureValues, "Nature")}
             {renderFilterValues(filter.filters.accountNasscomStatusValues, "NASSCOM")}

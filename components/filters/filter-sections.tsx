@@ -63,7 +63,7 @@ export function AccountFiltersSection({
           <div className="space-y-3">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-medium">Revenue</Label>
+                <Label className="text-xs font-medium">Revenue (USDMn)</Label>
                 <div className="flex items-center gap-2">
                 <Checkbox
                   id="include-null-revenue"
@@ -86,7 +86,7 @@ export function AccountFiltersSection({
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label htmlFor="min-revenue" className="text-xs">Min (M)</Label>
+                <Label htmlFor="min-revenue" className="text-xs">Min</Label>
                 <Input
                   id="min-revenue"
                   type="number"
@@ -98,7 +98,7 @@ export function AccountFiltersSection({
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="max-revenue" className="text-xs">Max (M)</Label>
+                <Label htmlFor="max-revenue" className="text-xs">Max</Label>
                 <Input
                   id="max-revenue"
                   type="number"
@@ -127,7 +127,7 @@ export function AccountFiltersSection({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Search Account Name</Label>
+            <Label className="text-xs font-medium">Account Name</Label>
             <AccountAutocomplete
               accountNames={accountNames}
               selectedAccounts={pendingFilters.accountGlobalLegalNameKeywords}
@@ -138,7 +138,7 @@ export function AccountFiltersSection({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Employees Range</Label>
+            <Label className="text-xs font-medium">Employee Range</Label>
             <EnhancedMultiSelect
               options={availableOptions.accountHqEmployeeRangeValues}
               selected={pendingFilters.accountHqEmployeeRangeValues}
@@ -152,7 +152,7 @@ export function AccountFiltersSection({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Center Employees</Label>
+            <Label className="text-xs font-medium">IND Employee Range</Label>
             <EnhancedMultiSelect
               options={availableOptions.accountCenterEmployeesRangeValues}
               selected={pendingFilters.accountCenterEmployeesRangeValues}
@@ -232,7 +232,21 @@ export function AccountFiltersSection({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Countries</Label>
+            <Label className="text-xs font-medium">Region</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.accountHqRegionValues || []}
+              selected={pendingFilters.accountHqRegionValues}
+              trackingKey="accountHqRegionValues"
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, accountHqRegionValues: selected }))
+                setActiveFilter("accountHqRegionValues")
+              }}
+              placeholder="Select regions..."
+              isApplying={isApplying && activeFilter === "accountHqRegionValues"}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Country</Label>
             <EnhancedMultiSelect
               options={availableOptions.accountHqCountryValues || []}
               selected={pendingFilters.accountHqCountryValues}
@@ -246,7 +260,7 @@ export function AccountFiltersSection({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Primary Nature</Label>
+            <Label className="text-xs font-medium">Segment</Label>
             <EnhancedMultiSelect
               options={availableOptions.accountPrimaryNatureValues}
               selected={pendingFilters.accountPrimaryNatureValues}
@@ -260,7 +274,7 @@ export function AccountFiltersSection({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Primary Categories</Label>
+            <Label className="text-xs font-medium">Category</Label>
             <EnhancedMultiSelect
               options={availableOptions.accountPrimaryCategoryValues}
               selected={pendingFilters.accountPrimaryCategoryValues}
@@ -274,7 +288,7 @@ export function AccountFiltersSection({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Industries</Label>
+            <Label className="text-xs font-medium">Industry</Label>
             <EnhancedMultiSelect
               options={availableOptions.accountHqIndustryValues}
               selected={pendingFilters.accountHqIndustryValues}
@@ -285,34 +299,6 @@ export function AccountFiltersSection({
               }}
               placeholder="Select industries..."
               isApplying={isApplying && activeFilter === "accountHqIndustryValues"}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Data Coverage</Label>
-            <EnhancedMultiSelect
-              options={availableOptions.accountDataCoverageValues}
-              selected={pendingFilters.accountDataCoverageValues}
-              trackingKey="accountDataCoverageValues"
-              onChange={(selected) => {
-                setPendingFilters((prev) => ({ ...prev, accountDataCoverageValues: selected }))
-                setActiveFilter("accountDataCoverageValues")
-              }}
-              placeholder="Select data coverage..."
-              isApplying={isApplying && activeFilter === "accountDataCoverageValues"}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Account Source</Label>
-            <EnhancedMultiSelect
-              options={availableOptions.accountSourceValues}
-              selected={pendingFilters.accountSourceValues}
-              trackingKey="accountSourceValues"
-              onChange={(selected) => {
-                setPendingFilters((prev) => ({ ...prev, accountSourceValues: selected }))
-                setActiveFilter("accountSourceValues")
-              }}
-              placeholder="Select account source..."
-              isApplying={isApplying && activeFilter === "accountSourceValues"}
             />
           </div>
           <div className="space-y-2">
@@ -327,6 +313,48 @@ export function AccountFiltersSection({
               }}
               placeholder="Select NASSCOM status..."
               isApplying={isApplying && activeFilter === "accountNasscomStatusValues"}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Source</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.accountSourceValues}
+              selected={pendingFilters.accountSourceValues}
+              trackingKey="accountSourceValues"
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, accountSourceValues: selected }))
+                setActiveFilter("accountSourceValues")
+              }}
+              placeholder="Select account source..."
+              isApplying={isApplying && activeFilter === "accountSourceValues"}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Type</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.accountTypeValues || []}
+              selected={pendingFilters.accountTypeValues}
+              trackingKey="accountTypeValues"
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, accountTypeValues: selected }))
+                setActiveFilter("accountTypeValues")
+              }}
+              placeholder="Select account types..."
+              isApplying={isApplying && activeFilter === "accountTypeValues"}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Coverage</Label>
+            <EnhancedMultiSelect
+              options={availableOptions.accountDataCoverageValues}
+              selected={pendingFilters.accountDataCoverageValues}
+              trackingKey="accountDataCoverageValues"
+              onChange={(selected) => {
+                setPendingFilters((prev) => ({ ...prev, accountDataCoverageValues: selected }))
+                setActiveFilter("accountDataCoverageValues")
+              }}
+              placeholder="Select data coverage..."
+              isApplying={isApplying && activeFilter === "accountDataCoverageValues"}
             />
           </div>
         </div>
@@ -417,7 +445,7 @@ export function CenterFiltersSection({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Center Status</Label>
+            <Label className="text-xs font-medium">Status</Label>
             <EnhancedMultiSelect
               options={availableOptions.centerStatusValues}
               selected={pendingFilters.centerStatusValues}
@@ -431,7 +459,7 @@ export function CenterFiltersSection({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Center Employees</Label>
+            <Label className="text-xs font-medium">Employee Range</Label>
             <EnhancedMultiSelect
               options={availableOptions.centerEmployeesRangeValues}
               selected={pendingFilters.centerEmployeesRangeValues}
@@ -445,7 +473,7 @@ export function CenterFiltersSection({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Countries</Label>
+            <Label className="text-xs font-medium">Country</Label>
             <EnhancedMultiSelect
               options={availableOptions.centerCountryValues}
               selected={pendingFilters.centerCountryValues}
@@ -459,7 +487,7 @@ export function CenterFiltersSection({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs font-medium">States</Label>
+            <Label className="text-xs font-medium">State</Label>
             <EnhancedMultiSelect
               options={availableOptions.centerStateValues}
               selected={pendingFilters.centerStateValues}
@@ -473,7 +501,7 @@ export function CenterFiltersSection({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Cities</Label>
+            <Label className="text-xs font-medium">City</Label>
             <EnhancedMultiSelect
               options={availableOptions.centerCityValues}
               selected={pendingFilters.centerCityValues}
@@ -487,7 +515,7 @@ export function CenterFiltersSection({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Center Focus</Label>
+            <Label className="text-xs font-medium">Focus</Label>
             <EnhancedMultiSelect
               options={availableOptions.centerFocusValues}
               selected={pendingFilters.centerFocusValues}
@@ -501,7 +529,7 @@ export function CenterFiltersSection({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Center Types</Label>
+            <Label className="text-xs font-medium">Type</Label>
             <EnhancedMultiSelect
               options={availableOptions.centerTypeValues}
               selected={pendingFilters.centerTypeValues}
@@ -516,7 +544,7 @@ export function CenterFiltersSection({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Functions</Label>
+            <Label className="text-xs font-medium">Services Offered</Label>
             <EnhancedMultiSelect
               options={availableOptions.functionNameValues}
               selected={pendingFilters.functionNameValues}
@@ -559,7 +587,7 @@ export function ProspectFiltersSection({
       <div className="space-y-4 pt-2">
         <div className="space-y-3">
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Departments</Label>
+            <Label className="text-xs font-medium">Department</Label>
             <EnhancedMultiSelect
               options={availableOptions.prospectDepartmentValues || []}
               selected={pendingFilters.prospectDepartmentValues}
@@ -573,7 +601,7 @@ export function ProspectFiltersSection({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Levels</Label>
+            <Label className="text-xs font-medium">Seniority Level</Label>
             <EnhancedMultiSelect
               options={availableOptions.prospectLevelValues || []}
               selected={pendingFilters.prospectLevelValues}
@@ -587,7 +615,7 @@ export function ProspectFiltersSection({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Cities</Label>
+            <Label className="text-xs font-medium">City</Label>
             <EnhancedMultiSelect
               options={availableOptions.prospectCityValues || []}
               selected={pendingFilters.prospectCityValues}
@@ -601,7 +629,7 @@ export function ProspectFiltersSection({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Title Keywords</Label>
+            <Label className="text-xs font-medium">Job Title</Label>
             <TitleKeywordInput
               keywords={pendingFilters.prospectTitleKeywords}
               onChange={(keywords) => setPendingFilters((prev) => ({ ...prev, prospectTitleKeywords: keywords }))}
