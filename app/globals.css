@@ -516,3 +516,30 @@
     @apply chip-remove;
   }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-new(root) {
+    animation-duration: 0.5s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  ::view-transition-old(root) {
+    animation: none;
+  }
+
+  ::view-transition-new(root) {
+    animation-name: theme-circular-reveal;
+  }
+}
+
+@keyframes theme-circular-reveal {
+  from {
+    clip-path: circle(0px at var(--theme-transition-x, 50%) var(--theme-transition-y, 50%));
+  }
+  to {
+    clip-path: circle(
+      var(--theme-transition-radius, 150vmax) at var(--theme-transition-x, 50%)
+        var(--theme-transition-y, 50%)
+    );
+  }
+}

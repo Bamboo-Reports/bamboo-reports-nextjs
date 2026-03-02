@@ -3,7 +3,12 @@
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
-import { useEffect, useState } from 'react'
+import { type MouseEvent, useEffect, useState } from 'react'
+
+type ThemeName = 'light' | 'dark'
+type DocumentWithViewTransition = Document & {
+  startViewTransition?: (callback: () => void) => void
+}
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
@@ -22,11 +27,34 @@ export function ThemeToggle() {
     )
   }
 
+  const toggleTheme = (event: MouseEvent<HTMLButtonElement>) => {
+    const nextTheme: ThemeName = theme === 'dark' ? 'light' : 'dark'
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const documentWithTransition = document as DocumentWithViewTransition
+    const root = document.documentElement
+    const rect = event.currentTarget.getBoundingClientRect()
+    const centerX = event.clientX || rect.left + rect.width / 2
+    const centerY = event.clientY || rect.top + rect.height / 2
+    const maxX = Math.max(centerX, window.innerWidth - centerX)
+    const maxY = Math.max(centerY, window.innerHeight - centerY)
+    const revealRadius = Math.hypot(maxX, maxY)
+    root.style.setProperty('--theme-transition-x', `${centerX}px`)
+    root.style.setProperty('--theme-transition-y', `${centerY}px`)
+    root.style.setProperty('--theme-transition-radius', `${revealRadius}px`)
+
+    if (!prefersReducedMotion && documentWithTransition.startViewTransition) {
+      documentWithTransition.startViewTransition(() => setTheme(nextTheme))
+      return
+    }
+
+    setTheme(nextTheme)
+  }
+
   return (
     <Button
       variant="ghost"
       size="sm"
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      onClick={toggleTheme}
       className="h-8 w-8 px-0 relative overflow-hidden group"
       title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >
