@@ -102,7 +102,7 @@ export function useNotifications() {
       const targetGroup = notificationSummaries.find(
         (summary) => summary.table_name === tableName && summary.field_name === fieldName
       )
-      const unreadBefore = targetGroup?.unread_count ?? 0
+      const groupCountBefore = targetGroup ? 1 : 0
 
       const result = await markNotificationGroupAsRead(accessToken, tableName, fieldName)
       if (!result.success) {
@@ -110,12 +110,14 @@ export function useNotifications() {
         return false
       }
 
+      const decrementBy = groupCountBefore || (result.markedCount > 0 ? 1 : 0)
+
       setNotificationSummaries((previous) =>
         previous.filter(
           (summary) => !(summary.table_name === tableName && summary.field_name === fieldName)
         )
       )
-      setUnreadCount((previous) => Math.max(0, previous - (unreadBefore || result.markedCount)))
+      setUnreadCount((previous) => Math.max(0, previous - decrementBy))
       setError(null)
       return true
     },

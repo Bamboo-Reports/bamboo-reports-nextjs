@@ -25,6 +25,40 @@ interface HeaderProps {
 }
 
 const NOTIFICATIONS_PAGE_SIZE = 10
+const TABLE_LABELS: Record<string, string> = {
+  accounts: "Accounts",
+  centers: "Centers",
+  prospects: "Prospects",
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  account_hq_stock_ticker: "HQ Stock Ticker",
+  account_hq_country: "HQ Country",
+  account_hq_region: "HQ Region",
+  account_hq_state: "HQ State",
+  account_hq_city: "HQ City",
+  account_hq_zip_code: "HQ ZIP Code",
+  account_hq_address: "HQ Address",
+  account_nasscom_status: "NASSCOM Status",
+  center_status: "Center Status",
+}
+
+const ACRONYM_LABELS: Record<string, string> = {
+  hq: "HQ",
+  ceo: "CEO",
+  cfo: "CFO",
+  cto: "CTO",
+  cmo: "CMO",
+  cxo: "CXO",
+  vp: "VP",
+  kpi: "KPI",
+  roi: "ROI",
+  url: "URL",
+  api: "API",
+  id: "ID",
+  zip: "ZIP",
+  nasscom: "NASSCOM",
+}
 
 export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JSX.Element {
   const router = useRouter()
@@ -123,15 +157,54 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JS
       ? new Date(lastSignInAt).toLocaleString()
       : 'Unknown'
 
-  const formatFieldName = (fieldName: string): string =>
-    fieldName
-      .replaceAll('_', ' ')
-      .replace(/\b\w/g, (letter) => letter.toUpperCase())
+  const singularizeToken = (value: string): string => {
+    if (value.endsWith("ies") && value.length > 3) return `${value.slice(0, -3)}y`
+    if (value.endsWith("s") && value.length > 1) return value.slice(0, -1)
+    return value
+  }
 
-  const formatTableName = (tableName: string): string =>
-    tableName
-      .replaceAll('_', ' ')
-      .replace(/\b\w/g, (letter) => letter.toUpperCase())
+  const humanizeIdentifier = (value: string): string =>
+    value
+      .split("_")
+      .filter(Boolean)
+      .map((token) => ACRONYM_LABELS[token] ?? `${token.charAt(0).toUpperCase()}${token.slice(1)}`)
+      .join(" ")
+
+  const formatTableLabel = (tableName: string, count: number): string => {
+    const normalized = tableName.trim().toLowerCase()
+    const labelKey = count === 1 ? singularizeToken(normalized) : normalized
+    const mapped = TABLE_LABELS[labelKey]
+    return mapped ?? humanizeIdentifier(labelKey)
+  }
+
+  const formatFieldLabel = (tableName: string, fieldName: string): string => {
+    const normalizedField = fieldName.trim().toLowerCase()
+    const mapped = FIELD_LABELS[normalizedField]
+    if (mapped) return mapped
+
+    const normalizedTable = tableName.trim().toLowerCase()
+    const candidatePrefixes = [normalizedTable, singularizeToken(normalizedTable)]
+    const withoutPrefix = candidatePrefixes.reduce((result, candidate) => {
+      const prefix = `${candidate}_`
+      if (result.startsWith(prefix)) {
+        return result.slice(prefix.length)
+      }
+      return result
+    }, normalizedField)
+
+    return humanizeIdentifier(withoutPrefix)
+  }
+
+  const formatNotificationHeadline = (summary: {
+    table_name: string
+    field_name: string
+    unread_count: number
+  }): string => {
+    const count = summary.unread_count
+    const tableLabel = formatTableLabel(summary.table_name, count)
+    const fieldLabel = formatFieldLabel(summary.table_name, summary.field_name)
+    return `${fieldLabel} updated in ${count} ${tableLabel}`
+  }
 
   const formatEventDate = (value: string): string => {
     const parsed = Date.parse(value)
@@ -247,7 +320,7 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JS
                     ) : null}
                     {!isLoadingNotifications && !notificationsError && notificationSummaries.length === 0 ? (
                       <div className="rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
-                        No more notifications.
+                        No new notifications.
                       </div>
                     ) : null}
                     {!isLoadingNotifications && !notificationsError
@@ -260,7 +333,7 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JS
                           >
                             <div className="mb-1 flex items-start justify-between gap-2">
                               <p className="line-clamp-1 text-xs font-semibold text-foreground">
-                                {summary.unread_count} {formatTableName(summary.table_name)} - {formatFieldName(summary.field_name)} got updated
+                                {formatNotificationHeadline(summary)}
                               </p>
                               <p className="shrink-0 text-[10px] text-muted-foreground">
                                 {formatEventDate(summary.latest_changed_at)}

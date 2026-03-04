@@ -103,13 +103,18 @@ export async function getUnreadNotificationsCount(accessToken: string): Promise<
     const result = (await fetchWithRetry(
       () => sqlClient`
         SELECT COUNT(*)::int AS unread_count
-        FROM audit.field_change_events e
-        WHERE NOT EXISTS (
-          SELECT 1
-          FROM audit.notification_reads r
-          WHERE r.user_id = ${userId}
-            AND r.change_event_id = e.id
+        FROM (
+          SELECT e.table_name, e.field_name
+          FROM audit.field_change_events e
+          WHERE NOT EXISTS (
+            SELECT 1
+            FROM audit.notification_reads r
+            WHERE r.user_id = ${userId}
+              AND r.change_event_id = e.id
+          )
+          GROUP BY e.table_name, e.field_name
         )
+        AS unread_groups
       `
     )) as Array<{ unread_count: number }>
 
