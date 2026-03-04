@@ -36,3 +36,24 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Service account keys
+bamboo-reports-*.json
+
+# Logs
+/logs/
+/import_logs/
+*.log
+
+# Generated files
+/generated_schema/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.venv/
+
+# Misc
+.eslintcache
