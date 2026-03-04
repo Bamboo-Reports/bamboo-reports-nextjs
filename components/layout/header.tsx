@@ -61,6 +61,8 @@ const ACRONYM_LABELS: Record<string, string> = {
   nasscom: "NASSCOM",
 }
 
+const RELATIVE_TIME_FORMATTER = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" })
+
 export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JSX.Element {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -196,24 +198,72 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JS
     return humanizeIdentifier(withoutPrefix)
   }
 
-  const formatNotificationHeadline = (summary: {
+  const formatNotificationTitle = (summary: {
     table_name: string
     field_name: string
     unread_count: number
   }): string => {
     const count = summary.unread_count
-    const tableLabel = formatTableLabel(summary.table_name, count)
+    const singularTableLabel = formatTableLabel(summary.table_name, 1)
+    const pluralTableLabel = formatTableLabel(summary.table_name, Math.max(count, 2))
     if (summary.field_name === ROW_ADDED_FIELD) {
-      return `${count} ${tableLabel} added`
+      return count === 1 ? `${singularTableLabel} added` : `${pluralTableLabel} added`
     }
     const fieldLabel = formatFieldLabel(summary.table_name, summary.field_name)
-    return `${fieldLabel} updated in ${count} ${tableLabel}`
+    return `${fieldLabel} updated`
   }
 
-  const formatEventDate = (value: string): string => {
+  const formatNotificationDetail = (summary: {
+    table_name: string
+    field_name: string
+    unread_count: number
+  }): string => {
+    const count = summary.unread_count
+    const singularTableLabel = formatTableLabel(summary.table_name, 1).toLowerCase()
+    const pluralTableLabel = formatTableLabel(summary.table_name, Math.max(count, 2)).toLowerCase()
+
+    if (summary.field_name === ROW_ADDED_FIELD) {
+      return count === 1
+        ? `A new ${singularTableLabel} was created.`
+        : `${count} new ${pluralTableLabel} were created.`
+    }
+
+    return count === 1
+      ? `Updated for 1 ${singularTableLabel}.`
+      : `Updated for ${count} ${pluralTableLabel}.`
+  }
+
+  const formatRelativeEventDate = (value: string): string => {
     const parsed = Date.parse(value)
     if (Number.isNaN(parsed)) return value
-    return new Date(parsed).toLocaleString()
+    const deltaSeconds = Math.round((parsed - Date.now()) / 1000)
+    const absoluteSeconds = Math.abs(deltaSeconds)
+
+    if (absoluteSeconds < 5) return "just now"
+    if (absoluteSeconds < 60) return RELATIVE_TIME_FORMATTER.format(deltaSeconds, "second")
+
+    const deltaMinutes = Math.round(deltaSeconds / 60)
+    if (Math.abs(deltaMinutes) < 60) return RELATIVE_TIME_FORMATTER.format(deltaMinutes, "minute")
+
+    const deltaHours = Math.round(deltaMinutes / 60)
+    if (Math.abs(deltaHours) < 24) return RELATIVE_TIME_FORMATTER.format(deltaHours, "hour")
+
+    const deltaDays = Math.round(deltaHours / 24)
+    if (Math.abs(deltaDays) < 7) return RELATIVE_TIME_FORMATTER.format(deltaDays, "day")
+
+    return new Date(parsed).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+  }
+
+  const formatAbsoluteEventDate = (value: string): string => {
+    const parsed = Date.parse(value)
+    if (Number.isNaN(parsed)) return value
+    return new Date(parsed).toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    })
   }
 
   const pagedNotificationSummaries = notificationSummaries.slice(0, NOTIFICATIONS_PAGE_SIZE)
@@ -287,14 +337,14 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JS
                   title="Notifications"
                   aria-label="Open notifications"
                 >
-                  <Bell className="h-4 w-4" />
+                  <Bell className={`h-4 w-4 transition-colors ${unreadCount > 0 ? "text-amber-500" : ""}`} />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[460px] p-0">
-                <div className="flex items-center justify-between border-b border-border/70 px-3 py-2.5">
+              <DropdownMenuContent align="end" className="w-[500px] p-0">
+                <div className="flex items-center justify-between border-b border-border/70 bg-muted/20 px-3 py-3">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-foreground">Notifications</p>
-                    <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">
+                    <p className="text-sm font-semibold text-foreground">Activity</p>
+                    <span className="rounded-md border border-border/70 bg-background px-1.5 py-0.5 text-[11px] text-muted-foreground">
                       {isLoadingUnread ? '...' : `${unreadCount} unread`}
                     </span>
                   </div>
@@ -302,7 +352,7 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JS
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-7 px-2 text-xs"
+                    className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
                     disabled={unreadCount === 0}
                     onClick={handleMarkAllRead}
                   >
@@ -311,7 +361,7 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JS
                   </Button>
                 </div>
                 <div className="max-h-[420px] overflow-y-auto p-2">
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     {isLoadingNotifications ? (
                       <div className="rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
                         Loading notifications...
@@ -333,14 +383,34 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JS
                             key={`${summary.table_name}:${summary.field_name}`}
                             type="button"
                             onClick={() => handleSummaryClick(summary.table_name, summary.field_name)}
-                            className="w-full rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-left transition-colors hover:bg-blue-500/15"
+                            className={`w-full rounded-lg border px-3 py-2.5 text-left transition-colors ${
+                              summary.field_name === ROW_ADDED_FIELD
+                                ? 'border-emerald-500/25 bg-emerald-500/[0.06] hover:bg-emerald-500/[0.11]'
+                                : 'border-sky-500/25 bg-sky-500/[0.06] hover:bg-sky-500/[0.11]'
+                            }`}
                           >
-                            <div className="mb-1 flex items-start justify-between gap-2">
-                              <p className="line-clamp-1 text-xs font-semibold text-foreground">
-                                {formatNotificationHeadline(summary)}
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="line-clamp-1 text-sm font-semibold text-foreground">
+                                {formatNotificationTitle(summary)}
                               </p>
-                              <p className="shrink-0 text-[10px] text-muted-foreground">
-                                {formatEventDate(summary.latest_changed_at)}
+                              <p className="shrink-0 text-[11px] text-muted-foreground">
+                                {formatRelativeEventDate(summary.latest_changed_at)}
+                              </p>
+                            </div>
+                            <p className="mt-1 line-clamp-1 text-xs leading-5 text-muted-foreground">
+                              {formatNotificationDetail(summary)}
+                            </p>
+                            <div className="mt-2 flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-1.5">
+                                <span className="rounded border border-border/60 bg-background/90 px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                                  {summary.field_name === ROW_ADDED_FIELD ? "Addition" : "Update"}
+                                </span>
+                                <span className="rounded border border-border/60 bg-background/90 px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                                  {formatTableLabel(summary.table_name, summary.unread_count)}
+                                </span>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground" title={formatAbsoluteEventDate(summary.latest_changed_at)}>
+                                {formatAbsoluteEventDate(summary.latest_changed_at)}
                               </p>
                             </div>
                           </button>
