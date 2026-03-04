@@ -29,6 +29,7 @@ import { PaginationControls } from "@/components/ui/pagination-controls"
 import { captureEvent } from "@/lib/analytics/client"
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import { getPaginatedData } from "@/lib/utils/helpers"
+import { useRecentlyUpdatedAccounts } from "@/hooks/use-recently-updated-accounts"
 import type { Account, Center, Prospect, Service, Function, Tech } from "@/lib/types"
 
 interface AccountsTabProps {
@@ -77,7 +78,13 @@ export function AccountsTab({
   const [mapMode, setMapMode] = useState<"city" | "state">("state")
   const previousDataLayoutRef = React.useRef<"table" | "grid">("table")
   const previousMapModeRef = React.useRef<"city" | "state">("state")
-  const openedRecordRef = React.useRef<{ recordId: string; openedAt: number } | null>(null)
+  const openedRecordRef = React.useRef<{
+    recordId: string
+    openedAt: number
+    openedFrom: "table_row" | "grid_card"
+    account: Account
+  } | null>(null)
+  const { isAccountRecentlyUpdated, markAccountAsRead } = useRecentlyUpdatedAccounts()
 
   const handleAccountClick = (account: Account, openedFrom: "table_row" | "grid_card") => {
     if (isDialogOpen && openedRecordRef.current) {
@@ -88,12 +95,15 @@ export function AccountsTab({
         dwell_seconds: dwellSeconds,
         close_reason: "switch_to_another_record",
       })
+      void markAccountAsRead(openedRecordRef.current.account)
     }
     setSelectedAccount(account)
     setIsDialogOpen(true)
     openedRecordRef.current = {
       recordId: account.account_global_legal_name,
       openedAt: Date.now(),
+      openedFrom,
+      account,
     }
     captureEvent(ANALYTICS_EVENTS.RECORD_OPENED, {
       entity: "account",
@@ -166,8 +176,9 @@ export function AccountsTab({
       dwell_seconds: dwellSeconds,
       close_reason: "dialog_closed",
     })
+    void markAccountAsRead(openedRecordRef.current.account)
     openedRecordRef.current = null
-  }, [isDialogOpen])
+  }, [isDialogOpen, markAccountAsRead])
 
 
   const sortedAccounts = React.useMemo(() => {
@@ -361,6 +372,7 @@ export function AccountsTab({
                         <AccountRow
                           key={`${account.account_global_legal_name}-${index}`}
                           account={account}
+                          isRecentlyUpdated={isAccountRecentlyUpdated(account)}
                           onClick={() => handleAccountClick(account, "table_row")}
                         />
                       )
@@ -392,6 +404,7 @@ export function AccountsTab({
                         <AccountGridCard
                           key={`${account.account_global_legal_name}-${index}`}
                           account={account}
+                          isRecentlyUpdated={isAccountRecentlyUpdated(account)}
                           onClick={() => handleAccountClick(account, "grid_card")}
                         />
                       )

@@ -62,6 +62,7 @@ const ACRONYM_LABELS: Record<string, string> = {
 }
 
 const RELATIVE_TIME_FORMATTER = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" })
+const NOTIFICATIONS_CHANGED_EVENT = "bamboo:notifications-changed"
 
 export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JSX.Element {
   const router = useRouter()
@@ -286,6 +287,11 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JS
     const ok = await markAllAsRead()
     if (ok) {
       setNotificationsPage(1)
+      window.dispatchEvent(
+        new CustomEvent(NOTIFICATIONS_CHANGED_EVENT, {
+          detail: { source: "header-notifications" },
+        })
+      )
     }
   }
 
@@ -294,6 +300,11 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JS
     if (ok) {
       const offset = (notificationsPage - 1) * NOTIFICATIONS_PAGE_SIZE
       void loadNotifications({ limit: NOTIFICATIONS_PAGE_SIZE + 1, offset })
+      window.dispatchEvent(
+        new CustomEvent(NOTIFICATIONS_CHANGED_EVENT, {
+          detail: { source: "header-notifications" },
+        })
+      )
     }
   }
 

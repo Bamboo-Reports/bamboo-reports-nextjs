@@ -1,13 +1,15 @@
 import { memo } from "react"
 import { TableRow, TableCell } from "@/components/ui/table"
 import type { Prospect } from "@/lib/types"
+import { RecentlyUpdatedIndicator } from "@/components/ui/recently-updated-indicator"
 
 interface ProspectRowProps {
   prospect: Prospect
+  isRecentlyUpdated?: boolean
   onClick: () => void
 }
 
-export const ProspectRow = memo(({ prospect, onClick }: ProspectRowProps) => {
+export const ProspectRow = memo(({ prospect, isRecentlyUpdated = false, onClick }: ProspectRowProps) => {
   const fullName =
     prospect.prospect_full_name ||
     [prospect.prospect_first_name, prospect.prospect_last_name].filter(Boolean).join(" ")
@@ -39,8 +41,11 @@ export const ProspectRow = memo(({ prospect, onClick }: ProspectRowProps) => {
         </div>
       </TableCell>
       <TableCell className="font-medium max-w-[220px]">
-        <div className="truncate" title={fullName || "N/A"}>
-          {fullName || "N/A"}
+        <div className="min-w-0 flex items-center gap-2">
+          <div className="min-w-0 flex-1 truncate" title={fullName || "N/A"}>
+            {fullName || "N/A"}
+          </div>
+          {isRecentlyUpdated ? <RecentlyUpdatedIndicator title="This prospect has unread recent updates" /> : null}
         </div>
       </TableCell>
       <TableCell className="max-w-[200px]">
