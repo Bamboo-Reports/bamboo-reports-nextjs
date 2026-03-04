@@ -14,6 +14,8 @@ interface LoadNotificationsOptions {
   tableName?: string | null
 }
 
+const NOTIFICATIONS_CHANGED_EVENT = "bamboo:notifications-changed"
+
 export function useNotifications() {
   const supabase = getSupabaseBrowserClient()
   const [accessToken, setAccessToken] = useState<string | null>(null)
@@ -150,6 +152,15 @@ export function useNotifications() {
     }, 60000)
     return () => window.clearInterval(intervalId)
   }, [accessToken, refreshUnreadCount])
+
+  useEffect(() => {
+    const handleNotificationsChanged = () => {
+      void refreshUnreadCount()
+    }
+
+    window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, handleNotificationsChanged)
+    return () => window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, handleNotificationsChanged)
+  }, [refreshUnreadCount])
 
   return {
     notificationSummaries,

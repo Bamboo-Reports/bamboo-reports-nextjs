@@ -6,6 +6,8 @@ import { getSqlOrThrow, fetchWithRetry } from "@/lib/db/connection"
 const DEFAULT_LIMIT = 20
 const MAX_LIMIT = 100
 const ROW_REMOVED_FIELD = "__row_removed__"
+const ACCOUNTS_TABLE_NAME = "accounts"
+const ACCOUNT_IDENTITY_PREFIX = "key:account_global_legal_name="
 const UI_VISIBLE_NOTIFICATION_TABLES = ["accounts", "centers", "prospects"]
 
 export interface NotificationEvent {
@@ -29,6 +31,24 @@ export interface NotificationSummary {
   latest_changed_at: string
 }
 
+export interface AccountUpdateSummary {
+  account_key: string
+  record_uuid: string | null
+  record_identity: string | null
+  record_label: string | null
+  unread_count: number
+  latest_changed_at: string
+}
+
+export interface TableRecordUpdateSummary {
+  record_key: string
+  record_uuid: string | null
+  record_identity: string | null
+  record_label: string | null
+  unread_count: number
+  latest_changed_at: string
+}
+
 export interface NotificationListResponse {
   success: boolean
   data: NotificationEvent[]
@@ -38,6 +58,18 @@ export interface NotificationListResponse {
 export interface NotificationSummaryListResponse {
   success: boolean
   data: NotificationSummary[]
+  error?: string
+}
+
+export interface AccountUpdateSummaryListResponse {
+  success: boolean
+  data: AccountUpdateSummary[]
+  error?: string
+}
+
+export interface TableRecordUpdateSummaryListResponse {
+  success: boolean
+  data: TableRecordUpdateSummary[]
   error?: string
 }
 
@@ -67,6 +99,29 @@ function normalizeTableName(tableName?: string | null): string | null {
   if (!tableName) return null
   const normalized = tableName.trim().toLowerCase()
   return normalized || null
+}
+
+function normalizeTextValue(value?: string | null): string | null {
+  if (!value) return null
+  const normalized = value.trim()
+  return normalized || null
+}
+
+function buildAccountIdentity(accountName?: string | null): string | null {
+  const normalizedAccountName = normalizeTextValue(accountName)
+  if (!normalizedAccountName) return null
+  return `${ACCOUNT_IDENTITY_PREFIX}${normalizedAccountName}`
+}
+
+function normalizeStringArray(values?: Array<string | null | undefined>): string[] {
+  if (!values || values.length === 0) return []
+  return Array.from(
+    new Set(
+      values
+        .map((value) => normalizeTextValue(value))
+        .filter((value): value is string => Boolean(value))
+    )
+  )
 }
 
 async function resolveAuthenticatedUserId(accessToken: string): Promise<string> {
@@ -242,6 +297,102 @@ export async function getNotificationSummaries(params: {
   }
 }
 
+export async function getUnreadAccountUpdateSummaries(params: {
+  accessToken: string
+  limit?: number
+  offset?: number
+}): Promise<AccountUpdateSummaryListResponse> {
+  try {
+    const userId = await resolveAuthenticatedUserId(params.accessToken)
+    const sqlClient = getSqlOrThrow()
+    const limit = clampLimit(params.limit)
+    const offset = clampOffset(params.offset)
+
+    const data = (await fetchWithRetry(
+      () => sqlClient`
+        SELECT
+          COALESCE(NULLIF(e.record_uuid, ''), e.record_identity, e.record_label) AS account_key,
+          MAX(NULLIF(e.record_uuid, '')) AS record_uuid,
+          MAX(e.record_identity) AS record_identity,
+          MAX(e.record_label) AS record_label,
+          COUNT(*)::int AS unread_count,
+          MAX(e.changed_at) AS latest_changed_at
+        FROM audit.field_change_events e
+        LEFT JOIN audit.notification_reads r
+          ON r.change_event_id = e.id
+         AND r.user_id = ${userId}
+        WHERE r.id IS NULL
+          AND e.table_name = ${ACCOUNTS_TABLE_NAME}
+          AND e.field_name <> ${ROW_REMOVED_FIELD}
+          AND COALESCE(NULLIF(e.record_uuid, ''), e.record_identity, e.record_label) IS NOT NULL
+        GROUP BY COALESCE(NULLIF(e.record_uuid, ''), e.record_identity, e.record_label)
+        ORDER BY MAX(e.changed_at) DESC
+        LIMIT ${limit}
+        OFFSET ${offset}
+      `
+    )) as AccountUpdateSummary[]
+
+    return { success: true, data }
+  } catch (error) {
+    return {
+      success: false,
+      data: [],
+      error: error instanceof Error ? error.message : "Failed to fetch unread account updates.",
+    }
+  }
+}
+
+export async function getUnreadTableRecordUpdateSummaries(params: {
+  accessToken: string
+  tableName: string
+  limit?: number
+  offset?: number
+}): Promise<TableRecordUpdateSummaryListResponse> {
+  try {
+    const userId = await resolveAuthenticatedUserId(params.accessToken)
+    const sqlClient = getSqlOrThrow()
+    const normalizedTableName = normalizeTableName(params.tableName)
+    if (!normalizedTableName || !UI_VISIBLE_NOTIFICATION_TABLES.includes(normalizedTableName)) {
+      return { success: true, data: [] }
+    }
+
+    const limit = clampLimit(params.limit)
+    const offset = clampOffset(params.offset)
+
+    const data = (await fetchWithRetry(
+      () => sqlClient`
+        SELECT
+          COALESCE(NULLIF(e.record_uuid, ''), e.record_identity, e.record_label) AS record_key,
+          MAX(NULLIF(e.record_uuid, '')) AS record_uuid,
+          MAX(e.record_identity) AS record_identity,
+          MAX(e.record_label) AS record_label,
+          COUNT(*)::int AS unread_count,
+          MAX(e.changed_at) AS latest_changed_at
+        FROM audit.field_change_events e
+        LEFT JOIN audit.notification_reads r
+          ON r.change_event_id = e.id
+         AND r.user_id = ${userId}
+        WHERE r.id IS NULL
+          AND e.table_name = ${normalizedTableName}
+          AND e.field_name <> ${ROW_REMOVED_FIELD}
+          AND COALESCE(NULLIF(e.record_uuid, ''), e.record_identity, e.record_label) IS NOT NULL
+        GROUP BY COALESCE(NULLIF(e.record_uuid, ''), e.record_identity, e.record_label)
+        ORDER BY MAX(e.changed_at) DESC
+        LIMIT ${limit}
+        OFFSET ${offset}
+      `
+    )) as TableRecordUpdateSummary[]
+
+    return { success: true, data }
+  } catch (error) {
+    return {
+      success: false,
+      data: [],
+      error: error instanceof Error ? error.message : "Failed to fetch unread table record updates.",
+    }
+  }
+}
+
 export async function markNotificationsAsRead(
   accessToken: string,
   changeEventIds: number[]
@@ -348,6 +499,124 @@ export async function markAllNotificationsAsRead(accessToken: string): Promise<N
       success: false,
       markedCount: 0,
       error: error instanceof Error ? error.message : "Failed to mark all notifications as read.",
+    }
+  }
+}
+
+export async function markAccountNotificationsAsRead(
+  accessToken: string,
+  params: {
+    accountUuid?: string | null
+    accountName?: string | null
+  }
+): Promise<NotificationMarkResponse> {
+  try {
+    const userId = await resolveAuthenticatedUserId(accessToken)
+    const normalizedAccountUuid = normalizeTextValue(params.accountUuid)
+    const normalizedAccountName = normalizeTextValue(params.accountName)
+    const normalizedAccountIdentity = buildAccountIdentity(normalizedAccountName)
+    const shouldMatchByUuid = Boolean(normalizedAccountUuid)
+    const shouldMatchByName = Boolean(normalizedAccountName || normalizedAccountIdentity)
+
+    if (!shouldMatchByUuid && !shouldMatchByName) {
+      return { success: true, markedCount: 0 }
+    }
+
+    const sqlClient = getSqlOrThrow()
+    const result = (await fetchWithRetry(
+      () => sqlClient`
+        INSERT INTO audit.notification_reads (user_id, change_event_id)
+        SELECT ${userId}, e.id
+        FROM audit.field_change_events e
+        LEFT JOIN audit.notification_reads r
+          ON r.user_id = ${userId}
+         AND r.change_event_id = e.id
+        WHERE r.change_event_id IS NULL
+          AND e.table_name = ${ACCOUNTS_TABLE_NAME}
+          AND e.field_name <> ${ROW_REMOVED_FIELD}
+          AND (
+            (${shouldMatchByUuid} AND e.record_uuid = ${normalizedAccountUuid ?? ""})
+            OR (
+              ${shouldMatchByName}
+              AND (
+                e.record_label = ${normalizedAccountName ?? ""}
+                OR e.record_identity = ${normalizedAccountIdentity ?? ""}
+              )
+            )
+          )
+        ON CONFLICT (user_id, change_event_id) DO NOTHING
+        RETURNING change_event_id
+      `
+    )) as Array<{ change_event_id: number }>
+
+    return { success: true, markedCount: result.length }
+  } catch (error) {
+    return {
+      success: false,
+      markedCount: 0,
+      error: error instanceof Error ? error.message : "Failed to mark account notifications as read.",
+    }
+  }
+}
+
+export async function markTableRecordNotificationsAsRead(
+  accessToken: string,
+  params: {
+    tableName: string
+    recordUuid?: string | null
+    recordIdentity?: string | null
+    recordLabel?: string | null
+    recordIdentities?: Array<string | null | undefined>
+    recordLabels?: Array<string | null | undefined>
+  }
+): Promise<NotificationMarkResponse> {
+  try {
+    const userId = await resolveAuthenticatedUserId(accessToken)
+    const normalizedTableName = normalizeTableName(params.tableName)
+    if (!normalizedTableName || !UI_VISIBLE_NOTIFICATION_TABLES.includes(normalizedTableName)) {
+      return { success: true, markedCount: 0 }
+    }
+
+    const recordUuid = normalizeTextValue(params.recordUuid)
+    const identities = normalizeStringArray([params.recordIdentity, ...(params.recordIdentities ?? [])])
+    const labels = normalizeStringArray([params.recordLabel, ...(params.recordLabels ?? [])])
+
+    const hasUuid = Boolean(recordUuid)
+    const hasIdentities = identities.length > 0
+    const hasLabels = labels.length > 0
+
+    if (!hasUuid && !hasIdentities && !hasLabels) {
+      return { success: true, markedCount: 0 }
+    }
+
+    const sqlClient = getSqlOrThrow()
+    const result = (await fetchWithRetry(
+      () => sqlClient`
+        INSERT INTO audit.notification_reads (user_id, change_event_id)
+        SELECT ${userId}, e.id
+        FROM audit.field_change_events e
+        LEFT JOIN audit.notification_reads r
+          ON r.user_id = ${userId}
+         AND r.change_event_id = e.id
+        WHERE r.change_event_id IS NULL
+          AND e.table_name = ${normalizedTableName}
+          AND e.field_name <> ${ROW_REMOVED_FIELD}
+          AND (
+            (${hasUuid} AND e.record_uuid = ${recordUuid ?? ""})
+            OR (${hasIdentities} AND e.record_identity = ANY(${identities}))
+            OR (${hasLabels} AND e.record_label = ANY(${labels}))
+          )
+        ON CONFLICT (user_id, change_event_id) DO NOTHING
+        RETURNING change_event_id
+      `
+    )) as Array<{ change_event_id: number }>
+
+    return { success: true, markedCount: result.length }
+  } catch (error) {
+    return {
+      success: false,
+      markedCount: 0,
+      error: error instanceof Error ? error.message : "Failed to mark table record notifications as read.",
     }
   }
 }

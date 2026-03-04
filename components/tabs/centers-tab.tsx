@@ -19,6 +19,7 @@ import { SortButton } from "@/components/ui/sort-button"
 import { PaginationControls } from "@/components/ui/pagination-controls"
 import { captureEvent } from "@/lib/analytics/client"
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
+import { useRecentlyUpdatedTableRecords } from "@/hooks/use-recently-updated-table-records"
 import type { Center, Function, Service } from "@/lib/types"
 
 interface CentersTabProps {
@@ -63,7 +64,20 @@ export function CentersTab({
   const [mapMode, setMapMode] = useState<"city" | "state">("state")
   const previousDataLayoutRef = React.useRef<"table" | "grid">("table")
   const previousMapModeRef = React.useRef<"city" | "state">("state")
-  const openedRecordRef = React.useRef<{ recordId: string; openedAt: number } | null>(null)
+  const openedRecordRef = React.useRef<{
+    recordId: string
+    openedAt: number
+    openedFrom: "table_row" | "grid_card"
+    center: Center
+  } | null>(null)
+  const { isRecordRecentlyUpdated: isCenterRecentlyUpdated, markRecordAsRead: markCenterAsRead } =
+    useRecentlyUpdatedTableRecords<Center>({
+      tableName: "centers",
+      getRecordUuid: (center) => center.uuid,
+      getRecordIdentity: (center) => `key:cn_unique_key=${center.cn_unique_key}`,
+      getRecordLabel: (center) => center.center_name,
+      getAdditionalRecordLabels: (center) => [center.cn_unique_key],
+    })
 
   const handleCenterClick = (center: Center, openedFrom: "table_row" | "grid_card") => {
     if (isDialogOpen && openedRecordRef.current) {
@@ -74,12 +88,15 @@ export function CentersTab({
         dwell_seconds: dwellSeconds,
         close_reason: "switch_to_another_record",
       })
+      void markCenterAsRead(openedRecordRef.current.center)
     }
     setSelectedCenter(center)
     setIsDialogOpen(true)
     openedRecordRef.current = {
       recordId: center.cn_unique_key,
       openedAt: Date.now(),
+      openedFrom,
+      center,
     }
     captureEvent(ANALYTICS_EVENTS.RECORD_OPENED, {
       entity: "center",
@@ -152,8 +169,9 @@ export function CentersTab({
       dwell_seconds: dwellSeconds,
       close_reason: "dialog_closed",
     })
+    void markCenterAsRead(openedRecordRef.current.center)
     openedRecordRef.current = null
-  }, [isDialogOpen])
+  }, [isDialogOpen, markCenterAsRead])
 
 
   const sortedCenters = React.useMemo(() => {
@@ -350,6 +368,7 @@ export function CentersTab({
                           <CenterRow
                             key={`${center.cn_unique_key}-${index}`}
                             center={center}
+                            isRecentlyUpdated={isCenterRecentlyUpdated(center)}
                             onClick={() => handleCenterClick(center, "table_row")}
                           />
                         )
@@ -381,6 +400,7 @@ export function CentersTab({
                           <CenterGridCard
                             key={`${center.cn_unique_key}-${index}`}
                             center={center}
+                            isRecentlyUpdated={isCenterRecentlyUpdated(center)}
                             onClick={() => handleCenterClick(center, "grid_card")}
                           />
                         )

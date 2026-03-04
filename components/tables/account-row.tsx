@@ -3,13 +3,15 @@ import { CircleCheck, CircleX } from "lucide-react"
 import { TableRow, TableCell } from "@/components/ui/table"
 import type { Account } from "@/lib/types"
 import { CompanyLogo } from "@/components/ui/company-logo"
+import { RecentlyUpdatedIndicator } from "@/components/ui/recently-updated-indicator"
 
 interface AccountRowProps {
   account: Account
+  isRecentlyUpdated?: boolean
   onClick: () => void
 }
 
-export const AccountRow = memo(({ account, onClick }: AccountRowProps) => {
+export const AccountRow = memo(({ account, isRecentlyUpdated = false, onClick }: AccountRowProps) => {
   const location = [account.account_hq_city, account.account_hq_country]
     .filter(Boolean)
     .join(", ")
@@ -32,29 +34,36 @@ export const AccountRow = memo(({ account, onClick }: AccountRowProps) => {
       <TableCell className="font-medium max-w-[280px]">
         <div className="flex items-center gap-3">
           <CompanyLogo
-            domain={account.account_hq_website}
+            domain={account.account_hq_website ?? undefined}
             companyName={accountName}
             size="sm"
             theme="auto"
           />
           <div className="min-w-0">
-            <div className="truncate" title={accountName}>
-              {accountName}
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="min-w-0 flex-1 truncate" title={accountName}>
+                {accountName}
+              </div>
+              {isRecentlyUpdated ? (
+                <RecentlyUpdatedIndicator title="This account has unread recent updates" />
+              ) : null}
             </div>
-            <div
-              className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                isNasscomVerified
-                  ? "bg-green-500/15 text-green-700 dark:text-green-300"
-                  : "bg-red-500/15 text-red-700 dark:text-red-300"
-              }`}
-              title={isNasscomVerified ? "NASSCOM listed" : "Not listed in NASSCOM"}
-            >
-              {isNasscomVerified ? (
-                <CircleCheck className="h-3 w-3" aria-hidden="true" />
-              ) : (
-                <CircleX className="h-3 w-3" aria-hidden="true" />
-              )}
-              NASSCOM
+            <div className="mt-1 flex flex-wrap items-center gap-1.5">
+              <div
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                  isNasscomVerified
+                    ? "bg-green-500/15 text-green-700 dark:text-green-300"
+                    : "bg-red-500/15 text-red-700 dark:text-red-300"
+                }`}
+                title={isNasscomVerified ? "NASSCOM listed" : "Not listed in NASSCOM"}
+              >
+                {isNasscomVerified ? (
+                  <CircleCheck className="h-3 w-3" aria-hidden="true" />
+                ) : (
+                  <CircleX className="h-3 w-3" aria-hidden="true" />
+                )}
+                NASSCOM
+              </div>
             </div>
           </div>
         </div>

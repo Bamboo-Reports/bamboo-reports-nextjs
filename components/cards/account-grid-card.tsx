@@ -3,14 +3,16 @@ import { ArrowUpRight, CircleCheck, CircleX } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CompanyLogo } from "@/components/ui/company-logo"
+import { RecentlyUpdatedIndicator } from "@/components/ui/recently-updated-indicator"
 import type { Account } from "@/lib/types"
 
 interface AccountGridCardProps {
   account: Account
+  isRecentlyUpdated?: boolean
   onClick: () => void
 }
 
-export const AccountGridCard = memo(({ account, onClick }: AccountGridCardProps) => {
+export const AccountGridCard = memo(({ account, isRecentlyUpdated = false, onClick }: AccountGridCardProps) => {
   const location = [account.account_hq_city, account.account_hq_country]
     .filter(Boolean)
     .join(", ")
@@ -22,38 +24,45 @@ export const AccountGridCard = memo(({ account, onClick }: AccountGridCardProps)
       <CardContent className="p-4 flex flex-col gap-4">
         <div className="flex items-start gap-3">
           <CompanyLogo
-            domain={account.account_hq_website}
+            domain={account.account_hq_website ?? undefined}
             companyName={accountName}
             size="md"
             theme="auto"
           />
           <div className="min-w-0">
-            <h3
-              className="text-base font-semibold text-foreground leading-snug truncate"
-              title={accountName}
-            >
-              {accountName}
-            </h3>
+            <div className="flex min-w-0 items-center gap-2">
+              <h3
+                className="min-w-0 flex-1 truncate text-base font-semibold leading-snug text-foreground"
+                title={accountName}
+              >
+                {accountName}
+              </h3>
+              {isRecentlyUpdated ? (
+                <RecentlyUpdatedIndicator title="This account has unread recent updates" />
+              ) : null}
+            </div>
             <p
               className="text-sm text-muted-foreground mt-1 truncate"
               title={location || account.account_hq_country || "-"}
             >
               {location || account.account_hq_country || "-"}
             </p>
-            <div
-              className={`mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                isNasscomVerified
-                  ? "bg-green-500/15 text-green-700 dark:text-green-300"
-                  : "bg-red-500/15 text-red-700 dark:text-red-300"
-              }`}
-              title={isNasscomVerified ? "NASSCOM listed" : "Not listed in NASSCOM"}
-            >
-              {isNasscomVerified ? (
-                <CircleCheck className="h-3 w-3" aria-hidden="true" />
-              ) : (
-                <CircleX className="h-3 w-3" aria-hidden="true" />
-              )}
-              NASSCOM
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <div
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                  isNasscomVerified
+                    ? "bg-green-500/15 text-green-700 dark:text-green-300"
+                    : "bg-red-500/15 text-red-700 dark:text-red-300"
+                }`}
+                title={isNasscomVerified ? "NASSCOM listed" : "Not listed in NASSCOM"}
+              >
+                {isNasscomVerified ? (
+                  <CircleCheck className="h-3 w-3" aria-hidden="true" />
+                ) : (
+                  <CircleX className="h-3 w-3" aria-hidden="true" />
+                )}
+                NASSCOM
+              </div>
             </div>
           </div>
         </div>
