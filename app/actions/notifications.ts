@@ -5,6 +5,8 @@ import { getSqlOrThrow, fetchWithRetry } from "@/lib/db/connection"
 
 const DEFAULT_LIMIT = 20
 const MAX_LIMIT = 100
+const ROW_REMOVED_FIELD = "__row_removed__"
+const UI_VISIBLE_NOTIFICATION_TABLES = ["accounts", "centers", "prospects"]
 
 export interface NotificationEvent {
   id: number
@@ -106,7 +108,9 @@ export async function getUnreadNotificationsCount(accessToken: string): Promise<
         FROM (
           SELECT e.table_name, e.field_name
           FROM audit.field_change_events e
-          WHERE NOT EXISTS (
+          WHERE e.field_name <> ${ROW_REMOVED_FIELD}
+            AND e.table_name = ANY(${UI_VISIBLE_NOTIFICATION_TABLES})
+            AND NOT EXISTS (
             SELECT 1
             FROM audit.notification_reads r
             WHERE r.user_id = ${userId}
@@ -211,6 +215,8 @@ export async function getNotificationSummaries(params: {
         ON r.change_event_id = e.id
        AND r.user_id = ${userId}
       WHERE r.id IS NULL
+        AND e.field_name <> ${ROW_REMOVED_FIELD}
+        AND e.table_name = ANY(${UI_VISIBLE_NOTIFICATION_TABLES})
     `
 
     if (tableName) {

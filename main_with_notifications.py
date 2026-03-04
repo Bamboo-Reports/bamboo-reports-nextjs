@@ -85,6 +85,9 @@ NOTIFICATION_READS_TABLE = f"{NOTIFICATION_SCHEMA}.notification_reads"
 
 ALL_IMPORT_TABLES = ["accounts", "centers", "services", "functions", "tech", "prospects"]
 TRACKED_EVENT_TABLES = ["accounts", "centers", "services", "tech", "prospects"]
+LIFECYCLE_EVENT_TABLES = ["accounts", "centers", "services", "tech", "prospects"]
+ROW_ADDED_FIELD = "__row_added__"
+ROW_REMOVED_FIELD = "__row_removed__"
 
 TABLE_PRIMARY_ID_COLUMNS = {
     "accounts": ["account_global_legal_name"],
@@ -597,6 +600,27 @@ def create_import_run(engine: Engine, source: str, target_tables: List[str]) -> 
         logger.warning(f"Could not create import_runs record: {e}")
     return None
 
+def has_completed_import_baseline(engine: Engine) -> bool:
+    """Returns True when at least one previously completed import run exists."""
+    try:
+        with engine.connect() as conn:
+            conn.execution_options(isolation_level="AUTOCOMMIT")
+            result = conn.execute(
+                text(
+                    f"""
+                    SELECT EXISTS (
+                        SELECT 1
+                        FROM {IMPORT_RUNS_TABLE}
+                        WHERE status = 'completed'
+                    ) AS has_baseline
+                    """
+                )
+            ).scalar()
+        return bool(result)
+    except Exception as e:
+        logger.warning(f"Could not determine import baseline status: {e}")
+        return False
+
 def finalize_import_run(
     engine: Engine,
     run_id: int,
@@ -638,27 +662,28 @@ def finalize_import_run(
 
 def fetch_existing_table_snapshot(engine: Engine, table: str, tracked_fields: List[str]) -> pd.DataFrame:
     """Reads currently persisted table values for tracked fields before table refresh."""
-    if not tracked_fields:
-        return pd.DataFrame(columns=[ACCOUNT_UUID_COLUMN])
+    tracked_fields = tracked_fields or []
+    requested_cols = list(
+        dict.fromkeys(
+            [ACCOUNT_UUID_COLUMN]
+            + TABLE_PRIMARY_ID_COLUMNS.get(table, [])
+            + TABLE_SECONDARY_ID_COLUMNS.get(table, [])
+            + TABLE_LABEL_COLUMNS.get(table, [])
+            + [ACCOUNT_KEY_COLUMN]
+            + tracked_fields
+        )
+    )
 
     inspector = inspect(engine)
     if not inspector.has_table(table):
         logger.info(f"No existing '{table}' table found; skipping pre-import snapshot.")
-        return pd.DataFrame(columns=[ACCOUNT_UUID_COLUMN] + tracked_fields)
+        return pd.DataFrame(columns=requested_cols)
 
-    select_cols = (
-        [ACCOUNT_UUID_COLUMN]
-        + TABLE_PRIMARY_ID_COLUMNS.get(table, [])
-        + TABLE_SECONDARY_ID_COLUMNS.get(table, [])
-        + TABLE_LABEL_COLUMNS.get(table, [])
-        + [ACCOUNT_KEY_COLUMN]
-        + tracked_fields
-    )
-    select_cols = list(dict.fromkeys(select_cols))
+    select_cols = requested_cols
     existing_cols = {c["name"] for c in inspector.get_columns(table)}
     select_cols = [col for col in select_cols if col in existing_cols]
     if not select_cols:
-        return pd.DataFrame(columns=[ACCOUNT_UUID_COLUMN] + tracked_fields)
+        return pd.DataFrame(columns=requested_cols)
 
     select_cols_sql = [f'"{col}"' for col in select_cols]
     sql = f'SELECT {", ".join(select_cols_sql)} FROM "{table}"'
@@ -673,7 +698,7 @@ def fetch_existing_table_snapshot(engine: Engine, table: str, tracked_fields: Li
         return snapshot_df
     except Exception as e:
         logger.warning(f"Could not read existing '{table}' snapshot: {e}")
-        return pd.DataFrame(columns=[ACCOUNT_UUID_COLUMN] + tracked_fields)
+        return pd.DataFrame(columns=requested_cols)
 
 def get_common_record_count(old_df: pd.DataFrame, new_df: pd.DataFrame, table: str) -> int:
     """Returns the number of overlapping row identities for a table."""
@@ -751,6 +776,55 @@ def compute_table_field_changes(
                     "new_value": new_value,
                 }
             )
+
+    return events
+
+def compute_table_lifecycle_events(
+    old_df: pd.DataFrame, new_df: pd.DataFrame, table: str
+) -> List[Dict[str, Optional[str]]]:
+    """Returns row-level add/remove events by comparing row identities."""
+    old_norm = prepare_table_identity_index(old_df, table)
+    new_norm = prepare_table_identity_index(new_df, table)
+
+    old_identities = set(old_norm.index)
+    new_identities = set(new_norm.index)
+
+    added_identities = sorted(new_identities - old_identities)
+    removed_identities = sorted(old_identities - new_identities)
+
+    events: List[Dict[str, Optional[str]]] = []
+
+    for identity in added_identities:
+        row_new = new_norm.loc[identity]
+        row_uuid = normalize_change_value(row_new.get(ACCOUNT_UUID_COLUMN))
+        record_label = resolve_table_row_label(table, row_new, row_new)
+        events.append(
+            {
+                "table_name": table,
+                "record_uuid": row_uuid,
+                "record_identity": identity,
+                "record_label": record_label,
+                "field_name": ROW_ADDED_FIELD,
+                "old_value": None,
+                "new_value": "added",
+            }
+        )
+
+    for identity in removed_identities:
+        row_old = old_norm.loc[identity]
+        row_uuid = normalize_change_value(row_old.get(ACCOUNT_UUID_COLUMN))
+        record_label = resolve_table_row_label(table, row_old, row_old)
+        events.append(
+            {
+                "table_name": table,
+                "record_uuid": row_uuid,
+                "record_identity": identity,
+                "record_label": record_label,
+                "field_name": ROW_REMOVED_FIELD,
+                "old_value": "removed",
+                "new_value": None,
+            }
+        )
 
     return events
 
@@ -941,11 +1015,18 @@ def run_import(
 
     table_tracked_fields: Dict[str, List[str]] = {}
     old_snapshots: Dict[str, pd.DataFrame] = {}
+    track_lifecycle_events = True
 
     if dry_run:
         logger.info("Dry-run mode enabled: no DB write operations will be executed.")
     else:
         ensure_notification_tables(engine)
+        track_lifecycle_events = has_completed_import_baseline(engine)
+        if not track_lifecycle_events:
+            logger.info(
+                "Lifecycle add/remove events will be skipped for this run because no "
+                "completed baseline import exists yet."
+            )
         import_run_id = create_import_run(engine, IMPORT_SOURCE, tables)
         if import_run_id is None:
             raise RuntimeError("Could not create import run record.")
@@ -961,7 +1042,7 @@ def run_import(
             )
         else:
             logger.info(f"Change tracking skipped for table '{table}'.")
-        if not tracked_fields:
+        if not tracked_fields and table not in LIFECYCLE_EVENT_TABLES:
             continue
         old_snapshots[table] = fetch_existing_table_snapshot(engine, table, tracked_fields)
 
@@ -987,16 +1068,35 @@ def run_import(
             df_clean = clean_dataframe(df, full_schema[table])
             tracked_fields = table_tracked_fields.get(table, [])
             table_field_events: List[Dict[str, Optional[str]]] = []
+            table_lifecycle_events: List[Dict[str, Optional[str]]] = []
+            table_events: List[Dict[str, Optional[str]]] = []
             common_record_count = 0
+            added_count = 0
+            removed_count = 0
+            old_snapshot = old_snapshots.get(table, pd.DataFrame())
 
             if tracked_fields:
-                old_snapshot = old_snapshots.get(table, pd.DataFrame())
                 common_record_count = get_common_record_count(old_snapshot, df_clean, table)
                 table_field_events = compute_table_field_changes(old_snapshot, df_clean, table, tracked_fields)
+                table_events.extend(table_field_events)
                 logger.debug(
                     f"[CHANGE EVENTS][{table}] overlaps={common_record_count}, "
                     f"computed_events={len(table_field_events)}"
                 )
+
+            if table in LIFECYCLE_EVENT_TABLES:
+                if track_lifecycle_events:
+                    table_lifecycle_events = compute_table_lifecycle_events(old_snapshot, df_clean, table)
+                    added_count = sum(1 for event in table_lifecycle_events if event["field_name"] == ROW_ADDED_FIELD)
+                    removed_count = sum(1 for event in table_lifecycle_events if event["field_name"] == ROW_REMOVED_FIELD)
+                    table_events.extend(table_lifecycle_events)
+                    logger.debug(
+                        f"[LIFECYCLE EVENTS][{table}] added={added_count}, removed={removed_count}"
+                    )
+                else:
+                    logger.debug(
+                        f"[LIFECYCLE EVENTS][{table}] skipped (baseline import not available yet)."
+                    )
 
             # Map types
             dtypes = {
@@ -1014,6 +1114,17 @@ def run_import(
                         f"  [DRY-RUN CHANGE EVENTS] Would log {len(table_field_events)} field changes "
                         f"for tracked fields {tracked_fields}. Compared {common_record_count} common records."
                     )
+                if table in LIFECYCLE_EVENT_TABLES:
+                    if track_lifecycle_events:
+                        logger.info(
+                            f"  [DRY-RUN LIFECYCLE EVENTS] Would log {added_count} row additions "
+                            f"and {removed_count} row removals for table '{table}'."
+                        )
+                    else:
+                        logger.info(
+                            "  [DRY-RUN LIFECYCLE EVENTS] Skipped because no completed baseline "
+                            "import exists yet."
+                        )
                 loaded.append(table)
                 continue
 
@@ -1035,14 +1146,14 @@ def run_import(
             logger.info(f"  [OK] {len(df_clean)} rows in {elapsed}s")
             loaded.append(table)
 
-            if table_field_events and import_run_id is not None:
-                inserted_count = insert_change_events(engine, import_run_id, table_field_events)
+            if table_events and import_run_id is not None:
+                inserted_count = insert_change_events(engine, import_run_id, table_events)
                 total_change_events_logged += inserted_count
                 logger.info(
-                    f"  [CHANGE EVENTS] Logged {inserted_count} field changes for table '{table}' "
-                    f"for tracked fields {tracked_fields}"
+                    f"  [CHANGE EVENTS] Logged {inserted_count} events for table '{table}' "
+                    f"({len(table_field_events)} field updates, {added_count} adds, {removed_count} removals)"
                 )
-            elif tracked_fields:
+            elif tracked_fields or table in LIFECYCLE_EVENT_TABLES:
                 logger.info(
                     f"  [CHANGE EVENTS] No changes detected for tracked fields {tracked_fields}. "
                     f"Compared {common_record_count} common records for table '{table}'."

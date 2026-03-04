@@ -25,6 +25,7 @@ interface HeaderProps {
 }
 
 const NOTIFICATIONS_PAGE_SIZE = 10
+const ROW_ADDED_FIELD = "__row_added__"
 const TABLE_LABELS: Record<string, string> = {
   accounts: "Accounts",
   centers: "Centers",
@@ -202,6 +203,9 @@ export const Header = React.memo(function Header({ onRefresh }: HeaderProps): JS
   }): string => {
     const count = summary.unread_count
     const tableLabel = formatTableLabel(summary.table_name, count)
+    if (summary.field_name === ROW_ADDED_FIELD) {
+      return `${count} ${tableLabel} added`
+    }
     const fieldLabel = formatFieldLabel(summary.table_name, summary.field_name)
     return `${fieldLabel} updated in ${count} ${tableLabel}`
   }
