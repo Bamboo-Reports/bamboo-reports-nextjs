@@ -10,6 +10,7 @@ This guide documents the migration from the legacy column naming (uppercase, spa
 ## 1. Quick Summary
 
 - Core Tables: `accounts`, `centers`, `services`, `functions`, `tech`, `prospects`.
+- Audit Tables: `audit.import_runs`, `audit.field_change_events`, `audit.notification_reads`.
 - Naming Convention: strict `snake_case`.
 - Primary Keys (PK):
   - `accounts` -> `account_global_legal_name`
@@ -27,7 +28,7 @@ This guide documents the migration from the legacy column naming (uppercase, spa
 Description: Top-level company entity with HQ details, global metrics, and aggregate India presence fields.
 
 Notable columns:
-- Keys and metadata: `account_global_legal_name` (PK), `uuid`, `account_last_update_date`
+- Keys and metadata: `account_global_legal_name` (PK), `uuid`, `account_last_update_date`, `account_hq_stock_ticker`
 - Classification: `account_nasscom_status`, `account_nasscom_member_status`, `account_data_coverage`, `account_source`, `account_type`
 - HQ profile: `account_hq_address`, `account_hq_city`, `account_hq_state`, `account_hq_zip_code`, `account_hq_country`, `account_hq_region`, `account_hq_boardline`, `account_hq_website`, `account_hq_linkedin_link`
 - Industry and positioning: `account_hq_sub_industry`, `account_hq_industry`, `account_primary_category`, `account_primary_nature`

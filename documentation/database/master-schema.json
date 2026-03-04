@@ -67,6 +67,14 @@
       },
       {
         "Table": "accounts",
+        "Column": "account_hq_stock_ticker",
+        "Type": "TEXT",
+        "Nullable": "YES",
+        "Default": "None",
+        "PK": ""
+      },
+      {
+        "Table": "accounts",
         "Column": "account_about",
         "Type": "TEXT",
         "Nullable": "YES",

@@ -7,6 +7,7 @@ Unified Data Manager (Import, Validate, Schema Snapshot)
 Usage:
   python import_data.py                  # Default: Import -> Snapshot -> Validate
   python import_data.py --import         # Import -> Snapshot
+  python import_data.py --dry-run        # Validate import flow without DB writes
   python import_data.py --validate       # Just Validate
   python import_data.py --schema         # Just Snapshot
   python import_data.py --check-headers  # Fetch real headers from Google Sheets and diff vs schema
@@ -59,7 +60,9 @@ WORKSHEET_MAP = {
 
 CHUNKSIZE = 1000
 SCHEMA_FILE = os.path.join(os.path.dirname(__file__), "master-schema.json")
-GENERATED_SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "generated_schema")
+IMPORT_LOG_ROOT = os.path.join(os.path.dirname(__file__), "import_logs")
+LOG_OUTPUT_DIR = os.path.join(IMPORT_LOG_ROOT, "logs")
+SNAPSHOT_OUTPUT_DIR = os.path.join(IMPORT_LOG_ROOT, "snapshot")
 
 TYPE_MAPPING = {
     "INTEGER": Integer,
@@ -75,7 +78,10 @@ TYPE_MAPPING = {
 ACCOUNT_UUID_COLUMN = "uuid"
 ACCOUNT_KEY_COLUMN = "account_global_legal_name"
 IMPORT_SOURCE = "google_sheets_weekly_refresh"
-CHANGE_EVENTS_TABLE = "field_change_events"
+NOTIFICATION_SCHEMA = "audit"
+IMPORT_RUNS_TABLE = f"{NOTIFICATION_SCHEMA}.import_runs"
+CHANGE_EVENTS_TABLE = f"{NOTIFICATION_SCHEMA}.field_change_events"
+NOTIFICATION_READS_TABLE = f"{NOTIFICATION_SCHEMA}.notification_reads"
 
 ALL_IMPORT_TABLES = ["accounts", "centers", "services", "functions", "tech", "prospects"]
 TRACKED_EVENT_TABLES = ["accounts", "centers", "services", "tech", "prospects"]
@@ -111,11 +117,11 @@ TABLE_LABEL_COLUMNS = {
 
 def setup_logger(verbose: bool = False) -> logging.Logger:
     """Configures console (INFO/DEBUG) and file (DEBUG) logging."""
-    log_dir = os.path.join(os.path.dirname(__file__), "logs")
-    os.makedirs(log_dir, exist_ok=True)
+    os.makedirs(LOG_OUTPUT_DIR, exist_ok=True)
+    os.makedirs(SNAPSHOT_OUTPUT_DIR, exist_ok=True)
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file = os.path.join(log_dir, f"log_{timestamp}.txt")
+    log_file = os.path.join(LOG_OUTPUT_DIR, f"log_{timestamp}.txt")
 
     logger = logging.getLogger("data_manager")
     logger.setLevel(logging.DEBUG)
@@ -140,6 +146,7 @@ def setup_logger(verbose: bool = False) -> logging.Logger:
     if verbose:
         logger.debug("Verbose mode enabled.")
     logger.debug(f"Log file: {log_file}")
+    logger.debug(f"Snapshot dir: {SNAPSHOT_OUTPUT_DIR}")
     return logger
 
 # Initialize with default settings first (non-verbose), re-init in main if needed
@@ -227,7 +234,7 @@ def check_sheet_headers(schema_def: Dict[str, Any], target_tables: List[str] = N
             for col in sorted(missing_from_sheet):
                 logger.error(f"    [MISSING IN SHEET] '{col}' is defined in schema but not found in sheet '{ws_name}'.")
         if extra_in_sheet:
-            # Extra columns are a warning, not a hard failure — import silently drops them
+            # Extra columns are a warning, not a hard failure - import silently drops them
             for col in sorted(extra_in_sheet):
                 logger.warning(f"    [EXTRA IN SHEET]   '{col}' exists in sheet '{ws_name}' but is NOT in schema (will be ignored on import).")
 
@@ -237,7 +244,7 @@ def check_sheet_headers(schema_def: Dict[str, Any], target_tables: List[str] = N
     if all_ok:
         logger.info("  [SUCCESS] All sheet headers validated successfully.")
     else:
-        logger.error("  [FAILED] Header validation found issues — see above.")
+        logger.error("  [FAILED] Header validation found issues - see above.")
 
     return all_ok
 
@@ -427,8 +434,39 @@ def ensure_notification_tables(engine: Engine):
     """Creates notification and import metadata tables if they do not exist."""
     logger.info("Ensuring notification/audit tables...")
     ddl_statements = [
-        """
-        CREATE TABLE IF NOT EXISTS import_runs (
+        f"CREATE SCHEMA IF NOT EXISTS {NOTIFICATION_SCHEMA};",
+        f"""
+        DO $$
+        BEGIN
+            IF to_regclass('public.import_runs') IS NOT NULL
+               AND to_regclass('{IMPORT_RUNS_TABLE}') IS NULL THEN
+                ALTER TABLE public.import_runs SET SCHEMA {NOTIFICATION_SCHEMA};
+            END IF;
+        END
+        $$;
+        """,
+        f"""
+        DO $$
+        BEGIN
+            IF to_regclass('public.field_change_events') IS NOT NULL
+               AND to_regclass('{CHANGE_EVENTS_TABLE}') IS NULL THEN
+                ALTER TABLE public.field_change_events SET SCHEMA {NOTIFICATION_SCHEMA};
+            END IF;
+        END
+        $$;
+        """,
+        f"""
+        DO $$
+        BEGIN
+            IF to_regclass('public.notification_reads') IS NOT NULL
+               AND to_regclass('{NOTIFICATION_READS_TABLE}') IS NULL THEN
+                ALTER TABLE public.notification_reads SET SCHEMA {NOTIFICATION_SCHEMA};
+            END IF;
+        END
+        $$;
+        """,
+        f"""
+        CREATE TABLE IF NOT EXISTS {IMPORT_RUNS_TABLE} (
             id BIGSERIAL PRIMARY KEY,
             source TEXT NOT NULL,
             target_tables_json TEXT NOT NULL,
@@ -443,7 +481,7 @@ def ensure_notification_tables(engine: Engine):
         f"""
         CREATE TABLE IF NOT EXISTS {CHANGE_EVENTS_TABLE} (
             id BIGSERIAL PRIMARY KEY,
-            import_run_id BIGINT NOT NULL REFERENCES import_runs(id) ON DELETE CASCADE,
+            import_run_id BIGINT NOT NULL REFERENCES {IMPORT_RUNS_TABLE}(id) ON DELETE CASCADE,
             table_name TEXT NOT NULL DEFAULT 'accounts',
             record_uuid TEXT,
             record_identity TEXT,
@@ -498,7 +536,7 @@ def ensure_notification_tables(engine: Engine):
         DROP COLUMN IF EXISTS account_global_legal_name;
         """,
         f"""
-        CREATE TABLE IF NOT EXISTS notification_reads (
+        CREATE TABLE IF NOT EXISTS {NOTIFICATION_READS_TABLE} (
             id BIGSERIAL PRIMARY KEY,
             user_id UUID NOT NULL,
             change_event_id BIGINT NOT NULL REFERENCES {CHANGE_EVENTS_TABLE}(id) ON DELETE CASCADE,
@@ -522,9 +560,9 @@ def ensure_notification_tables(engine: Engine):
         CREATE INDEX IF NOT EXISTS field_change_events_record_uuid_idx
         ON {CHANGE_EVENTS_TABLE} (record_uuid, changed_at DESC);
         """,
-        """
+        f"""
         CREATE INDEX IF NOT EXISTS notification_reads_user_read_at_idx
-        ON notification_reads (user_id, read_at DESC);
+        ON {NOTIFICATION_READS_TABLE} (user_id, read_at DESC);
         """,
     ]
 
@@ -540,8 +578,8 @@ def create_import_run(engine: Engine, source: str, target_tables: List[str]) -> 
             conn.execution_options(isolation_level="AUTOCOMMIT")
             row = conn.execute(
                 text(
-                    """
-                    INSERT INTO import_runs (source, target_tables_json, status)
+                    f"""
+                    INSERT INTO {IMPORT_RUNS_TABLE} (source, target_tables_json, status)
                     VALUES (:source, :target_tables_json, 'running')
                     RETURNING id
                     """
@@ -573,8 +611,8 @@ def finalize_import_run(
             conn.execution_options(isolation_level="AUTOCOMMIT")
             conn.execute(
                 text(
-                    """
-                    UPDATE import_runs
+                    f"""
+                    UPDATE {IMPORT_RUNS_TABLE}
                     SET status = :status,
                         completed_at = NOW(),
                         tables_loaded = :tables_loaded,
@@ -794,24 +832,18 @@ def apply_constraints(engine: Engine):
     with engine.connect() as conn:
         conn.execution_options(isolation_level="AUTOCOMMIT")
         for sql in constraints:
-            try:
-                conn.execute(text(sql))
-                logger.debug(f"  Applied: {sql.split()[0:6]}...") # Log brief start of SQL
-            except Exception as e:
-                logger.warning(f"  Constraint failed (likely exists): {str(e).splitlines()[0]}")
+            conn.execute(text(sql))
+            logger.debug(f"  Applied: {sql.split()[0:6]}...")
 
 def apply_indexes(engine: Engine, target_tables: List[str] = None):
     """Applies Indexes and Types extensions."""
     logger.info("Applying Indexes...")
 
     # 1. Extensions (One-time setup)
-    try:
-        with engine.connect() as conn:
-            conn.execution_options(isolation_level="AUTOCOMMIT")
-            conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm;"))
-            logger.debug("  [OK] Extension pg_trgm checked/created.")
-    except Exception as e:
-        logger.warning(f"  [WARN] Failed to enable pg_trgm extension: {e}")
+    with engine.connect() as conn:
+        conn.execution_options(isolation_level="AUTOCOMMIT")
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm;"))
+        logger.debug("  [OK] Extension pg_trgm checked/created.")
 
     # 2. Define Indexes by Table
     # Note: Keys here must match table names exactly.
@@ -881,40 +913,42 @@ def apply_indexes(engine: Engine, target_tables: List[str] = None):
             
             logger.info(f"  Indexing table: {table}")
             for sql in indexes_by_table[table]:
-                try:
-                    conn.execute(text(sql))
-                    # logger.debug(f"    Applied: {sql.strip().split(' on ')[0]}")
-                except Exception as e:
-                    logger.warning(f"    Index failed: {sql.split(' on ')[0]} -> {e}")
+                conn.execute(text(sql))
+                logger.debug(f"    Applied: {sql.strip().split(' on ')[0]}")
 
 
-def run_import(engine: Engine, full_schema: Dict, target_tables: List[str] = None) -> List[str]:
-    """Reads Sheets, cleans data, writes to DB."""
+def run_import(
+    engine: Engine,
+    full_schema: Dict,
+    target_tables: List[str] = None,
+    dry_run: bool = False,
+) -> List[str]:
+    """Reads Sheets, validates/cleans data, and writes to DB unless dry-run is enabled."""
     try:
         gc = get_gspread_client()
     except Exception as e:
-        logger.error(f"Auth failed: {e}")
-        return []
+        raise RuntimeError(f"Google Sheets auth failed: {e}") from e
 
-    loaded = []
-    failed = []
+    loaded: List[str] = []
     total_change_events_logged = 0
     import_run_id: Optional[int] = None
-    # If target_tables is provided, filter the default list. Otherwise use all schema tables.
+
     all_known_tables = ALL_IMPORT_TABLES
     if target_tables:
         tables = [t for t in all_known_tables if t in full_schema and t in target_tables]
     else:
         tables = [t for t in all_known_tables if t in full_schema]
-    
+
     table_tracked_fields: Dict[str, List[str]] = {}
     old_snapshots: Dict[str, pd.DataFrame] = {}
 
-    try:
+    if dry_run:
+        logger.info("Dry-run mode enabled: no DB write operations will be executed.")
+    else:
         ensure_notification_tables(engine)
         import_run_id = create_import_run(engine, IMPORT_SOURCE, tables)
-    except Exception as e:
-        logger.warning(f"Notification table setup failed; import will continue without run tracking: {e}")
+        if import_run_id is None:
+            raise RuntimeError("Could not create import run record.")
 
     # Capture old snapshots for all target tables before any drop/recreate starts.
     for table in tables:
@@ -931,51 +965,72 @@ def run_import(engine: Engine, full_schema: Dict, target_tables: List[str] = Non
             continue
         old_snapshots[table] = fetch_existing_table_snapshot(engine, table, tracked_fields)
 
-    for table in tables:
-        ws_name = WORKSHEET_MAP.get(table)
-        logger.info(f"Importing '{ws_name}' -> '{table}'")
+    try:
+        for table in tables:
+            ws_name = WORKSHEET_MAP.get(table)
+            if not ws_name:
+                raise RuntimeError(f"No worksheet mapping configured for table '{table}'.")
 
-        try:
-            # Read
+            logger.info(f"Importing '{ws_name}' -> '{table}'")
             start_time = time.perf_counter()
+
             ws = gc.open_by_key(SPREADSHEET_ID).worksheet(ws_name)
             df = get_as_dataframe(ws, evaluate_formulas=True, header=0)
-            
+
             # Basic cleanup of empty rows/cols
             if df is not None:
                 df = df.dropna(how="all").loc[:, ~df.columns.astype(str).str.match(r"^Unnamed")]
 
             if df is None or df.empty:
-                logger.warning(f"  Empty worksheet: {ws_name}")
-                continue
+                raise RuntimeError(f"Worksheet '{ws_name}' is empty.")
 
-            # Clean & Write
             df_clean = clean_dataframe(df, full_schema[table])
             tracked_fields = table_tracked_fields.get(table, [])
             table_field_events: List[Dict[str, Optional[str]]] = []
             common_record_count = 0
+
             if tracked_fields:
                 old_snapshot = old_snapshots.get(table, pd.DataFrame())
                 common_record_count = get_common_record_count(old_snapshot, df_clean, table)
-                table_field_events = compute_table_field_changes(
-                    old_snapshot, df_clean, table, tracked_fields
+                table_field_events = compute_table_field_changes(old_snapshot, df_clean, table, tracked_fields)
+                logger.debug(
+                    f"[CHANGE EVENTS][{table}] overlaps={common_record_count}, "
+                    f"computed_events={len(table_field_events)}"
                 )
-            
+
             # Map types
             dtypes = {
-                c["Column"]: TYPE_MAPPING.get(c["Type"].upper(), Text) 
+                c["Column"]: TYPE_MAPPING.get(c["Type"].upper(), Text)
                 for c in full_schema[table]["columns"]
             }
+
+            if dry_run:
+                elapsed = round(time.perf_counter() - start_time, 2)
+                logger.info(
+                    f"  [DRY-RUN OK] {len(df_clean)} rows validated for table '{table}' in {elapsed}s"
+                )
+                if tracked_fields:
+                    logger.info(
+                        f"  [DRY-RUN CHANGE EVENTS] Would log {len(table_field_events)} field changes "
+                        f"for tracked fields {tracked_fields}. Compared {common_record_count} common records."
+                    )
+                loaded.append(table)
+                continue
 
             with engine.connect() as conn:
                 conn.execution_options(isolation_level="AUTOCOMMIT")
                 conn.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
 
             df_clean.to_sql(
-                table, engine, if_exists="replace", index=False, 
-                method="multi", chunksize=CHUNKSIZE, dtype=dtypes
+                table,
+                engine,
+                if_exists="replace",
+                index=False,
+                method="multi",
+                chunksize=CHUNKSIZE,
+                dtype=dtypes,
             )
-            
+
             elapsed = round(time.perf_counter() - start_time, 2)
             logger.info(f"  [OK] {len(df_clean)} rows in {elapsed}s")
             loaded.append(table)
@@ -998,39 +1053,42 @@ def run_import(engine: Engine, full_schema: Dict, target_tables: List[str] = Non
                         "between old DB snapshot and new sheet data."
                     )
 
-        except Exception as e:
-            logger.error(f"  [FAILED] {table}: {e}")
-            failed.append(table)
+        if dry_run:
+            logger.info(f"Dry-run completed successfully for tables: {loaded}")
+            return loaded
 
-    if loaded:
-        apply_constraints(engine)
-        # Apply indexes for the loaded tables as well (since we just refreshed them)
-        apply_indexes(engine, loaded)
+        if loaded:
+            apply_constraints(engine)
+            apply_indexes(engine, loaded)
 
-    if import_run_id is not None:
-        if not loaded:
-            run_status = "failed"
-        elif failed:
-            run_status = "completed_with_errors"
-        else:
-            run_status = "completed"
+        if import_run_id is not None:
+            finalize_import_run(
+                engine,
+                import_run_id,
+                status="completed",
+                tables_loaded=len(loaded),
+                change_events_logged=total_change_events_logged,
+                error_message=None,
+            )
 
-        error_message = ", ".join(failed) if failed else None
-        finalize_import_run(
-            engine,
-            import_run_id,
-            status=run_status,
-            tables_loaded=len(loaded),
-            change_events_logged=total_change_events_logged,
-            error_message=error_message,
-        )
-    
-    return loaded
+        return loaded
+    except Exception as e:
+        logger.exception(f"Import aborted due to failure: {e}")
+        if import_run_id is not None and not dry_run:
+            finalize_import_run(
+                engine,
+                import_run_id,
+                status="failed",
+                tables_loaded=len(loaded),
+                change_events_logged=total_change_events_logged,
+                error_message=str(e)[:1000],
+            )
+        raise
 
 def run_snapshot(engine: Engine, tables: List[str]):
     """Dumps current DB schema stats to JSON."""
     logger.info("Snapshotting Schema...")
-    os.makedirs(GENERATED_SCHEMA_DIR, exist_ok=True)
+    os.makedirs(SNAPSHOT_OUTPUT_DIR, exist_ok=True)
     
     inspector = inspect(engine)
     snapshot = {}
@@ -1069,7 +1127,7 @@ def run_snapshot(engine: Engine, tables: List[str]):
         }
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    path = os.path.join(GENERATED_SCHEMA_DIR, f"schema_{timestamp}.json")
+    path = os.path.join(SNAPSHOT_OUTPUT_DIR, f"schema_{timestamp}.json")
     
     with open(path, "w", encoding="utf-8") as f:
         json.dump(snapshot, f, indent=2, ensure_ascii=False)
@@ -1121,6 +1179,7 @@ def run_validate(engine: Engine, schema_def: Dict, target_tables: List[str] = No
         logger.info("  [SUCCESS] Schema validation passed.")
     else:
         logger.error("  [FAILED] Schema validation found issues.")
+        raise RuntimeError("Schema validation failed.")
 
 # ------------------------------------------------------------------------------
 # MAIN
@@ -1129,6 +1188,12 @@ def run_validate(engine: Engine, schema_def: Dict, target_tables: List[str] = No
 def main():
     parser = argparse.ArgumentParser(description="Utilities for Data Import & Validation")
     parser.add_argument("--import", dest="run_import", action="store_true", help="Run Import from Sheets")
+    parser.add_argument(
+        "--dry-run",
+        dest="dry_run",
+        action="store_true",
+        help="Run import flow without writing to database tables."
+    )
     parser.add_argument("--validate", dest="run_validate", action="store_true", help="Validate Database Schema")
     parser.add_argument("--schema", dest="run_snapshot", action="store_true", help="Take Schema Snapshot")
     parser.add_argument("--index", dest="run_index", action="store_true", help="Apply DB Indexes")
@@ -1145,12 +1210,17 @@ def main():
         global logger
         logger = setup_logger(verbose=True)
 
-    # Default Behavior: If no args, do everything (Import -> Snapshot -> Validate)
-    if not (args.run_import or args.run_validate or args.run_snapshot or args.run_index or args.check_headers):
+    mode_selected = args.run_import or args.run_validate or args.run_snapshot or args.run_index or args.check_headers
+
+    # Default behavior:
+    # - no args: Import -> Snapshot -> Validate
+    # - only --dry-run: import dry-run only
+    if not mode_selected and not args.dry_run:
         args.run_import = True
         args.run_validate = True
-        args.run_index = True # Implicitly index on full run
-        # Implicitly snapshot if importing
+        args.run_index = True
+    elif args.dry_run and not mode_selected:
+        args.run_import = True
 
     full_schema = load_schema_def()
 
@@ -1163,7 +1233,7 @@ def main():
         target_tables = [args.target_table]
         logger.info(f"Targeting single table: {args.target_table}")
 
-    # --check-headers: standalone mode — needs Google Sheets auth but no DB connection
+    # --check-headers: standalone mode - needs Google Sheets auth but no DB connection
     if args.check_headers:
         logger.info(">>> MODE: CHECK-HEADERS")
         headers_ok = check_sheet_headers(full_schema, target_tables)
@@ -1174,20 +1244,26 @@ def main():
             logger.info("--- DONE ---")
             return
 
+    if args.dry_run and args.run_index and not args.run_import:
+        logger.critical("--dry-run cannot be combined with standalone --index.")
+        sys.exit(1)
+
     # All other modes require a DB connection
     try:
         engine = get_engine()
         # Fast connectivity check
-        with engine.connect() as _: pass
+        with engine.connect() as _:
+            pass
     except Exception as e:
         logger.critical(f"Database connection failed: {e}")
         sys.exit(1)
 
     # Pre-flight: always validate sheet headers against schema before importing
     if args.run_import:
-        logger.info("Pre-flight: Validating Google Sheet headers against schema...")
+        preflight_label = "Pre-flight (dry-run)" if args.dry_run else "Pre-flight"
+        logger.info(f"{preflight_label}: Validating Google Sheet headers against schema...")
         if not check_sheet_headers(full_schema, target_tables):
-            logger.critical("Aborting import — sheet headers do not match schema. Fix the issues above first.")
+            logger.critical("Aborting import - sheet headers do not match schema. Fix the issues above first.")
             engine.dispose()
             sys.exit(1)
 
@@ -1195,9 +1271,9 @@ def main():
 
     # 1. Import (Implicitly runs constraints & indexes on loaded tables)
     if args.run_import:
-        logger.info(">>> MODE: IMPORT")
+        logger.info(">>> MODE: IMPORT (DRY-RUN)" if args.dry_run else ">>> MODE: IMPORT")
         # For import, we only return what was successfully loaded
-        processed_tables = run_import(engine, full_schema, target_tables)
+        processed_tables = run_import(engine, full_schema, target_tables, dry_run=args.dry_run)
 
     # 1b. Index Only (Use case: Re-index without import)
     if args.run_index and not args.run_import:
@@ -1205,18 +1281,13 @@ def main():
         # If we didn't import, we index based on target_tables or all known tables
         apply_indexes(engine, target_tables)
 
-    # 2. Snapshot 
-    # Logic: If we just imported, snapshot what we processed.
+    # 2. Snapshot
+    # Logic: If we just imported (non-dry-run), snapshot what we processed.
     # If we are just running snapshot mode, and user specified a table, snapshot that.
     # If no table specified, snapshot everything.
-    if args.run_snapshot or args.run_import:
+    if args.run_snapshot or (args.run_import and not args.dry_run):
         logger.info(">>> MODE: SNAPSHOT")
-        
-        tables_to_snapshot = processed_tables
-        # Edge case: If run_snapshot is set but run_import is False, processed_tables 
-        # is already set to target_tables (or all).
-        
-        run_snapshot(engine, tables_to_snapshot)
+        run_snapshot(engine, processed_tables)
 
     # 3. Validate
     if args.run_validate:
@@ -1225,7 +1296,6 @@ def main():
 
     engine.dispose()
     logger.info("--- DONE ---")
-
 if __name__ == "__main__":
     try:
         main()
@@ -1235,3 +1305,5 @@ if __name__ == "__main__":
     except Exception as e:
         logger.critical(f"\n[!] Unexpected Error: {e}", exc_info=True)
         sys.exit(1)
+
+

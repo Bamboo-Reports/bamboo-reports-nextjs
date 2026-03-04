@@ -223,6 +223,7 @@ The app delegates identity management to **Supabase Auth**.
 The core BI data resides in **Neon PostgreSQL**. We strictly follow `snake_case` naming.
 
 -   **Tables:** `accounts`, `centers`, `services`, `functions`, `prospects`.
+-   **Audit Schema:** `audit.import_runs`, `audit.field_change_events`, `audit.notification_reads`.
 -   **Linkage:**
     -   `centers` are linked to `accounts` via `account_global_legal_name`.
     -   `services` are linked to `centers` via `cn_unique_key`.

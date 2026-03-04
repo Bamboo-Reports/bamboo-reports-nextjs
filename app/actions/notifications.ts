@@ -103,10 +103,10 @@ export async function getUnreadNotificationsCount(accessToken: string): Promise<
     const result = (await fetchWithRetry(
       () => sqlClient`
         SELECT COUNT(*)::int AS unread_count
-        FROM field_change_events e
+        FROM audit.field_change_events e
         WHERE NOT EXISTS (
           SELECT 1
-          FROM notification_reads r
+          FROM audit.notification_reads r
           WHERE r.user_id = ${userId}
             AND r.change_event_id = e.id
         )
@@ -154,8 +154,8 @@ export async function getNotifications(params: {
         e.new_value,
         e.changed_at,
         (r.id IS NOT NULL) AS is_read
-      FROM field_change_events e
-      LEFT JOIN notification_reads r
+      FROM audit.field_change_events e
+      LEFT JOIN audit.notification_reads r
         ON r.change_event_id = e.id
        AND r.user_id = ${userId}
       WHERE 1 = 1
@@ -201,8 +201,8 @@ export async function getNotificationSummaries(params: {
         e.field_name,
         COUNT(*)::int AS unread_count,
         MAX(e.changed_at) AS latest_changed_at
-      FROM field_change_events e
-      LEFT JOIN notification_reads r
+      FROM audit.field_change_events e
+      LEFT JOIN audit.notification_reads r
         ON r.change_event_id = e.id
        AND r.user_id = ${userId}
       WHERE r.id IS NULL
@@ -253,9 +253,9 @@ export async function markNotificationsAsRead(
 
     const result = (await fetchWithRetry(
       () => sqlClient`
-        INSERT INTO notification_reads (user_id, change_event_id)
+        INSERT INTO audit.notification_reads (user_id, change_event_id)
         SELECT ${userId}, e.id
-        FROM field_change_events e
+        FROM audit.field_change_events e
         WHERE e.id = ANY(${normalizedIds})
         ON CONFLICT (user_id, change_event_id) DO NOTHING
         RETURNING change_event_id
@@ -288,10 +288,10 @@ export async function markNotificationGroupAsRead(
     const sqlClient = getSqlOrThrow()
     const result = (await fetchWithRetry(
       () => sqlClient`
-        INSERT INTO notification_reads (user_id, change_event_id)
+        INSERT INTO audit.notification_reads (user_id, change_event_id)
         SELECT ${userId}, e.id
-        FROM field_change_events e
-        LEFT JOIN notification_reads r
+        FROM audit.field_change_events e
+        LEFT JOIN audit.notification_reads r
           ON r.user_id = ${userId}
          AND r.change_event_id = e.id
         WHERE r.change_event_id IS NULL
@@ -319,10 +319,10 @@ export async function markAllNotificationsAsRead(accessToken: string): Promise<N
 
     const result = (await fetchWithRetry(
       () => sqlClient`
-        INSERT INTO notification_reads (user_id, change_event_id)
+        INSERT INTO audit.notification_reads (user_id, change_event_id)
         SELECT ${userId}, e.id
-        FROM field_change_events e
-        LEFT JOIN notification_reads r
+        FROM audit.field_change_events e
+        LEFT JOIN audit.notification_reads r
           ON r.user_id = ${userId}
          AND r.change_event_id = e.id
         WHERE r.change_event_id IS NULL
