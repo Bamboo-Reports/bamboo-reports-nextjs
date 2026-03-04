@@ -177,7 +177,7 @@ export function AccountDetailsDialog({
               </div>
 
               {/* Company Overview Section */}
-              {(account.account_hq_company_type || account.account_about || account.account_hq_key_offerings) && (
+              {(account.account_hq_company_type || account.account_hq_stock_ticker || account.account_about || account.account_hq_key_offerings) && (
                 <div>
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                     <Info className="h-4 w-4" />
@@ -188,6 +188,11 @@ export function AccountDetailsDialog({
                       icon={Building2}
                       label="Account Type"
                       value={account.account_hq_company_type}
+                    />
+                    <InfoRow
+                      icon={Building2}
+                      label="HQ Stock Ticker"
+                      value={account.account_hq_stock_ticker}
                     />
                     <InfoRow
                       icon={Building2}

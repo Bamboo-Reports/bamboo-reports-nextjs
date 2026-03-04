@@ -9,6 +9,7 @@ export interface Account {
   account_source?: string | null
   account_type?: string | null
   account_global_legal_name: string
+  account_hq_stock_ticker?: string | null
   account_hq_company_type?: string | null
   account_about?: string | null
   account_hq_key_offerings?: string | null
