@@ -230,3 +230,70 @@ export interface ChartData {
   name: string
   value: number
 }
+
+export interface AccountFinancialInfo {
+  inputTicker: string
+  normalizedTicker: string
+  symbol: string
+  exchange: string | null
+  currency: string | null
+  shortName: string | null
+  longName: string | null
+  regularMarketPrice: number | null
+  regularMarketChange: number | null
+  regularMarketChangePercent: number | null
+  regularMarketOpen: number | null
+  regularMarketDayHigh: number | null
+  regularMarketDayLow: number | null
+  regularMarketPreviousClose: number | null
+  regularMarketVolume: number | null
+  averageVolume: number | null
+  marketCap: number | null
+  fiftyTwoWeekLow: number | null
+  fiftyTwoWeekHigh: number | null
+  trailingPE: number | null
+  forwardPE: number | null
+  epsTrailingTwelveMonths: number | null
+  dividendYield: number | null
+  payoutRatio: number | null
+  beta: number | null
+  exDividendDate: string | null
+  sector: string | null
+  industry: string | null
+  fullTimeEmployees: number | null
+  country: string | null
+  website: string | null
+  recommendationKey: string | null
+  numberOfAnalystOpinions: number | null
+  targetHighPrice: number | null
+  targetLowPrice: number | null
+  targetMeanPrice: number | null
+  totalRevenue: number | null
+  ebitda: number | null
+  grossMargins: number | null
+  operatingMargins: number | null
+  profitMargins: number | null
+  freeCashflow: number | null
+  operatingCashflow: number | null
+  debtToEquity: number | null
+  returnOnAssets: number | null
+  returnOnEquity: number | null
+  enterpriseValue: number | null
+  sharesOutstanding: number | null
+  heldPercentInstitutions: number | null
+  heldPercentInsiders: number | null
+  annualRevenueSeries: RevenueSeriesPoint[]
+  quarterlyRevenueSeries: RevenueSeriesPoint[]
+}
+
+export interface AccountFinancialInfoResponse {
+  success: boolean
+  error: string | null
+  data: AccountFinancialInfo | null
+}
+
+export interface RevenueSeriesPoint {
+  date: string
+  label: string
+  revenue: number
+}
