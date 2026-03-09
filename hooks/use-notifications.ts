@@ -6,6 +6,7 @@ import {
   markNotificationGroupAsRead,
   type NotificationSummary,
 } from "@/app/actions"
+import { areNotificationsEnabled } from "@/lib/config/notifications"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 
 interface LoadNotificationsOptions {
@@ -17,6 +18,7 @@ interface LoadNotificationsOptions {
 const NOTIFICATIONS_CHANGED_EVENT = "bamboo:notifications-changed"
 
 export function useNotifications() {
+  const notificationsEnabled = areNotificationsEnabled()
   const supabase = getSupabaseBrowserClient()
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [notificationSummaries, setNotificationSummaries] = useState<NotificationSummary[]>([])
@@ -50,6 +52,13 @@ export function useNotifications() {
   }, [supabase])
 
   const refreshUnreadCount = useCallback(async () => {
+    if (!notificationsEnabled) {
+      setUnreadCount(0)
+      setLoadingCount(false)
+      setError(null)
+      return
+    }
+
     if (!accessToken) {
       setUnreadCount(0)
       return
@@ -67,10 +76,17 @@ export function useNotifications() {
     } finally {
       setLoadingCount(false)
     }
-  }, [accessToken])
+  }, [accessToken, notificationsEnabled])
 
   const loadNotifications = useCallback(
     async (options: LoadNotificationsOptions = {}) => {
+      if (!notificationsEnabled) {
+        setNotificationSummaries([])
+        setLoadingList(false)
+        setError(null)
+        return
+      }
+
       if (!accessToken) {
         setNotificationSummaries([])
         return
@@ -94,11 +110,12 @@ export function useNotifications() {
         setLoadingList(false)
       }
     },
-    [accessToken]
+    [accessToken, notificationsEnabled]
   )
 
   const markGroupAsRead = useCallback(
     async (tableName: string, fieldName: string) => {
+      if (!notificationsEnabled) return false
       if (!accessToken) return false
 
       const targetGroup = notificationSummaries.find(
@@ -123,10 +140,11 @@ export function useNotifications() {
       setError(null)
       return true
     },
-    [accessToken, notificationSummaries]
+    [accessToken, notificationSummaries, notificationsEnabled]
   )
 
   const markAllAsRead = useCallback(async () => {
+    if (!notificationsEnabled) return false
     if (!accessToken) return false
 
     const result = await markAllNotificationsAsRead(accessToken)
@@ -139,28 +157,38 @@ export function useNotifications() {
     setUnreadCount(0)
     setError(null)
     return true
-  }, [accessToken])
+  }, [accessToken, notificationsEnabled])
 
   useEffect(() => {
+    if (!notificationsEnabled) {
+      setNotificationSummaries([])
+      setUnreadCount(0)
+      setLoadingList(false)
+      setLoadingCount(false)
+      setError(null)
+      return
+    }
+
     void refreshUnreadCount()
-  }, [refreshUnreadCount])
+  }, [notificationsEnabled, refreshUnreadCount])
 
   useEffect(() => {
-    if (!accessToken) return
+    if (!notificationsEnabled || !accessToken) return
     const intervalId = window.setInterval(() => {
       void refreshUnreadCount()
     }, 60000)
     return () => window.clearInterval(intervalId)
-  }, [accessToken, refreshUnreadCount])
+  }, [accessToken, notificationsEnabled, refreshUnreadCount])
 
   useEffect(() => {
+    if (!notificationsEnabled) return
     const handleNotificationsChanged = () => {
       void refreshUnreadCount()
     }
 
     window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, handleNotificationsChanged)
     return () => window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, handleNotificationsChanged)
-  }, [refreshUnreadCount])
+  }, [notificationsEnabled, refreshUnreadCount])
 
   return {
     notificationSummaries,
@@ -168,7 +196,7 @@ export function useNotifications() {
     loadingList,
     loadingCount,
     error,
-    hasSession: Boolean(accessToken),
+    hasSession: notificationsEnabled && Boolean(accessToken),
     refreshUnreadCount,
     loadNotifications,
     markGroupAsRead,

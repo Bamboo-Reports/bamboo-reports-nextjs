@@ -6,6 +6,7 @@ import {
   markTableRecordNotificationsAsRead,
   type TableRecordUpdateSummary,
 } from "@/app/actions"
+import { areNotificationsEnabled } from "@/lib/config/notifications"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 
 const REFRESH_INTERVAL_MS = 60000
@@ -51,6 +52,7 @@ export function useRecentlyUpdatedTableRecords<TRecord>({
   getAdditionalRecordIdentities,
   getAdditionalRecordLabels,
 }: UseRecentlyUpdatedTableRecordsOptions<TRecord>) {
+  const notificationsEnabled = areNotificationsEnabled()
   const supabase = getSupabaseBrowserClient()
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [recentlyUpdatedRecords, setRecentlyUpdatedRecords] = useState<TableRecordUpdateSummary[]>([])
@@ -81,6 +83,13 @@ export function useRecentlyUpdatedTableRecords<TRecord>({
   }, [supabase])
 
   const refreshRecentlyUpdatedRecords = useCallback(async () => {
+    if (!notificationsEnabled) {
+      setRecentlyUpdatedRecords([])
+      setLoading(false)
+      setError(null)
+      return
+    }
+
     if (!accessToken) {
       setRecentlyUpdatedRecords([])
       return
@@ -114,21 +123,29 @@ export function useRecentlyUpdatedTableRecords<TRecord>({
     } finally {
       setLoading(false)
     }
-  }, [accessToken, tableName])
+  }, [accessToken, notificationsEnabled, tableName])
 
   useEffect(() => {
+    if (!notificationsEnabled) {
+      setRecentlyUpdatedRecords([])
+      setLoading(false)
+      setError(null)
+      return
+    }
+
     void refreshRecentlyUpdatedRecords()
-  }, [refreshRecentlyUpdatedRecords])
+  }, [notificationsEnabled, refreshRecentlyUpdatedRecords])
 
   useEffect(() => {
-    if (!accessToken) return
+    if (!notificationsEnabled || !accessToken) return
     const intervalId = window.setInterval(() => {
       void refreshRecentlyUpdatedRecords()
     }, REFRESH_INTERVAL_MS)
     return () => window.clearInterval(intervalId)
-  }, [accessToken, refreshRecentlyUpdatedRecords])
+  }, [accessToken, notificationsEnabled, refreshRecentlyUpdatedRecords])
 
   useEffect(() => {
+    if (!notificationsEnabled) return
     const sourceKey = `recently-updated-${tableName}`
     const handleNotificationsChanged = (event: Event) => {
       const customEvent = event as CustomEvent<{ source?: string }>
@@ -140,7 +157,7 @@ export function useRecentlyUpdatedTableRecords<TRecord>({
 
     window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, handleNotificationsChanged)
     return () => window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, handleNotificationsChanged)
-  }, [tableName, refreshRecentlyUpdatedRecords])
+  }, [notificationsEnabled, tableName, refreshRecentlyUpdatedRecords])
 
   const lookupIndex = useMemo<RecordLookupIndex>(() => {
     const byUuid = new Set<string>()
@@ -224,6 +241,7 @@ export function useRecentlyUpdatedTableRecords<TRecord>({
 
   const markRecordAsRead = useCallback(
     async (record: TRecord) => {
+      if (!notificationsEnabled) return false
       if (!accessToken) return false
 
       const recordUuid = getRecordUuid?.(record) ?? null
@@ -261,6 +279,7 @@ export function useRecentlyUpdatedTableRecords<TRecord>({
     },
     [
       accessToken,
+      notificationsEnabled,
       tableName,
       getRecordUuid,
       getRecordIdentity,
