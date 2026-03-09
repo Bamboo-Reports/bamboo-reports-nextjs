@@ -6,6 +6,7 @@ import {
   markAccountNotificationsAsRead,
   type AccountUpdateSummary,
 } from "@/app/actions"
+import { areNotificationsEnabled } from "@/lib/config/notifications"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import type { Account } from "@/lib/types"
 
@@ -50,6 +51,7 @@ interface AccountLookupIndex {
 }
 
 export function useRecentlyUpdatedAccounts() {
+  const notificationsEnabled = areNotificationsEnabled()
   const supabase = getSupabaseBrowserClient()
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [recentlyUpdatedAccounts, setRecentlyUpdatedAccounts] = useState<AccountUpdateSummary[]>([])
@@ -80,6 +82,13 @@ export function useRecentlyUpdatedAccounts() {
   }, [supabase])
 
   const refreshRecentlyUpdatedAccounts = useCallback(async () => {
+    if (!notificationsEnabled) {
+      setRecentlyUpdatedAccounts([])
+      setLoading(false)
+      setError(null)
+      return
+    }
+
     if (!accessToken) {
       setRecentlyUpdatedAccounts([])
       return
@@ -112,22 +121,30 @@ export function useRecentlyUpdatedAccounts() {
     } finally {
       setLoading(false)
     }
-  }, [accessToken])
+  }, [accessToken, notificationsEnabled])
 
   useEffect(() => {
+    if (!notificationsEnabled) {
+      setRecentlyUpdatedAccounts([])
+      setLoading(false)
+      setError(null)
+      return
+    }
+
     void refreshRecentlyUpdatedAccounts()
-  }, [refreshRecentlyUpdatedAccounts])
+  }, [notificationsEnabled, refreshRecentlyUpdatedAccounts])
 
   useEffect(() => {
-    if (!accessToken) return
+    if (!notificationsEnabled || !accessToken) return
     const intervalId = window.setInterval(() => {
       void refreshRecentlyUpdatedAccounts()
     }, REFRESH_INTERVAL_MS)
 
     return () => window.clearInterval(intervalId)
-  }, [accessToken, refreshRecentlyUpdatedAccounts])
+  }, [accessToken, notificationsEnabled, refreshRecentlyUpdatedAccounts])
 
   useEffect(() => {
+    if (!notificationsEnabled) return
     const handleNotificationsChanged = (event: Event) => {
       const customEvent = event as CustomEvent<{ source?: string }>
       if (customEvent.detail?.source === "recently-updated-accounts") {
@@ -138,7 +155,7 @@ export function useRecentlyUpdatedAccounts() {
 
     window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, handleNotificationsChanged)
     return () => window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, handleNotificationsChanged)
-  }, [refreshRecentlyUpdatedAccounts])
+  }, [notificationsEnabled, refreshRecentlyUpdatedAccounts])
 
   const lookupIndex = useMemo<AccountLookupIndex>(() => {
     const byUuid = new Set<string>()
@@ -181,6 +198,7 @@ export function useRecentlyUpdatedAccounts() {
 
   const markAccountAsRead = useCallback(
     async (account: Account) => {
+      if (!notificationsEnabled) return false
       if (!accessToken) return false
 
       removeAccountFromState(account)
@@ -206,7 +224,7 @@ export function useRecentlyUpdatedAccounts() {
       }
       return true
     },
-    [accessToken, removeAccountFromState, refreshRecentlyUpdatedAccounts]
+    [accessToken, notificationsEnabled, removeAccountFromState, refreshRecentlyUpdatedAccounts]
   )
 
   return {
