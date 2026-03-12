@@ -41,7 +41,7 @@ export const Footer = React.memo(function Footer() {
               </span>
               <span className="text-xs text-muted-foreground">|</span>
               <span className="text-xs text-muted-foreground">
-                Research aNXT
+                Research NXT
               </span>
             </div>
 
