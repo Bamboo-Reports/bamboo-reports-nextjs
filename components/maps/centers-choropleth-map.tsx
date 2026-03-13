@@ -4,6 +4,7 @@ import React, { useMemo, useState, useEffect, useLayoutEffect } from "react"
 import { Map as MapGL, Source, Layer, NavigationControl, FullscreenControl } from "@vis.gl/react-maplibre"
 import { captureEvent } from "@/lib/analytics/client"
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
+import { getMaptilerCountriesTilesUrl, getMaptilerStyleUrl } from "@/lib/config/maptiler"
 import type { Center } from "@/lib/types"
 import "maplibre-gl/dist/maplibre-gl.css"
 
@@ -363,12 +364,11 @@ export function CentersChoroplethMap({
   }, [centers])
 
   const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY
-  const maptilerStyleId = process.env.NEXT_PUBLIC_MAPTILER_STYLE_ID || "streets"
   const mapStyle = maptilerKey
-    ? `https://api.maptiler.com/maps/${maptilerStyleId}/style.json?key=${maptilerKey}`
+    ? getMaptilerStyleUrl("state", maptilerKey)
     : ""
   const countriesTileUrl = maptilerKey
-    ? `https://api.maptiler.com/tiles/countries/tiles.json?key=${maptilerKey}`
+    ? getMaptilerCountriesTilesUrl(maptilerKey)
     : ""
 
   const handleRecenter = () => {

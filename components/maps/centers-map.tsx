@@ -4,6 +4,7 @@ import React, { useMemo, useState, useEffect, useCallback, useLayoutEffect } fro
 import { Map as MapGL, Source, Layer, NavigationControl, FullscreenControl } from "@vis.gl/react-maplibre"
 import { captureEvent } from "@/lib/analytics/client"
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
+import { getMaptilerStyleUrl } from "@/lib/config/maptiler"
 import type { Center } from "@/lib/types"
 import "maplibre-gl/dist/maplibre-gl.css"
 
@@ -348,9 +349,8 @@ export function CentersMap({ centers, heightClass = "h-[750px]" }: CentersMapPro
   )
 
   const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY
-  const maptilerStyleId = process.env.NEXT_PUBLIC_MAPTILER_STYLE_ID || "streets"
   const mapStyle = maptilerKey
-    ? `https://api.maptiler.com/maps/${maptilerStyleId}/style.json?key=${maptilerKey}`
+    ? getMaptilerStyleUrl("city", maptilerKey)
     : ""
 
   // Handler to recenter the map to India
