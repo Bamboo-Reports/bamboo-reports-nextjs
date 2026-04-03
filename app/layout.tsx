@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AppProviders } from '@/app/providers'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 export const metadata: Metadata = {
   title: 'Bamboo Reports - A Research NXT Product',
@@ -40,6 +41,7 @@ export default function RootLayout({
             {children}
           </ThemeProvider>
         </AppProviders>
+        <SpeedInsights />
       </body>
     </html>
   )
