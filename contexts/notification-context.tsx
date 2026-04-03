@@ -55,7 +55,6 @@ const NotificationContext = createContext<NotificationContextValue | null>(null)
 // ---------------------------------------------------------------------------
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
-  const supabase = getSupabaseBrowserClient()
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
   const [summaries, setSummaries] = useState<NotificationSummary[]>([])
@@ -68,7 +67,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   // --- Auth state (single listener for the whole app) ---
   useEffect(() => {
     if (!NOTIFICATIONS_ENABLED) return
+    if (typeof window === "undefined") return
 
+    const supabase = getSupabaseBrowserClient()
     let isMounted = true
 
     supabase.auth.getSession().then(({ data }) => {
@@ -91,7 +92,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       isMounted = false
       authListener.subscription.unsubscribe()
     }
-  }, [supabase])
+  }, [])
 
   // --- Refresh unread count ---
   const refreshUnreadCount = useCallback(async () => {
