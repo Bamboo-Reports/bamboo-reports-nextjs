@@ -3,6 +3,7 @@ import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AppProviders } from '@/app/providers'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { Analytics } from '@vercel/analytics/next'
 import { MaintenancePage } from '@/components/maintenance-page'
 
 const isMaintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true'
@@ -45,6 +46,7 @@ export default function RootLayout({
           </ThemeProvider>
         </AppProviders>
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   )
