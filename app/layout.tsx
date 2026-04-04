@@ -3,6 +3,9 @@ import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AppProviders } from '@/app/providers'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { MaintenancePage } from '@/components/maintenance-page'
+
+const isMaintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true'
 
 export const metadata: Metadata = {
   title: 'Bamboo Reports - A Research NXT Product',
@@ -38,7 +41,7 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
-            {children}
+            {isMaintenanceMode ? <MaintenancePage /> : children}
           </ThemeProvider>
         </AppProviders>
         <SpeedInsights />
