@@ -22,10 +22,7 @@ export async function testConnection(): Promise<{ success: boolean; message: str
       }
     }
 
-    console.log("Testing database connection...")
-    // Use getSqlOrThrow because we checked getSql() above, but we need the ensure non-null type
-    const result = await fetchWithRetry(() => getSqlOrThrow()`SELECT 1 as test`)
-    console.log("Database connection successful:", result)
+    await fetchWithRetry(() => getSqlOrThrow()`SELECT 1 as test`)
     return { success: true, message: "Database connection successful" }
   } catch (error) {
     console.error("Database connection test failed:", error)

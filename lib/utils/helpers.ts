@@ -28,6 +28,7 @@ export const getPaginatedData = (data: any[], page: number, itemsPerPage: number
  * Get total pages for pagination
  */
 export const getTotalPages = (totalItems: number, itemsPerPage: number) => {
+  if (itemsPerPage <= 0) return 1
   return Math.ceil(totalItems / itemsPerPage)
 }
 
