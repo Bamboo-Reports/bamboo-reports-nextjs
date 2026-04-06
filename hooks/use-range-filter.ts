@@ -44,6 +44,7 @@ export function useRangeFilter(
     (value: [number, number]) => {
       const clampedMin = Math.max(bounds.min, Math.min(value[0], bounds.max))
       const clampedMax = Math.min(bounds.max, Math.max(value[1], bounds.min))
+      if (clampedMin > clampedMax) return
       const newRange: [number, number] = [clampedMin, clampedMax]
       setRange(newRange)
       onRangeChange?.(newRange)

@@ -394,12 +394,12 @@ export function useDashboardFilters({
       if (value === "") return
       const numValue = Number.parseFloat(value)
       if (Number.isNaN(numValue)) return
-      setPendingFilters((prev) => ({
-        ...prev,
-        centerIncYearRange: [numValue, prev.centerIncYearRange[1]],
-      }))
+      setPendingFilters((prev) => {
+        const clampedValue = Math.max(centerIncYearRange.min, Math.min(numValue, prev.centerIncYearRange[1]))
+        return { ...prev, centerIncYearRange: [clampedValue, prev.centerIncYearRange[1]] }
+      })
     },
-    []
+    [centerIncYearRange]
   )
 
   const handleMaxCenterIncYearChange = useCallback(
@@ -407,12 +407,12 @@ export function useDashboardFilters({
       if (value === "") return
       const numValue = Number.parseFloat(value)
       if (Number.isNaN(numValue)) return
-      setPendingFilters((prev) => ({
-        ...prev,
-        centerIncYearRange: [prev.centerIncYearRange[0], numValue],
-      }))
+      setPendingFilters((prev) => {
+        const clampedValue = Math.min(centerIncYearRange.max, Math.max(numValue, prev.centerIncYearRange[0]))
+        return { ...prev, centerIncYearRange: [prev.centerIncYearRange[0], clampedValue] }
+      })
     },
-    []
+    [centerIncYearRange]
   )
 
   const handleCenterIncYearRangeChange = useCallback((value: [number, number]) => {

@@ -91,13 +91,19 @@ function SignInForm() {
         const fallbackLastName = user.user_metadata?.last_name ?? "Profile"
         const fallbackPhone = user.user_metadata?.phone ?? null
 
-        await supabase.from("profiles").insert({
+        const { error: insertError } = await supabase.from("profiles").insert({
           user_id: user.id,
           first_name: fallbackFirstName,
           last_name: fallbackLastName,
           email: user.email ?? values.email,
           phone: fallbackPhone,
         })
+
+        if (insertError) {
+          console.error("Failed to create user profile:", insertError.message)
+          setSubmitError("Account signed in but profile setup failed. Please try refreshing.")
+          return
+        }
       }
     }
 

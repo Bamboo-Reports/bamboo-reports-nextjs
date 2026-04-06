@@ -44,10 +44,10 @@ export function useTourPersistence(userId: string | null) {
         const completed = Boolean(
           data?.tour_completed_at && (data?.tour_version ?? 0) >= TOUR_VERSION
         )
-        if (completed) {
+        if (completed && data?.tour_version != null && data?.tour_completed_at != null) {
           window.localStorage.setItem(
             TOUR_STORAGE_KEY,
-            JSON.stringify({ version: data!.tour_version, completedAt: data!.tour_completed_at })
+            JSON.stringify({ version: data.tour_version, completedAt: data.tour_completed_at })
           )
         }
         setState({ isCompleted: completed, isLoading: false })

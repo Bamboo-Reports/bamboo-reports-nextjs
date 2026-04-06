@@ -70,15 +70,16 @@ export function useSavedFilters() {
 
       const normalizeFilter = (filter: Record<string, unknown>, ownerEmail?: string): SavedFilter | null => {
         try {
-          const parsedFilters = typeof filter.filters === "string" ? JSON.parse(filter.filters as string) : filter.filters
+          if (typeof filter.id !== "string" || typeof filter.name !== "string") return null
+          const parsedFilters = typeof filter.filters === "string" ? JSON.parse(filter.filters) : filter.filters
           if (!parsedFilters) return null
           return {
-            id: filter.id as string,
-            name: filter.name as string,
+            id: filter.id,
+            name: filter.name,
             filters: withFilterDefaults(parsedFilters),
-            created_at: filter.created_at as string,
-            updated_at: filter.updated_at as string,
-            user_id: filter.user_id as string,
+            created_at: typeof filter.created_at === "string" ? filter.created_at : "",
+            updated_at: typeof filter.updated_at === "string" ? filter.updated_at : "",
+            user_id: typeof filter.user_id === "string" ? filter.user_id : "",
             owner_email: ownerEmail,
           }
         } catch (error) {

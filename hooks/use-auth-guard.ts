@@ -50,6 +50,10 @@ export function useAuthGuard() {
       setUserEmail(session.user.email ?? null)
       await loadUserRole(session.user.id)
       setAuthReady(true)
+    }).catch((error) => {
+      console.error("Failed to get auth session:", error)
+      if (!isMounted) return
+      setAuthReady(true)
     })
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
