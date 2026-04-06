@@ -3,9 +3,8 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Compass, LogOut, Mail, Phone, RefreshCw, ShieldCheck, UserRound } from 'lucide-react'
+import { Compass, LogOut, Mail, Phone, RefreshCw, ShieldCheck, Terminal, UserRound } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -135,12 +134,12 @@ export const Header = React.memo(function Header({ onRefresh, onStartTour }: Hea
               <div className="flex items-center gap-2">
                 <p className="truncate text-lg font-bold text-foreground">Bamboo Reports</p>
                 {environmentBadgeLabel ? (
-                  <Badge
-                    variant="outline"
-                    className="h-5 shrink-0 rounded-md px-1.5 font-mono text-[10px] tracking-[0.12em]"
-                  >
-                    {environmentBadgeLabel}
-                  </Badge>
+                  <div className="inline-flex shrink-0 items-center gap-1 rounded-md border border-amber-500/25 bg-amber-500/8 px-2 py-0.5 dark:border-amber-400/20 dark:bg-amber-500/10">
+                    <Terminal className="h-3 w-3 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <span className="font-mono text-[10px] font-bold uppercase leading-none tracking-widest text-amber-700 dark:text-amber-300">
+                      dev
+                    </span>
+                  </div>
                 ) : null}
               </div>
             </div>
