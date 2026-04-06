@@ -1,4 +1,5 @@
 import React from "react"
+import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -144,6 +145,14 @@ export function AccountFiltersSection({
                   value={pendingFilters.accountHqRevenueRange[0]}
                   onChange={(e) => handleMinRevenueChange(e.target.value)}
                   onFocus={(e) => e.target.select()}
+                  onBlur={() => {
+                    const val = pendingFilters.accountHqRevenueRange[0]
+                    const clamped = Math.max(revenueRange.min, Math.min(val, pendingFilters.accountHqRevenueRange[1]))
+                    if (clamped !== val) {
+                      toast.info(`Revenue data ranges from ${revenueRange.min}M to ${revenueRange.max}M`)
+                      setPendingFilters((prev) => ({ ...prev, accountHqRevenueRange: [clamped, prev.accountHqRevenueRange[1]] }))
+                    }
+                  }}
                   min={revenueRange.min}
                   max={pendingFilters.accountHqRevenueRange[1]}
                   className="text-xs h-8"
@@ -157,6 +166,14 @@ export function AccountFiltersSection({
                   value={pendingFilters.accountHqRevenueRange[1]}
                   onChange={(e) => handleMaxRevenueChange(e.target.value)}
                   onFocus={(e) => e.target.select()}
+                  onBlur={() => {
+                    const val = pendingFilters.accountHqRevenueRange[1]
+                    const clamped = Math.min(revenueRange.max, Math.max(val, pendingFilters.accountHqRevenueRange[0]))
+                    if (clamped !== val) {
+                      toast.info(`Revenue data ranges from ${revenueRange.min}M to ${revenueRange.max}M`)
+                      setPendingFilters((prev) => ({ ...prev, accountHqRevenueRange: [prev.accountHqRevenueRange[0], clamped] }))
+                    }
+                  }}
                   min={pendingFilters.accountHqRevenueRange[0]}
                   max={revenueRange.max}
                   className="text-xs h-8"
@@ -215,6 +232,14 @@ export function AccountFiltersSection({
                   value={pendingFilters.accountYearsInIndiaRange[0]}
                   onChange={(e) => handleMinYearsInIndiaChange(e.target.value)}
                   onFocus={(e) => e.target.select()}
+                  onBlur={() => {
+                    const val = pendingFilters.accountYearsInIndiaRange[0]
+                    const clamped = Math.max(yearsInIndiaRange.min, Math.min(val, pendingFilters.accountYearsInIndiaRange[1]))
+                    if (clamped !== val) {
+                      toast.info(`Years in India data ranges from ${yearsInIndiaRange.min} to ${yearsInIndiaRange.max}`)
+                      setPendingFilters((prev) => ({ ...prev, accountYearsInIndiaRange: [clamped, prev.accountYearsInIndiaRange[1]] }))
+                    }
+                  }}
                   min={yearsInIndiaRange.min}
                   max={pendingFilters.accountYearsInIndiaRange[1]}
                   className="text-xs h-8"
@@ -228,6 +253,14 @@ export function AccountFiltersSection({
                   value={pendingFilters.accountYearsInIndiaRange[1]}
                   onChange={(e) => handleMaxYearsInIndiaChange(e.target.value)}
                   onFocus={(e) => e.target.select()}
+                  onBlur={() => {
+                    const val = pendingFilters.accountYearsInIndiaRange[1]
+                    const clamped = Math.min(yearsInIndiaRange.max, Math.max(val, pendingFilters.accountYearsInIndiaRange[0]))
+                    if (clamped !== val) {
+                      toast.info(`Years in India data ranges from ${yearsInIndiaRange.min} to ${yearsInIndiaRange.max}`)
+                      setPendingFilters((prev) => ({ ...prev, accountYearsInIndiaRange: [prev.accountYearsInIndiaRange[0], clamped] }))
+                    }
+                  }}
                   min={pendingFilters.accountYearsInIndiaRange[0]}
                   max={yearsInIndiaRange.max}
                   className="text-xs h-8"
@@ -453,7 +486,11 @@ export function CenterFiltersSection({
                   onChange={(e) => handleMinCenterIncYearChange(e.target.value)}
                   onFocus={(e) => e.target.select()}
                   onBlur={() => {
-                    const clamped = Math.max(centerIncYearRange.min, Math.min(pendingFilters.centerIncYearRange[0], pendingFilters.centerIncYearRange[1]))
+                    const val = pendingFilters.centerIncYearRange[0]
+                    const clamped = Math.max(centerIncYearRange.min, Math.min(val, pendingFilters.centerIncYearRange[1]))
+                    if (clamped !== val) {
+                      toast.info(`Incorporation year data ranges from ${centerIncYearRange.min} to ${centerIncYearRange.max}`)
+                    }
                     setPendingFilters((prev) => ({ ...prev, centerIncYearRange: [clamped, prev.centerIncYearRange[1]] }))
                   }}
                   min={centerIncYearRange.min}
@@ -470,7 +507,11 @@ export function CenterFiltersSection({
                   onChange={(e) => handleMaxCenterIncYearChange(e.target.value)}
                   onFocus={(e) => e.target.select()}
                   onBlur={() => {
-                    const clamped = Math.min(centerIncYearRange.max, Math.max(pendingFilters.centerIncYearRange[1], pendingFilters.centerIncYearRange[0]))
+                    const val = pendingFilters.centerIncYearRange[1]
+                    const clamped = Math.min(centerIncYearRange.max, Math.max(val, pendingFilters.centerIncYearRange[0]))
+                    if (clamped !== val) {
+                      toast.info(`Incorporation year data ranges from ${centerIncYearRange.min} to ${centerIncYearRange.max}`)
+                    }
                     setPendingFilters((prev) => ({ ...prev, centerIncYearRange: [prev.centerIncYearRange[0], clamped] }))
                   }}
                   min={pendingFilters.centerIncYearRange[0]}

@@ -326,28 +326,30 @@ export function useDashboardFilters({
 
   const handleMinRevenueChange = useCallback(
     (value: string) => {
-      const numValue = Number.parseFloat(value) || revenueRange.min
-      const clampedValue = Math.max(revenueRange.min, Math.min(numValue, pendingFilters.accountHqRevenueRange[1]))
+      if (value === "") return
+      const numValue = Number.parseFloat(value)
+      if (Number.isNaN(numValue)) return
       isRevenueRangeAutoRef.current = false
       setPendingFilters((prev) => ({
         ...prev,
-        accountHqRevenueRange: [clampedValue, prev.accountHqRevenueRange[1]],
+        accountHqRevenueRange: [numValue, prev.accountHqRevenueRange[1]],
       }))
     },
-    [pendingFilters.accountHqRevenueRange, revenueRange]
+    []
   )
 
   const handleMaxRevenueChange = useCallback(
     (value: string) => {
-      const numValue = Number.parseFloat(value) || revenueRange.max
-      const clampedValue = Math.min(revenueRange.max, Math.max(numValue, pendingFilters.accountHqRevenueRange[0]))
+      if (value === "") return
+      const numValue = Number.parseFloat(value)
+      if (Number.isNaN(numValue)) return
       isRevenueRangeAutoRef.current = false
       setPendingFilters((prev) => ({
         ...prev,
-        accountHqRevenueRange: [prev.accountHqRevenueRange[0], clampedValue],
+        accountHqRevenueRange: [prev.accountHqRevenueRange[0], numValue],
       }))
     },
-    [pendingFilters.accountHqRevenueRange, revenueRange]
+    []
   )
 
   const handleRevenueRangeChange = useCallback((value: [number, number]) => {
@@ -360,26 +362,28 @@ export function useDashboardFilters({
 
   const handleMinYearsInIndiaChange = useCallback(
     (value: string) => {
-      const numValue = Number.parseFloat(value) || yearsInIndiaRange.min
-      const clampedValue = Math.max(yearsInIndiaRange.min, Math.min(numValue, pendingFilters.accountYearsInIndiaRange[1]))
+      if (value === "") return
+      const numValue = Number.parseFloat(value)
+      if (Number.isNaN(numValue)) return
       setPendingFilters((prev) => ({
         ...prev,
-        accountYearsInIndiaRange: [clampedValue, prev.accountYearsInIndiaRange[1]],
+        accountYearsInIndiaRange: [numValue, prev.accountYearsInIndiaRange[1]],
       }))
     },
-    [pendingFilters.accountYearsInIndiaRange, yearsInIndiaRange]
+    []
   )
 
   const handleMaxYearsInIndiaChange = useCallback(
     (value: string) => {
-      const numValue = Number.parseFloat(value) || yearsInIndiaRange.max
-      const clampedValue = Math.min(yearsInIndiaRange.max, Math.max(numValue, pendingFilters.accountYearsInIndiaRange[0]))
+      if (value === "") return
+      const numValue = Number.parseFloat(value)
+      if (Number.isNaN(numValue)) return
       setPendingFilters((prev) => ({
         ...prev,
-        accountYearsInIndiaRange: [prev.accountYearsInIndiaRange[0], clampedValue],
+        accountYearsInIndiaRange: [prev.accountYearsInIndiaRange[0], numValue],
       }))
     },
-    [pendingFilters.accountYearsInIndiaRange, yearsInIndiaRange]
+    []
   )
 
   const handleYearsInIndiaRangeChange = useCallback((value: [number, number]) => {
@@ -394,12 +398,12 @@ export function useDashboardFilters({
       if (value === "") return
       const numValue = Number.parseFloat(value)
       if (Number.isNaN(numValue)) return
-      setPendingFilters((prev) => {
-        const clampedValue = Math.max(centerIncYearRange.min, Math.min(numValue, prev.centerIncYearRange[1]))
-        return { ...prev, centerIncYearRange: [clampedValue, prev.centerIncYearRange[1]] }
-      })
+      setPendingFilters((prev) => ({
+        ...prev,
+        centerIncYearRange: [numValue, prev.centerIncYearRange[1]],
+      }))
     },
-    [centerIncYearRange]
+    []
   )
 
   const handleMaxCenterIncYearChange = useCallback(
@@ -407,12 +411,12 @@ export function useDashboardFilters({
       if (value === "") return
       const numValue = Number.parseFloat(value)
       if (Number.isNaN(numValue)) return
-      setPendingFilters((prev) => {
-        const clampedValue = Math.min(centerIncYearRange.max, Math.max(numValue, prev.centerIncYearRange[0]))
-        return { ...prev, centerIncYearRange: [prev.centerIncYearRange[0], clampedValue] }
-      })
+      setPendingFilters((prev) => ({
+        ...prev,
+        centerIncYearRange: [prev.centerIncYearRange[0], numValue],
+      }))
     },
-    [centerIncYearRange]
+    []
   )
 
   const handleCenterIncYearRangeChange = useCallback((value: [number, number]) => {
