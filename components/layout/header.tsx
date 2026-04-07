@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Compass, LogOut, Mail, Phone, RefreshCw, ShieldCheck, Terminal, UserRound } from 'lucide-react'
+import { Compass, LogOut, Mail, Phone, RefreshCw, Search, ShieldCheck, Terminal, UserRound } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,10 +25,11 @@ import type { Profile } from '@/lib/types'
 interface HeaderProps {
   onRefresh: () => void
   onStartTour?: () => void
+  onOpenSearch?: () => void
 }
 
 
-export const Header = React.memo(function Header({ onRefresh, onStartTour }: HeaderProps): JSX.Element {
+export const Header = React.memo(function Header({ onRefresh, onStartTour, onOpenSearch }: HeaderProps): JSX.Element {
   const environmentLabel = getEnvironmentLabel()
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -145,6 +146,18 @@ export const Header = React.memo(function Header({ onRefresh, onStartTour }: Hea
             </div>
           </div>
           <div className="flex items-center gap-2" data-tour="header-actions">
+            {onOpenSearch && (
+              <button
+                type="button"
+                onClick={onOpenSearch}
+                title="Search (⌘K)"
+                aria-label="Open search"
+                className="hidden sm:inline-flex items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-1.5 text-sm text-muted-foreground/70 transition-colors hover:bg-muted/60 hover:text-muted-foreground hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 w-56"
+              >
+                <Search className="h-3.5 w-3.5 shrink-0" />
+                <span className="flex-1 text-left text-xs">Search...</span>
+              </button>
+            )}
             <Button variant="ghost" size="sm" onClick={onRefresh} className="h-8 px-3 group" title="Refresh" aria-label="Refresh data">
               <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-300" />
             </Button>

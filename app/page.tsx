@@ -1,9 +1,14 @@
 "use client"
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useTheme } from "next-themes"
 import { ExportDialog } from "@/components/export/export-dialog"
 import { FiltersSidebar } from "@/components/filters/filters-sidebar"
 import { Header } from "@/components/layout/header"
+import { GlobalSearch } from "@/components/search/global-search"
+import { AccountDetailsDialog } from "@/components/dialogs/account-details-tabbed-dialog"
+import { CenterDetailsDialog } from "@/components/dialogs/center-details-dialog"
+import { ProspectDetailsDialog } from "@/components/dialogs/prospect-details-dialog"
 import { ErrorState } from "@/components/states/error-state"
 import { LoadingState } from "@/components/states/loading-state"
 import { AccountsTab, CentersTab } from "@/components/tabs"
@@ -13,6 +18,8 @@ import { Tabs } from "@/components/ui/tabs"
 import { useAuthGuard } from "@/hooks/use-auth-guard"
 import { useDashboardData } from "@/hooks/use-dashboard-data"
 import { useDashboardFilters } from "@/hooks/use-dashboard-filters"
+import { useGlobalSearch } from "@/hooks/use-global-search"
+import { useRecentItems } from "@/hooks/use-recent-items"
 import {
   captureEvent,
   ensureAnalyticsSession,
@@ -24,6 +31,9 @@ import { buildTrackedFiltersSnapshot } from "@/lib/analytics/tracking"
 import { canExportData } from "@/lib/auth/roles"
 import { useProductTour } from "@/hooks/use-product-tour"
 import { formatRevenueInMillions } from "@/lib/utils/helpers"
+import type { SearchResult } from "@/lib/search"
+import type { RecentItem } from "@/hooks/use-recent-items"
+import type { Account, Center, Prospect } from "@/lib/types"
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "br-dashboard-sidebar-collapsed"
 
@@ -89,6 +99,33 @@ function DashboardContent(): JSX.Element | null {
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const canExport = canExportData(userRole)
+
+  // Global search state
+  const { setTheme, resolvedTheme } = useTheme()
+  const {
+    query: searchQuery,
+    setQuery: setSearchQuery,
+    results: searchResults,
+    isOpen: isSearchOpen,
+    setIsOpen: setIsSearchOpen,
+    handleOpen: handleSearchOpen,
+    handleClose: handleSearchClose,
+  } = useGlobalSearch({ accounts, centers, prospects })
+
+  const {
+    recentItems,
+    recentSearches,
+    addRecentItem,
+    addRecentSearch,
+  } = useRecentItems()
+
+  // Search-triggered detail dialogs (separate from tab-level dialogs)
+  const [searchSelectedAccount, setSearchSelectedAccount] = useState<Account | null>(null)
+  const [searchAccountDialogOpen, setSearchAccountDialogOpen] = useState(false)
+  const [searchSelectedCenter, setSearchSelectedCenter] = useState<Center | null>(null)
+  const [searchCenterDialogOpen, setSearchCenterDialogOpen] = useState(false)
+  const [searchSelectedProspect, setSearchSelectedProspect] = useState<Prospect | null>(null)
+  const [searchProspectDialogOpen, setSearchProspectDialogOpen] = useState(false)
 
   const hasTrackedDashboardLoadRef = useRef(false)
   const sessionStartRef = useRef<number | null>(null)
@@ -483,6 +520,118 @@ function DashboardContent(): JSX.Element | null {
     setActiveSection(section)
   }, [])
 
+  const handleSearchResultSelect = useCallback(
+    (result: SearchResult) => {
+      handleSearchClose()
+      addRecentItem({
+        type: result.type,
+        id: result.id,
+        title: result.title,
+        subtitle: result.subtitle,
+      })
+      if (searchQuery.trim()) {
+        addRecentSearch(searchQuery.trim())
+      }
+      captureEvent(ANALYTICS_EVENTS.SEARCH_RESULT_SELECTED, {
+        result_type: result.type,
+        query: searchQuery,
+      })
+
+      if (result.type === "account") {
+        setSearchSelectedAccount(result.data as Account)
+        setSearchAccountDialogOpen(true)
+      } else if (result.type === "center") {
+        setSearchSelectedCenter(result.data as Center)
+        setSearchCenterDialogOpen(true)
+      } else if (result.type === "prospect") {
+        setSearchSelectedProspect(result.data as Prospect)
+        setSearchProspectDialogOpen(true)
+      }
+    },
+    [handleSearchClose, addRecentItem, addRecentSearch, searchQuery]
+  )
+
+  const handleSearchRecentItemSelect = useCallback(
+    (item: RecentItem) => {
+      handleSearchClose()
+      captureEvent(ANALYTICS_EVENTS.SEARCH_RECENT_ITEM_SELECTED, {
+        result_type: item.type,
+      })
+
+      // Find the record in current data and open dialog
+      if (item.type === "account") {
+        const account = accounts.find((a) => a.account_global_legal_name === item.id)
+        if (account) {
+          setSearchSelectedAccount(account)
+          setSearchAccountDialogOpen(true)
+        }
+      } else if (item.type === "center") {
+        const center = centers.find((c) => c.cn_unique_key === item.id)
+        if (center) {
+          setSearchSelectedCenter(center)
+          setSearchCenterDialogOpen(true)
+        }
+      } else if (item.type === "prospect") {
+        const prospect = prospects.find(
+          (p) => `${p.account_global_legal_name}::${p.prospect_full_name ?? `${p.prospect_first_name ?? ""} ${p.prospect_last_name ?? ""}`.trim()}` === item.id
+        )
+        if (prospect) {
+          setSearchSelectedProspect(prospect)
+          setSearchProspectDialogOpen(true)
+        }
+      }
+    },
+    [handleSearchClose, accounts, centers, prospects]
+  )
+
+  const handleSearchRecentSearchSelect = useCallback(
+    (query: string) => {
+      setSearchQuery(query)
+    },
+    [setSearchQuery]
+  )
+
+  const handleSearchActionSelect = useCallback(
+    (action: string) => {
+      handleSearchClose()
+      captureEvent(ANALYTICS_EVENTS.SEARCH_ACTION_SELECTED, { action })
+
+      switch (action) {
+        case "go-accounts":
+          setActiveSection("accounts")
+          break
+        case "go-centers":
+          setActiveSection("centers")
+          break
+        case "go-prospects":
+          setActiveSection("prospects")
+          break
+        case "refresh":
+          loadData()
+          break
+        case "toggle-theme":
+          setTheme(resolvedTheme === "dark" ? "light" : "dark")
+          break
+      }
+    },
+    [handleSearchClose, loadData, setTheme, resolvedTheme]
+  )
+
+  const handleSearchOpenChange = useCallback(
+    (open: boolean) => {
+      if (open) {
+        captureEvent(ANALYTICS_EVENTS.SEARCH_OPENED, { trigger: "shortcut_or_button" })
+      } else {
+        captureEvent(ANALYTICS_EVENTS.SEARCH_CLOSED, { had_query: searchQuery.length > 0 })
+      }
+      setIsSearchOpen(open)
+      if (!open) {
+        setSearchQuery("")
+      }
+    },
+    [setIsSearchOpen, setSearchQuery, searchQuery]
+  )
+
   if (!authReady || !userId) {
     return null
   }
@@ -508,7 +657,43 @@ function DashboardContent(): JSX.Element | null {
       >
         Skip to main content
       </a>
-      <Header onRefresh={handleRefresh} onStartTour={startTour} />
+      <Header onRefresh={handleRefresh} onStartTour={startTour} onOpenSearch={handleSearchOpen} />
+
+      <GlobalSearch
+        open={isSearchOpen}
+        onOpenChange={handleSearchOpenChange}
+        query={searchQuery}
+        onQueryChange={setSearchQuery}
+        results={searchResults}
+        recentItems={recentItems}
+        recentSearches={recentSearches}
+        onSelectResult={handleSearchResultSelect}
+        onSelectRecentItem={handleSearchRecentItemSelect}
+        onSelectRecentSearch={handleSearchRecentSearchSelect}
+        onSelectAction={handleSearchActionSelect}
+      />
+
+      {/* Search-triggered detail dialogs */}
+      <AccountDetailsDialog
+        account={searchSelectedAccount}
+        centers={centers}
+        prospects={prospects}
+        services={services}
+        tech={tech}
+        open={searchAccountDialogOpen}
+        onOpenChange={setSearchAccountDialogOpen}
+      />
+      <CenterDetailsDialog
+        center={searchSelectedCenter}
+        services={services}
+        open={searchCenterDialogOpen}
+        onOpenChange={setSearchCenterDialogOpen}
+      />
+      <ProspectDetailsDialog
+        prospect={searchSelectedProspect}
+        open={searchProspectDialogOpen}
+        onOpenChange={setSearchProspectDialogOpen}
+      />
 
       {dataLoaded && (
         <main

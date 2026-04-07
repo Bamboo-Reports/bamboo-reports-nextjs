@@ -62,6 +62,12 @@ export const ANALYTICS_EVENTS = {
   TOUR_STEP_VIEWED: "tour_step_viewed",
   TOUR_COMPLETED: "tour_completed",
   TOUR_SKIPPED: "tour_skipped",
+  SEARCH_OPENED: "search_opened",
+  SEARCH_QUERY_TYPED: "search_query_typed",
+  SEARCH_RESULT_SELECTED: "search_result_selected",
+  SEARCH_RECENT_ITEM_SELECTED: "search_recent_item_selected",
+  SEARCH_ACTION_SELECTED: "search_action_selected",
+  SEARCH_CLOSED: "search_closed",
 } as const
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[keyof typeof ANALYTICS_EVENTS]
