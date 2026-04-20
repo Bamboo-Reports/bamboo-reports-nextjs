@@ -38,6 +38,8 @@ import type { Account, AccountFinancialInfo, Center, Prospect, Service, Tech } f
 import { CompanyLogo } from "@/components/ui/company-logo"
 import { CenterDetailsDialog } from "./center-details-dialog"
 import { ProspectDetailsDialog } from "./prospect-details-dialog"
+import { CenterGridCard } from "@/components/cards/center-grid-card"
+import { ProspectGridCard } from "@/components/cards/prospect-grid-card"
 import { Badge } from "@/components/ui/badge"
 import { TechTreemap } from "@/components/charts/tech-treemap"
 import { getAccountFinancialInfo } from "@/app/actions"
@@ -62,6 +64,50 @@ function formatRevenueAxis(value: number): string {
     notation: "compact",
     maximumFractionDigits: 1,
   }).format(value)
+}
+
+function QuickFilterGroup({
+  label,
+  options,
+  selected,
+  onToggle,
+  onClear,
+}: {
+  label: string
+  options: Array<{ name: string; count: number }>
+  selected: Set<string>
+  onToggle: (value: string) => void
+  onClear: () => void
+}) {
+  if (options.length === 0) return null
+  const totalCount = options.reduce((s, o) => s + o.count, 0)
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide shrink-0">{label}</span>
+      <button
+        type="button"
+        onClick={onClear}
+        className={`text-xs px-2.5 py-1 rounded-full border transition-colors inline-flex items-center gap-1.5 ${selected.size === 0 ? "bg-foreground text-background border-foreground" : "bg-background/40 text-muted-foreground border-border/60 hover:bg-background/60"}`}
+      >
+        All
+        <span className={`text-[10px] tabular-nums ${selected.size === 0 ? "text-background/70" : "text-muted-foreground/70"}`}>{totalCount}</span>
+      </button>
+      {options.map((opt) => {
+        const active = selected.has(opt.name)
+        return (
+          <button
+            key={opt.name}
+            type="button"
+            onClick={() => onToggle(opt.name)}
+            className={`text-xs px-2.5 py-1 rounded-full border transition-colors inline-flex items-center gap-1.5 ${active ? "bg-foreground text-background border-foreground" : "bg-background/40 text-foreground border-border/60 hover:bg-background/60"}`}
+          >
+            {opt.name}
+            <span className={`text-[10px] tabular-nums ${active ? "text-background/70" : "text-muted-foreground/70"}`}>{opt.count}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
 }
 
 const revenueChartConfig = {
@@ -99,6 +145,10 @@ export function AccountDetailsDialog({
   const [financialLoading, setFinancialLoading] = useState(false)
   const [financialError, setFinancialError] = useState<string | null>(null)
   const [financialTickerLoaded, setFinancialTickerLoaded] = useState<string | null>(null)
+  const [centerTypeFilter, setCenterTypeFilter] = useState<Set<string>>(new Set())
+  const [centerHeadcountFilter, setCenterHeadcountFilter] = useState<Set<string>>(new Set())
+  const [prospectDeptFilter, setProspectDeptFilter] = useState<Set<string>>(new Set())
+  const [prospectLevelFilter, setProspectLevelFilter] = useState<Set<string>>(new Set())
   const accountName = account?.account_global_legal_name ?? ""
   const ticker = account?.account_hq_stock_ticker?.trim() ?? ""
 
@@ -124,6 +174,58 @@ export function AccountDetailsDialog({
     .filter(Boolean)
     .join(", ")
 
+  const sortByCount = (items: string[]): Array<{ name: string; count: number }> => {
+    const counts = new Map<string, number>()
+    for (const v of items) {
+      if (!v) continue
+      counts.set(v, (counts.get(v) ?? 0) + 1)
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([name, count]) => ({ name, count }))
+  }
+
+  const centerTypeOptions = React.useMemo(
+    () => sortByCount(accountCenters.map((c) => (c.center_type ?? "").trim())),
+    [accountCenters],
+  )
+  const centerHeadcountOptions = React.useMemo(
+    () => sortByCount(accountCenters.map((c) => (c.center_employees_range ?? "").trim())),
+    [accountCenters],
+  )
+  const filteredCenters = React.useMemo(() => {
+    return accountCenters.filter((c) => {
+      if (centerTypeFilter.size > 0 && !centerTypeFilter.has((c.center_type ?? "").trim())) return false
+      if (centerHeadcountFilter.size > 0 && !centerHeadcountFilter.has((c.center_employees_range ?? "").trim())) return false
+      return true
+    })
+  }, [accountCenters, centerTypeFilter, centerHeadcountFilter])
+
+  const prospectDeptOptions = React.useMemo(
+    () => sortByCount(accountProspects.map((p) => (p.prospect_department ?? "").trim())),
+    [accountProspects],
+  )
+  const prospectLevelOptions = React.useMemo(
+    () => sortByCount(accountProspects.map((p) => (p.prospect_level ?? "").trim())),
+    [accountProspects],
+  )
+  const filteredProspects = React.useMemo(() => {
+    return accountProspects.filter((p) => {
+      if (prospectDeptFilter.size > 0 && !prospectDeptFilter.has((p.prospect_department ?? "").trim())) return false
+      if (prospectLevelFilter.size > 0 && !prospectLevelFilter.has((p.prospect_level ?? "").trim())) return false
+      return true
+    })
+  }, [accountProspects, prospectDeptFilter, prospectLevelFilter])
+
+  const toggleInSet = (setter: React.Dispatch<React.SetStateAction<Set<string>>>, value: string) => {
+    setter((prev) => {
+      const next = new Set(prev)
+      if (next.has(value)) next.delete(value)
+      else next.add(value)
+      return next
+    })
+  }
+
   const handleCenterClick = (center: Center) => {
     setSelectedCenter(center)
     setIsCenterDialogOpen(true)
@@ -148,6 +250,10 @@ export function AccountDetailsDialog({
     setFinancialLoading(false)
     setFinancialError(null)
     setFinancialTickerLoaded(null)
+    setCenterTypeFilter(new Set())
+    setCenterHeadcountFilter(new Set())
+    setProspectDeptFilter(new Set())
+    setProspectLevelFilter(new Set())
   }, [accountName])
 
   useEffect(() => {
@@ -536,98 +642,71 @@ export function AccountDetailsDialog({
 
             {/* Centers Tab */}
             {accountCenters.length > 0 && (
-            <TabsContent value="centers" className="mt-4">
-                <div className="space-y-3">
-                  {accountCenters.map((center, index) => (
-                    <div
-                      key={`${center.cn_unique_key}-${index}`}
-                      className="p-4 rounded-lg bg-background/40 backdrop-blur-sm border border-border/50 hover:border-border hover:bg-background/60 transition-all cursor-pointer dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 dark:backdrop-blur-md dark:shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
-                      onClick={() => handleCenterClick(center)}
-                    >
-                      <div className="flex items-start gap-3">
-                        <CompanyLogo
-                          domain={center.center_account_website}
-                          companyName={center.account_global_legal_name}
-                          size="sm"
-                          theme="auto"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-semibold text-base">{center.center_name}</h4>
-                            <div
-                              className={`h-2 w-2 rounded-full ${getStatusColor(center.center_status)}`}
-                            />
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2 text-sm">
-                            <div className="flex items-center gap-1.5 text-muted-foreground">
-                              <MapPin className="h-3.5 w-3.5" />
-                              <span>{center.center_city}, {center.center_state}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-muted-foreground">
-                              <Building className="h-3.5 w-3.5" />
-                              <span>{center.center_type}</span>
-                            </div>
-                            {center.center_employees_range &&
-                              center.center_employees_range.trim() !== "" && (
-                                <div className="flex items-center gap-1.5 text-muted-foreground">
-                                  <Users className="h-3.5 w-3.5" />
-                                  <span>{center.center_employees_range} employees</span>
-                                </div>
-                              )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+            <TabsContent value="centers" className="mt-4 space-y-4">
+                <div className="space-y-2">
+                  <QuickFilterGroup
+                    label="Center Type"
+                    options={centerTypeOptions}
+                    selected={centerTypeFilter}
+                    onToggle={(v) => toggleInSet(setCenterTypeFilter, v)}
+                    onClear={() => setCenterTypeFilter(new Set())}
+                  />
+                  <QuickFilterGroup
+                    label="Headcount Range"
+                    options={centerHeadcountOptions}
+                    selected={centerHeadcountFilter}
+                    onToggle={(v) => toggleInSet(setCenterHeadcountFilter, v)}
+                    onClear={() => setCenterHeadcountFilter(new Set())}
+                  />
                 </div>
+                {filteredCenters.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredCenters.map((center, index) => (
+                      <CenterGridCard
+                        key={`${center.cn_unique_key}-${index}`}
+                        center={center}
+                        onClick={() => handleCenterClick(center)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground py-6 text-center">No centers match the selected filters.</p>
+                )}
             </TabsContent>
             )}
 
             {/* Prospects Tab */}
             {accountProspects.length > 0 && (
-            <TabsContent value="prospects" className="mt-4">
-                <div className="space-y-3">
-                  {accountProspects.map((prospect, index) => (
-                    <div
-                      key={`${prospect.prospect_first_name}-${prospect.prospect_last_name}-${index}`}
-                      className="p-4 rounded-lg bg-background/40 backdrop-blur-sm border border-border/50 hover:border-border hover:bg-background/60 transition-all cursor-pointer dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 dark:backdrop-blur-md dark:shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
-                      onClick={() => handleProspectClick(prospect)}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm font-bold text-primary">
-                            {prospect.prospect_first_name?.[0]}{prospect.prospect_last_name?.[0]}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-base mb-1">
-                            {prospect.prospect_first_name} {prospect.prospect_last_name}
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
-                            <div className="flex items-center gap-1.5 text-muted-foreground">
-                              <Briefcase className="h-3.5 w-3.5" />
-                              <span className="truncate">{prospect.prospect_title}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-muted-foreground">
-                              <Users className="h-3.5 w-3.5" />
-                              <span className="truncate">{prospect.prospect_department}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-muted-foreground">
-                              <Award className="h-3.5 w-3.5" />
-                              <span className="truncate">{prospect.prospect_level}</span>
-                            </div>
-                          </div>
-                          {prospect.center_name && (
-                            <div className="flex items-center gap-1.5 text-muted-foreground text-sm mt-1">
-                              <Building className="h-3.5 w-3.5" />
-                              <span className="truncate">{prospect.center_name}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+            <TabsContent value="prospects" className="mt-4 space-y-4">
+                <div className="space-y-2">
+                  <QuickFilterGroup
+                    label="Department"
+                    options={prospectDeptOptions}
+                    selected={prospectDeptFilter}
+                    onToggle={(v) => toggleInSet(setProspectDeptFilter, v)}
+                    onClear={() => setProspectDeptFilter(new Set())}
+                  />
+                  <QuickFilterGroup
+                    label="Level"
+                    options={prospectLevelOptions}
+                    selected={prospectLevelFilter}
+                    onToggle={(v) => toggleInSet(setProspectLevelFilter, v)}
+                    onClear={() => setProspectLevelFilter(new Set())}
+                  />
                 </div>
+                {filteredProspects.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredProspects.map((prospect, index) => (
+                      <ProspectGridCard
+                        key={`${prospect.prospect_first_name}-${prospect.prospect_last_name}-${index}`}
+                        prospect={prospect}
+                        onClick={() => handleProspectClick(prospect)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground py-6 text-center">No prospects match the selected filters.</p>
+                )}
             </TabsContent>
             )}
 

@@ -17,10 +17,18 @@ interface CenterGridCardProps {
   onClick: () => void
 }
 
+const getStatusDotColor = (status: string | null | undefined) => {
+  if (status === "Active Center") return "bg-green-500"
+  if (status === "Upcoming") return "bg-yellow-500"
+  if (status === "Non Operational") return "bg-red-500"
+  return "bg-gray-400"
+}
+
 export const CenterGridCard = memo(({ center, onClick }: CenterGridCardProps) => {
   const centerName = center.center_name || "Center"
   const location = [center.center_city, center.center_country].filter(Boolean).join(", ")
   const accountName = center.account_global_legal_name || "Account"
+  const statusColor = getStatusDotColor(center.center_status)
 
   return (
     <ContextMenu>
@@ -36,10 +44,14 @@ export const CenterGridCard = memo(({ center, onClick }: CenterGridCardProps) =>
               />
               <div className="min-w-0">
                 <h3
-                  className="min-w-0 truncate text-base font-semibold leading-snug text-foreground"
-                  title={centerName}
+                  className="min-w-0 truncate text-base font-semibold leading-snug text-foreground flex items-center gap-2"
+                  title={center.center_status ? `${centerName} — ${center.center_status}` : centerName}
                 >
-                  {centerName}
+                  <span className="truncate">{centerName}</span>
+                  <span className="relative inline-flex h-2 w-2 shrink-0" aria-label={center.center_status ?? "Unknown status"}>
+                    <span className={`absolute inline-flex h-full w-full rounded-full opacity-60 animate-ping ${statusColor}`} />
+                    <span className={`relative inline-flex h-2 w-2 rounded-full ${statusColor}`} />
+                  </span>
                 </h3>
                 <p
                   className="text-sm text-muted-foreground mt-1 truncate"
@@ -51,21 +63,21 @@ export const CenterGridCard = memo(({ center, onClick }: CenterGridCardProps) =>
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex items-center justify-between gap-3 min-w-0">
-                <span className="text-muted-foreground">Account</span>
-                <span
-                  className="font-medium text-foreground text-right truncate max-w-[160px]"
-                  title={accountName}
-                >
-                  {accountName}
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-3 min-w-0">
                 <span className="text-muted-foreground">Center Type</span>
                 <span
                   className="font-medium text-foreground text-right truncate max-w-[160px]"
                   title={center.center_type || "-"}
                 >
                   {center.center_type || "-"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3 min-w-0">
+                <span className="text-muted-foreground">Headcount Range</span>
+                <span
+                  className="font-medium text-foreground text-right truncate max-w-[160px]"
+                  title={center.center_employees_range || "-"}
+                >
+                  {center.center_employees_range || "-"}
                 </span>
               </div>
             </div>

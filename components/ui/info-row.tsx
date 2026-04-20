@@ -5,9 +5,10 @@ interface InfoRowProps {
   label: string
   value: string | number | null | undefined
   link?: string
+  valueClassName?: string
 }
 
-export function InfoRow({ icon: Icon, label, value, link }: InfoRowProps) {
+export function InfoRow({ icon: Icon, label, value, link, valueClassName }: InfoRowProps) {
   if (value === null || value === undefined) return null
 
   const displayValue = typeof value === "number" ? value.toString() : value
@@ -25,12 +26,12 @@ export function InfoRow({ icon: Icon, label, value, link }: InfoRowProps) {
             href={link}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-primary hover:underline break-words"
+            className={`text-sm font-medium text-primary hover:underline break-words ${valueClassName ?? ""}`}
           >
             {displayValue}
           </a>
         ) : (
-          <p className="text-sm font-medium break-words whitespace-pre-line">{displayValue}</p>
+          <p className={`text-sm font-medium break-words whitespace-pre-line ${valueClassName ?? ""}`}>{displayValue}</p>
         )}
       </div>
     </div>
