@@ -3,7 +3,7 @@
 import React, { memo } from "react"
 import { Layers } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { CHART_COLORS } from "@/lib/utils/chart-helpers"
+import { PIE_CHART_COLORS } from "@/lib/utils/chart-helpers"
 import type { Tech } from "@/lib/types"
 import type { Options, Point } from "highcharts"
 
@@ -92,7 +92,7 @@ export const TechTreemap = memo(({
 
     const nodes: TreemapNode[] = []
     Array.from(categoryMap.entries()).forEach(([category, softwareMap], index) => {
-      const categoryColor = CHART_COLORS[index % CHART_COLORS.length]
+      const categoryColor = PIE_CHART_COLORS[index % PIE_CHART_COLORS.length]
       const categoryId = `cat-${index}`
       nodes.push({
         id: categoryId,

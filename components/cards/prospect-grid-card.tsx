@@ -2,6 +2,7 @@ import { memo } from "react"
 import { ArrowUpRight, Copy, Eye, ExternalLink } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -37,10 +38,10 @@ export const ProspectGridCard = memo(({ prospect, onClick }: ProspectGridCardPro
         <Card className="h-full">
           <CardContent className="p-4 flex flex-col gap-4">
             <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <span className="text-sm font-bold text-primary">{initials || "?"}</span>
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <h3
                   className="min-w-0 truncate text-base font-semibold leading-snug text-foreground"
                   title={fullName || "Prospect"}
@@ -54,17 +55,22 @@ export const ProspectGridCard = memo(({ prospect, onClick }: ProspectGridCardPro
                   {location || prospect.prospect_country || "-"}
                 </p>
               </div>
+              {prospect.head_type === "GCC Head" && (
+                <Badge
+                  className="shrink-0 font-normal border-transparent bg-blue-100 text-blue-700 hover:bg-blue-100/80 dark:bg-blue-500/15 dark:text-blue-300"
+                >
+                  GCC Head
+                </Badge>
+              )}
+              {prospect.head_type === "HR Head" && (
+                <Badge
+                  className="shrink-0 font-normal border-transparent bg-orange-100 text-orange-700 hover:bg-orange-100/80 dark:bg-orange-500/15 dark:text-orange-300"
+                >
+                  HR Head
+                </Badge>
+              )}
             </div>
             <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between gap-3 min-w-0">
-                <span className="text-muted-foreground">Job Title</span>
-                <span
-                  className="font-medium text-foreground text-right truncate max-w-[160px]"
-                  title={prospect.prospect_title || "-"}
-                >
-                  {prospect.prospect_title || "-"}
-                </span>
-              </div>
               <div className="flex items-center justify-between gap-3 min-w-0">
                 <span className="text-muted-foreground">Department</span>
                 <span
@@ -75,12 +81,12 @@ export const ProspectGridCard = memo(({ prospect, onClick }: ProspectGridCardPro
                 </span>
               </div>
               <div className="flex items-center justify-between gap-3 min-w-0">
-                <span className="text-muted-foreground">Role</span>
+                <span className="text-muted-foreground">Level</span>
                 <span
                   className="font-medium text-foreground text-right truncate max-w-[160px]"
-                  title={prospect.head_type || "-"}
+                  title={prospect.prospect_level || "-"}
                 >
-                  {prospect.head_type || "-"}
+                  {prospect.prospect_level || "-"}
                 </span>
               </div>
             </div>

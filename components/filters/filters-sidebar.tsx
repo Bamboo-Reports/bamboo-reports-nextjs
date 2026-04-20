@@ -216,7 +216,7 @@ export function FiltersSidebar({
           </div>
         </div>
 
-        <Accordion type="single" value={openSection} onValueChange={setOpenSection} className="w-full space-y-2">
+        <Accordion type="single" collapsible value={openSection} onValueChange={setOpenSection} className="w-full space-y-2">
           {isSectionVisible("accounts") && (
           <AccordionItem value="accounts" className="overflow-hidden rounded-xl border border-border/70 bg-secondary/30 px-3 data-[state=open]:bg-background data-[state=open]:shadow-sm">
             <AccordionTrigger className="py-3 text-sm font-semibold hover:no-underline">
