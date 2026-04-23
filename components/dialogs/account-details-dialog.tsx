@@ -75,7 +75,7 @@ export function AccountDetailsDialog({
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-3">
             <CompanyLogo
-              domain={account.account_hq_website}
+              domain={account.account_hq_website ?? undefined}
               companyName={account.account_global_legal_name}
               size="md"
               theme="auto"
@@ -184,7 +184,7 @@ export function AccountDetailsDialog({
               <InfoRow
                 icon={DollarSign}
                 label="Revenue (in Millions)"
-                value={formatRevenueInMillions(parseRevenue(account.account_hq_revenue))}
+                value={formatRevenueInMillions(parseRevenue(account.account_hq_revenue ?? undefined))}
               />
               <InfoRow
                 icon={DollarSign}

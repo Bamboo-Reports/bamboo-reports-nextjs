@@ -5,7 +5,7 @@ import { neon, type NeonQueryFunction } from "@neondatabase/serverless"
 // CONFIGURATION & SETUP
 // ============================================
 
-export type SqlClient = NeonQueryFunction | null
+export type SqlClient = NeonQueryFunction<false, false> | null
 
 let sql: SqlClient = null
 
@@ -22,7 +22,7 @@ try {
   console.error("Failed to initialize database connection:", error)
 }
 
-export function getSqlOrThrow(): NeonQueryFunction {
+export function getSqlOrThrow(): NeonQueryFunction<false, false> {
   if (!sql) {
     throw new Error("Database connection not initialized")
   }

@@ -150,11 +150,11 @@ async function main() {
       .filter((v: string) => v && v.trim().length > 0)
   }
 
-  const allSoftware = [...new Set(tech.map((t: any) => (t.software_in_use || "").trim()).filter(Boolean))]
-  const allAccountNames = [
-    ...new Set(accounts.map((a: any) => (a.account_global_legal_name || "").trim()).filter(Boolean)),
+  const allSoftware: string[] = [...new Set<string>(tech.map((t: any) => (t.software_in_use || "").trim()).filter((s: unknown): s is string => Boolean(s)))]
+  const allAccountNames: string[] = [
+    ...new Set<string>(accounts.map((a: any) => (a.account_global_legal_name || "").trim()).filter((s: unknown): s is string => Boolean(s))),
   ]
-  const allTitles = [...new Set(prospects.map((p: any) => (p.prospect_title || "").trim()).filter(Boolean))]
+  const allTitles: string[] = [...new Set<string>(prospects.map((p: any) => (p.prospect_title || "").trim()).filter((s: unknown): s is string => Boolean(s)))]
 
   const scenarios: Array<{ name: string; filters: any }> = [{ name: "baseline", filters: baseFilters }]
 

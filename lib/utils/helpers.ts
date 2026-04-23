@@ -3,7 +3,8 @@ import type { Account, Center, Function, ChartData } from "../types"
 /**
  * Parse revenue value from string or number
  */
-export const parseRevenue = (value: string | number): number => {
+export const parseRevenue = (value: string | number | null | undefined): number => {
+  if (value === null || value === undefined) return 0
   const numValue = typeof value === "string" ? Number.parseFloat(value) : value
   return isNaN(numValue) ? 0 : numValue
 }

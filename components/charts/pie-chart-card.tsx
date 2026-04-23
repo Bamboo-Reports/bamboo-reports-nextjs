@@ -55,14 +55,14 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
   // Calculate total for percentage calculation
   const total = React.useMemo(() => {
     return safeData.reduce((sum, item) => {
-      const rawValue = (item as Record<string, number | undefined>)[dataKey]
+      const rawValue = (item as unknown as Record<string, number | undefined>)[dataKey]
       return sum + (typeof rawValue === "number" ? rawValue : 0)
     }, 0)
   }, [safeData, dataKey])
 
   const seriesData = React.useMemo(() => {
     const mappedData = safeData.map((item, index) => {
-      const rawValue = (item as Record<string, number | undefined>)[dataKey]
+      const rawValue = (item as unknown as Record<string, number | undefined>)[dataKey]
       return {
         name: item.name,
         y: typeof rawValue === "number" ? rawValue : 0,
@@ -122,7 +122,7 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
         borderWidth: 0,
         shadow: false,
         formatter: function () {
-          const point = this.point as Point
+          const point = this as unknown as Point
           const value = typeof point.y === "number" ? point.y : 0
           const percent = total > 0 ? Math.round((value / total) * 100) : 0
           const color = point.color || PIE_CHART_COLORS[0]
@@ -159,7 +159,7 @@ export const PieChartCard = memo(({ title, data, dataKey = "value", countLabel =
               textOutline: "none",
             },
             formatter: function () {
-              const point = this.point as Point
+              const point = this as unknown as Point
               const value = typeof point.y === "number" ? point.y : 0
               if (value <= 0 || total <= 0) return ""
               const percent = Math.round((value / total) * 100)

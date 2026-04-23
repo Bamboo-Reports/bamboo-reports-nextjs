@@ -155,12 +155,12 @@ export function CenterDetailsDialog({
             items={[
               { label: center.account_global_legal_name, onClick: () => onOpenChange(false) },
               { label: "Centers", onClick: () => onOpenChange(false) },
-              { label: center.center_name },
+              { label: center.center_name ?? "" },
             ]}
           />
           <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
             <CompanyLogo
-              domain={center.center_account_website}
+              domain={center.center_account_website ?? undefined}
               companyName={center.account_global_legal_name}
               size="md"
               theme="auto"
@@ -201,9 +201,9 @@ export function CenterDetailsDialog({
                   ) : null}
                 </div>
                 <span
-                  className={`h-3 w-3 shrink-0 rounded-full ${getStatusColor(center.center_status)} ${getStatusGlow(center.center_status)}`}
-                  aria-label={center.center_status}
-                  title={center.center_status}
+                  className={`h-3 w-3 shrink-0 rounded-full ${getStatusColor(center.center_status ?? "")} ${getStatusGlow(center.center_status ?? "")}`}
+                  aria-label={center.center_status ?? undefined}
+                  title={center.center_status ?? undefined}
                 />
               </div>
               <p className="mt-1 text-sm font-normal text-muted-foreground">
@@ -268,7 +268,7 @@ export function CenterDetailsDialog({
                 ) : null}
               </div>
               <div className="lg:border-l lg:border-border/50 lg:pl-6">
-                <MetaRow label="Status" value={statusShortLabel(center.center_status)} />
+                <MetaRow label="Status" value={statusShortLabel(center.center_status ?? "")} />
                 <MetaRow label="Center Type" value={center.center_type} />
                 <MetaRow label="Center Focus" value={center.center_focus} />
                 <MetaRow label="Location" value={centerLocation} />

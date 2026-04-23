@@ -347,7 +347,7 @@ export function AccountDetailsDialog({
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center gap-3">
               <CompanyLogo
-                domain={account.account_hq_website}
+                domain={account.account_hq_website ?? undefined}
                 companyName={account.account_global_legal_name}
                 size="md"
                 theme="auto"
@@ -470,7 +470,7 @@ export function AccountDetailsDialog({
                   <KPITile
                     icon={DollarSign}
                     label="Revenue"
-                    value={formatRevenueInMillions(parseRevenue(account.account_hq_revenue))}
+                    value={formatRevenueInMillions(parseRevenue(account.account_hq_revenue ?? undefined))}
                     caption={account.account_hq_revenue_range}
                   />
                   {financialData && (

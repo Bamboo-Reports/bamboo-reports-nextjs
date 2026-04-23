@@ -232,6 +232,7 @@ export interface AvailableOptions {
 export interface ChartData {
   name: string
   value: number
+  fill?: string
 }
 
 export interface AccountFinancialInfo {

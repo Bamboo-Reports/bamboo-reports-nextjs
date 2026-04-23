@@ -169,10 +169,11 @@ export function CentersMap({ centers, heightClass = "h-[750px]", showAccountsCou
         const lat = center.lat
         const lng = center.lng
 
-        // Skip if no coordinates
+        // Skip if no coordinates or city
         if (lat === null || lat === undefined || lng === null || lng === undefined || isNaN(lat) || isNaN(lng)) {
           return
         }
+        if (!city) return
 
         if (cityMap.has(city)) {
           const existing = cityMap.get(city)!
@@ -187,7 +188,7 @@ export function CentersMap({ centers, heightClass = "h-[750px]", showAccountsCou
           accounts.add(account)
           cityMap.set(city, {
             city,
-            country,
+            country: country ?? "",
             lat,
             lng,
             count: 1,

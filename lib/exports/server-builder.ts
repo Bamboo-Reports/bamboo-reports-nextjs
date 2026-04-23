@@ -111,19 +111,19 @@ export async function buildServerExport(
   }
 
   if (datasets.includes("accounts")) {
-    addWorksheet(workbook, DATASET_LABELS.accounts, accounts as Array<Record<string, unknown>>)
+    addWorksheet(workbook, DATASET_LABELS.accounts, accounts as unknown as Array<Record<string, unknown>>)
     rowCounts.accounts = accounts.length
   }
   if (datasets.includes("centers")) {
-    addWorksheet(workbook, DATASET_LABELS.centers, centers as Array<Record<string, unknown>>)
+    addWorksheet(workbook, DATASET_LABELS.centers, centers as unknown as Array<Record<string, unknown>>)
     rowCounts.centers = centers.length
   }
   if (datasets.includes("services")) {
-    addWorksheet(workbook, DATASET_LABELS.services, services as Array<Record<string, unknown>>)
+    addWorksheet(workbook, DATASET_LABELS.services, services as unknown as Array<Record<string, unknown>>)
     rowCounts.services = services.length
   }
   if (datasets.includes("prospects")) {
-    addWorksheet(workbook, DATASET_LABELS.prospects, prospects as Array<Record<string, unknown>>)
+    addWorksheet(workbook, DATASET_LABELS.prospects, prospects as unknown as Array<Record<string, unknown>>)
     rowCounts.prospects = prospects.length
   }
 

@@ -173,7 +173,7 @@ export const TechTreemap = memo(({
               borderWidth: 0,
               shadow: false,
               formatter: function () {
-                const point = this.point as Point & { count?: number; value?: number; name?: string }
+                const point = this as unknown as Point & { count?: number; value?: number; name?: string }
                 const softwareName = point.name || "Unknown"
                 const value = typeof point.value === "number"
                   ? point.value
@@ -277,7 +277,7 @@ export const TechTreemap = memo(({
                       enabled: true,
                       inside: false,
                       formatter: function () {
-                        const point = this.point as Point & { value?: number; name?: string }
+                        const point = this as unknown as Point & { value?: number; name?: string }
                         const softwareName = point.name || ""
                         const value = typeof point.value === "number" ? point.value : 0
                         if (totalLeafValue <= 0) {

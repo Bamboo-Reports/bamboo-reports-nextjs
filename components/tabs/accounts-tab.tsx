@@ -67,7 +67,7 @@ export function AccountsTab({
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [sort, setSort] = useState<{
-    key: "name" | "location" | "industry" | "revenue"
+    key: "name" | "location" | "industry" | "revenue" | "employees"
     direction: "asc" | "desc" | null
   }>({
     key: "name",
