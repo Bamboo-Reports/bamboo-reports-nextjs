@@ -18,7 +18,7 @@ type DashboardAccessConfig = {
 export const DASHBOARD_ACCESS_CONFIG: DashboardAccessConfig = {
   sections: {
     accounts: "enabled",
-    centers: "disabled",
+    centers: "enabled",
     prospects: "enabled",
   },
 }

@@ -66,7 +66,7 @@ export const FILTER_SECTIONS: FilterSectionConfig[] = [
     id: "accounts",
     label: "Account Attributes",
     enabled: true,
-    showMoreEnabled: false,
+    showMoreEnabled: true,
     premiumFilterKeys: [
       "accountHqRegionValues",
       "accountHqEmployeeRangeValues",
@@ -219,7 +219,7 @@ export const FILTER_SECTIONS: FilterSectionConfig[] = [
     id: "centers",
     label: "Center Attributes",
     enabled: true,
-    showMoreEnabled: false,
+    showMoreEnabled: true,
     premiumFilterKeys: [
       "centerStateValues",
       "centerFocusValues",

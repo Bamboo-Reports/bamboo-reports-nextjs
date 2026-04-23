@@ -344,8 +344,8 @@ export function AccountFiltersSection({
               className="group h-9 rounded-full border-border/70 bg-muted/40 px-4 text-xs font-medium text-foreground shadow-sm transition-all hover:border-border hover:bg-muted/70 hover:shadow-md"
             >
               {canShowMoreAccountFilters
-                ? (showMoreAccountFilters ? "Show Less Filters" : "Show More Filters")
-                : "Show More Filters"}
+                ? (showMoreAccountFilters ? "Show Less" : "Show More")
+                : "Show More"}
               {canShowMoreAccountFilters ? (
                 showMoreAccountFilters ? (
                   <ChevronUp className="ml-1.5 h-3.5 w-3.5" />
@@ -706,7 +706,7 @@ export function CenterFiltersSection({
             >
               {canShowMoreCenterFilters
                 ? (showMoreCenterFilters ? "Show Less" : "Show More")
-                : "Show More Filters"}
+                : "Show More"}
               {canShowMoreCenterFilters ? (
                 showMoreCenterFilters ? (
                   <ChevronUp className="ml-1.5 h-3.5 w-3.5" />
