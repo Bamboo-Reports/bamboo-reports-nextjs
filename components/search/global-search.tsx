@@ -351,20 +351,20 @@ export function GlobalSearch({
 
       {/* Footer hint */}
       <div className="flex items-center border-t border-border/40 px-4 py-2">
-        <div className="flex items-center gap-3.5 text-[11px] text-muted-foreground/50">
+        <div className="flex items-center gap-3.5 text-[11px] text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <span className="inline-flex items-center gap-0.5">
-              <kbd className="inline-flex h-4 items-center rounded bg-muted/60 px-1 font-sans text-[10px] text-muted-foreground/70">&uarr;</kbd>
-              <kbd className="inline-flex h-4 items-center rounded bg-muted/60 px-1 font-sans text-[10px] text-muted-foreground/70">&darr;</kbd>
+              <kbd className="inline-flex h-4 items-center rounded bg-muted px-1 font-sans text-[10px] text-foreground/70">&uarr;</kbd>
+              <kbd className="inline-flex h-4 items-center rounded bg-muted px-1 font-sans text-[10px] text-foreground/70">&darr;</kbd>
             </span>
             navigate
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <kbd className="inline-flex h-4 items-center rounded bg-muted/60 px-1.5 font-sans text-[10px] text-muted-foreground/70">enter</kbd>
+            <kbd className="inline-flex h-4 items-center rounded bg-muted px-1.5 font-sans text-[10px] text-foreground/70">enter</kbd>
             open
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <kbd className="inline-flex h-4 items-center rounded bg-muted/60 px-1.5 font-sans text-[10px] text-muted-foreground/70">esc</kbd>
+            <kbd className="inline-flex h-4 items-center rounded bg-muted px-1.5 font-sans text-[10px] text-foreground/70">esc</kbd>
             close
           </span>
         </div>
