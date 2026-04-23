@@ -350,20 +350,22 @@ export function GlobalSearch({
       </CommandList>
 
       {/* Footer hint */}
-      <div className="flex items-center justify-between border-t border-border/60 px-4 py-2.5">
-        <div className="flex items-center gap-3 text-[11px] text-muted-foreground/60">
-          <span className="inline-flex items-center gap-1">
-            <kbd className="rounded border border-border/80 bg-muted/50 px-1 py-0.5 font-mono text-[10px]">&uarr;</kbd>
-            <kbd className="rounded border border-border/80 bg-muted/50 px-1 py-0.5 font-mono text-[10px]">&darr;</kbd>
-            <span className="ml-0.5">navigate</span>
+      <div className="flex items-center border-t border-border/40 px-4 py-2">
+        <div className="flex items-center gap-3.5 text-[11px] text-muted-foreground/50">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-0.5">
+              <kbd className="inline-flex h-4 items-center rounded bg-muted/60 px-1 font-sans text-[10px] text-muted-foreground/70">&uarr;</kbd>
+              <kbd className="inline-flex h-4 items-center rounded bg-muted/60 px-1 font-sans text-[10px] text-muted-foreground/70">&darr;</kbd>
+            </span>
+            navigate
           </span>
-          <span className="inline-flex items-center gap-1">
-            <kbd className="rounded border border-border/80 bg-muted/50 px-1.5 py-0.5 font-mono text-[10px]">&#9166;</kbd>
-            <span className="ml-0.5">open</span>
+          <span className="inline-flex items-center gap-1.5">
+            <kbd className="inline-flex h-4 items-center rounded bg-muted/60 px-1.5 font-sans text-[10px] text-muted-foreground/70">enter</kbd>
+            open
           </span>
-          <span className="inline-flex items-center gap-1">
-            <kbd className="rounded border border-border/80 bg-muted/50 px-1.5 py-0.5 font-mono text-[10px]">esc</kbd>
-            <span className="ml-0.5">close</span>
+          <span className="inline-flex items-center gap-1.5">
+            <kbd className="inline-flex h-4 items-center rounded bg-muted/60 px-1.5 font-sans text-[10px] text-muted-foreground/70">esc</kbd>
+            close
           </span>
         </div>
       </div>
