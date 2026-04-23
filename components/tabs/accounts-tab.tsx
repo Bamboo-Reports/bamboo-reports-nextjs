@@ -28,6 +28,7 @@ import { SortButton } from "@/components/ui/sort-button"
 import { PaginationControls } from "@/components/ui/pagination-controls"
 import { captureEvent } from "@/lib/analytics/client"
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
+import { canAccessAccountsMapView } from "@/lib/config/dashboard-access"
 import { getPaginatedData } from "@/lib/utils/helpers"
 import type { Account, Center, Prospect, Service, Function, Tech } from "@/lib/types"
 
@@ -64,6 +65,7 @@ export function AccountsTab({
   setCurrentPage,
   itemsPerPage,
 }: AccountsTabProps) {
+  const allowMapView = canAccessAccountsMapView()
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [sort, setSort] = useState<{
@@ -80,6 +82,12 @@ export function AccountsTab({
   useEffect(() => {
     scrollContainerRef.current?.scrollTo({ top: 0 })
   }, [currentPage])
+
+  useEffect(() => {
+    if (!allowMapView && accountsView === "map") {
+      setAccountsView("chart")
+    }
+  }, [allowMapView, accountsView, setAccountsView])
   const previousDataLayoutRef = React.useRef<"table" | "grid">("table")
   const previousMapModeRef = React.useRef<"city" | "state">("state")
   const openedRecordRef = React.useRef<{
@@ -230,13 +238,15 @@ export function AccountsTab({
                 <PieChartIcon className="h-4 w-4 text-[hsl(var(--chart-1))]" />
               ),
             },
-            {
-              value: "map",
-              label: <span className="text-[hsl(var(--chart-4))]">Map</span>,
-              icon: (
-                <MapIcon className="h-4 w-4 text-[hsl(var(--chart-4))]" />
-              ),
-            },
+            ...(allowMapView
+              ? [{
+                  value: "map",
+                  label: <span className="text-[hsl(var(--chart-4))]">Map</span>,
+                  icon: (
+                    <MapIcon className="h-4 w-4 text-[hsl(var(--chart-4))]" />
+                  ),
+                }]
+              : []),
             {
               value: "data",
               label: <span className="text-[hsl(var(--chart-2))]">Data</span>,

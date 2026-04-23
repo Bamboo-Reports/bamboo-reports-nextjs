@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useCallback, useEffect } from "react"
+import React, { useCallback, useEffect, useMemo } from "react"
 import {
   Briefcase,
   Building,
@@ -20,6 +20,7 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command"
+import { getEnabledSections } from "@/lib/config/dashboard-access"
 import type { GroupedResults, SearchResult, SearchResultType } from "@/lib/search"
 import type { RecentItem } from "@/hooks/use-recent-items"
 
@@ -96,6 +97,19 @@ export function GlobalSearch({
   onSelectRecentSearch,
   onSelectAction,
 }: GlobalSearchProps) {
+  const enabledSections = getEnabledSections()
+  const enabledSectionSet = useMemo(() => new Set(enabledSections), [enabledSections])
+  const visibleRecentItems = useMemo(
+    () =>
+      recentItems.filter((item) => {
+        if (item.type === "account") return enabledSectionSet.has("accounts")
+        if (item.type === "center") return enabledSectionSet.has("centers")
+        return enabledSectionSet.has("prospects")
+      }),
+    [enabledSectionSet, recentItems]
+  )
+  const searchPlaceholder = `Search ${enabledSections.join(", ")}...`
+
   // Register global Cmd+K / Ctrl+K shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -150,13 +164,13 @@ export function GlobalSearch({
 
   const hasQuery = query.trim().length > 0
   const hasResults = results.total > 0
-  const hasRecentItems = recentItems.length > 0
+  const hasRecentItems = visibleRecentItems.length > 0
   const hasRecentSearches = recentSearches.length > 0
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange} className="max-w-2xl" shouldFilter={false}>
       <CommandInput
-        placeholder="Search accounts, centers, prospects..."
+        placeholder={searchPlaceholder}
         value={query}
         onValueChange={onQueryChange}
       />
@@ -253,7 +267,7 @@ export function GlobalSearch({
           <>
             {hasRecentItems && (
               <CommandGroup heading="Recently Viewed">
-                {recentItems.map((item) => (
+                {visibleRecentItems.map((item) => (
                   <CommandItem
                     key={`recent::${item.type}::${item.id}`}
                     value={`recent::${item.type}::${item.id}`}
@@ -301,33 +315,39 @@ export function GlobalSearch({
             {(hasRecentItems || hasRecentSearches) && <CommandSeparator />}
 
             <CommandGroup heading="Quick Actions">
-              <CommandItem
-                value="action::go-accounts"
-                onSelect={handleSelect}
-                className="py-2 px-3"
-              >
-                <Building className="h-4 w-4 shrink-0 text-primary/70" />
-                <span className="text-sm">Go to Accounts</span>
-                <CommandShortcut>Tab</CommandShortcut>
-              </CommandItem>
-              <CommandItem
-                value="action::go-centers"
-                onSelect={handleSelect}
-                className="py-2 px-3"
-              >
-                <Briefcase className="h-4 w-4 shrink-0 text-[hsl(var(--chart-2)/0.7)]" />
-                <span className="text-sm">Go to Centers</span>
-                <CommandShortcut>Tab</CommandShortcut>
-              </CommandItem>
-              <CommandItem
-                value="action::go-prospects"
-                onSelect={handleSelect}
-                className="py-2 px-3"
-              >
-                <Users className="h-4 w-4 shrink-0 text-[hsl(var(--chart-3)/0.7)]" />
-                <span className="text-sm">Go to Prospects</span>
-                <CommandShortcut>Tab</CommandShortcut>
-              </CommandItem>
+              {enabledSectionSet.has("accounts") && (
+                <CommandItem
+                  value="action::go-accounts"
+                  onSelect={handleSelect}
+                  className="py-2 px-3"
+                >
+                  <Building className="h-4 w-4 shrink-0 text-primary/70" />
+                  <span className="text-sm">Go to Accounts</span>
+                  <CommandShortcut>Tab</CommandShortcut>
+                </CommandItem>
+              )}
+              {enabledSectionSet.has("centers") && (
+                <CommandItem
+                  value="action::go-centers"
+                  onSelect={handleSelect}
+                  className="py-2 px-3"
+                >
+                  <Briefcase className="h-4 w-4 shrink-0 text-[hsl(var(--chart-2)/0.7)]" />
+                  <span className="text-sm">Go to Centers</span>
+                  <CommandShortcut>Tab</CommandShortcut>
+                </CommandItem>
+              )}
+              {enabledSectionSet.has("prospects") && (
+                <CommandItem
+                  value="action::go-prospects"
+                  onSelect={handleSelect}
+                  className="py-2 px-3"
+                >
+                  <Users className="h-4 w-4 shrink-0 text-[hsl(var(--chart-3)/0.7)]" />
+                  <span className="text-sm">Go to Prospects</span>
+                  <CommandShortcut>Tab</CommandShortcut>
+                </CommandItem>
+              )}
               <CommandItem
                 value="action::refresh"
                 onSelect={handleSelect}

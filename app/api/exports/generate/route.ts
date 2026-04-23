@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto"
 import { extractBearerToken, resolveAuthenticatedUserId } from "@/lib/auth/server"
 import { getSupabaseServiceRoleClient, USER_EXPORTS_BUCKET } from "@/lib/supabase/server"
 import { getClientInfo } from "@/lib/request/client-info"
+import { getDatasetUnavailableMessage, isDatasetEnabled } from "@/lib/config/dashboard-access"
 import {
   buildServerExport,
   type ServerExportDatasetKey,
@@ -56,6 +57,10 @@ export async function POST(request: Request) {
   )
   if (datasets.length === 0) {
     return json({ error: "At least one dataset must be selected" }, 400)
+  }
+  if (datasets.some((dataset) => !isDatasetEnabled(dataset))) {
+    const blockedDataset = datasets.find((dataset) => !isDatasetEnabled(dataset))
+    return json({ error: blockedDataset ? getDatasetUnavailableMessage(blockedDataset) : "Dataset unavailable" }, 403)
   }
 
   let buildResult

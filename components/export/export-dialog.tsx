@@ -18,6 +18,7 @@ import { requestServerExport } from "@/lib/exports/request-client"
 import { captureEvent } from "@/lib/analytics/client"
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import { toTrackedStringArray } from "@/lib/analytics/tracking"
+import { getDatasetUnavailableMessage, isDatasetEnabled } from "@/lib/config/dashboard-access"
 import { cn } from "@/lib/utils"
 
 type ExportData = {
@@ -141,10 +142,10 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered, filtersSnap
     wasOpenRef.current = true
 
     const initialSelection = {
-      accounts: data.accounts.length > 0,
-      centers: data.centers.length > 0,
-      services: data.services.length > 0,
-      prospects: data.prospects.length > 0,
+      accounts: isDatasetEnabled("accounts") && data.accounts.length > 0,
+      centers: isDatasetEnabled("centers") && data.centers.length > 0,
+      services: isDatasetEnabled("services") && data.services.length > 0,
+      prospects: isDatasetEnabled("prospects") && data.prospects.length > 0,
     }
     setSelection(initialSelection)
     setIsExporting(false)
@@ -172,7 +173,7 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered, filtersSnap
   )
 
   const handleToggle = (key: ExportDatasetKey) => {
-    if (isExporting) return
+    if (isExporting || !isDatasetEnabled(key)) return
     const next = { ...selection, [key]: !selection[key] }
     setSelection(next)
     const selectedDatasets = getSelectedDatasets(next)
@@ -187,10 +188,10 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered, filtersSnap
   const handleSelectAll = (value: boolean) => {
     if (isExporting) return
     const next = {
-      accounts: value,
-      centers: value,
-      services: value,
-      prospects: value,
+      accounts: isDatasetEnabled("accounts") ? value : false,
+      centers: isDatasetEnabled("centers") ? value : false,
+      services: isDatasetEnabled("services") ? value : false,
+      prospects: isDatasetEnabled("prospects") ? value : false,
     }
     setSelection(next)
     captureEvent(value ? ANALYTICS_EVENTS.EXPORT_SELECT_ALL_CLICKED : ANALYTICS_EVENTS.EXPORT_CLEAR_CLICKED, {
@@ -354,6 +355,7 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered, filtersSnap
               const Icon = item.icon
               const count = data[item.key].length
               const isChecked = selection[item.key]
+              const isAccessible = isDatasetEnabled(item.key)
 
               return (
                 <button
@@ -363,22 +365,31 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered, filtersSnap
                   className={cn(
                     "group relative flex items-start gap-3 rounded-xl border bg-background px-4 py-3 text-left shadow-sm transition-all duration-150",
                     isChecked ? "border-primary/40 bg-primary/5" : "hover:border-muted-foreground/40",
-                    isExporting && "cursor-not-allowed opacity-70"
+                    (isExporting || !isAccessible) && "cursor-not-allowed opacity-70"
                   )}
-                  disabled={isExporting}
+                  disabled={isExporting || !isAccessible}
                 >
-                  <Checkbox checked={isChecked} disabled={isExporting} className="mt-1" />
+                  <Checkbox checked={isChecked} disabled={isExporting || !isAccessible} className="mt-1" />
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Icon className={cn("h-4 w-4", item.accent)} />
                         <span className="text-sm font-semibold">{item.label}</span>
                       </div>
-                      <Badge variant="outline" className="text-[10px]">
-                        {count.toLocaleString()} rows
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        {!isAccessible && (
+                          <Badge variant="secondary" className="text-[10px]">
+                            Not Procured
+                          </Badge>
+                        )}
+                        <Badge variant="outline" className="text-[10px]">
+                          {count.toLocaleString()} rows
+                        </Badge>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">{item.description}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {isAccessible ? item.description : getDatasetUnavailableMessage(item.key)}
+                    </p>
                   </div>
                 </button>
               )

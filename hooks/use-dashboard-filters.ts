@@ -27,6 +27,8 @@ import {
   type RevenueRangeFilterState,
 } from "@/lib/dashboard/filtering"
 import { getAccountChartData, getCenterChartData, getProspectChartData } from "@/lib/dashboard/charts"
+import { isSectionEnabled } from "@/lib/config/dashboard-access"
+import { sanitizeFilters } from "@/lib/config/filters"
 
 interface UseDashboardFiltersParams {
   accounts: Account[]
@@ -54,6 +56,9 @@ export function useDashboardFilters({
   prospects,
   tech,
 }: UseDashboardFiltersParams) {
+  const accountsEnabled = isSectionEnabled("accounts")
+  const centersEnabled = isSectionEnabled("centers")
+  const prospectsEnabled = isSectionEnabled("prospects")
   const baseRanges = useMemo(() => calculateBaseRanges(accounts, centers), [accounts, centers])
 
   const [filters, setFilters] = useState<Filters>(() => createDefaultFilters())
@@ -102,8 +107,8 @@ export function useDashboardFilters({
   const accountNames = useMemo(() => getAccountNames(accounts), [accounts])
 
   const filteredData: FilteredData = useMemo(
-    () => getFilteredData(accounts, centers, functions, services, prospects, tech, filters),
-    [accounts, centers, functions, services, prospects, tech, filters]
+    () => getFilteredData(accounts, centers, functions, services, prospects, tech, sanitizeFilters(filters), { accountsEnabled, centersEnabled, prospectsEnabled }),
+    [accounts, centers, functions, services, prospects, tech, filters, accountsEnabled, centersEnabled, prospectsEnabled]
   )
 
   const accountChartData = useMemo(
@@ -230,8 +235,8 @@ export function useDashboardFilters({
   )
 
   const availableOptions: AvailableOptions = useMemo(
-    () => getAvailableOptions(accounts, centers, functions, prospects, tech, filterStateForOptions),
-    [accounts, centers, functions, prospects, tech, filterStateForOptions]
+    () => getAvailableOptions(accounts, centers, functions, prospects, tech, sanitizeFilters(filterStateForOptions as Filters), { accountsEnabled, centersEnabled, prospectsEnabled }),
+    [accounts, centers, functions, prospects, tech, filterStateForOptions, accountsEnabled, centersEnabled, prospectsEnabled]
   )
 
   const getActiveFilterCountFor = useCallback(
@@ -321,9 +326,10 @@ export function useDashboardFilters({
   }, [baseRanges, filters, getActiveFilterCountFor])
 
   const handleLoadSavedFilters = useCallback((savedFilters: Filters) => {
+    const sanitizedSavedFilters = sanitizeFilters(savedFilters)
     isRevenueRangeAutoRef.current = false
-    setPendingFilters(savedFilters)
-    setFilters(savedFilters)
+    setPendingFilters(sanitizedSavedFilters)
+    setFilters(sanitizedSavedFilters)
   }, [])
 
   const handleMinRevenueChange = useCallback(

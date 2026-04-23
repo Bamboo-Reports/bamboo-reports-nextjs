@@ -38,6 +38,7 @@ import { ProspectGridCard } from "@/components/cards/prospect-grid-card"
 import { Badge } from "@/components/ui/badge"
 import { TechTreemap } from "@/components/charts/tech-treemap"
 import { getAccountFinancialInfo } from "@/app/actions"
+import { isSectionEnabled } from "@/lib/config/dashboard-access"
 import {
   ChartContainer,
   ChartTooltip,
@@ -186,6 +187,8 @@ export function AccountDetailsDialog({
   open,
   onOpenChange,
 }: AccountDetailsDialogProps) {
+  const canViewCenters = isSectionEnabled("centers")
+  const canViewProspects = isSectionEnabled("prospects")
   const [activeTab, setActiveTab] = useState("info")
   const [selectedCenter, setSelectedCenter] = useState<Center | null>(null)
   const [isCenterDialogOpen, setIsCenterDialogOpen] = useState(false)
@@ -203,10 +206,10 @@ export function AccountDetailsDialog({
   const ticker = account?.account_hq_stock_ticker?.trim() ?? ""
 
   // Filter centers and prospects for this account
-  const accountCenters = account
+  const accountCenters = account && canViewCenters
     ? centers.filter((center) => center.account_global_legal_name === account.account_global_legal_name)
     : []
-  const accountProspects = account
+  const accountProspects = account && canViewProspects
     ? prospects
         .filter((prospect) => prospect.account_global_legal_name === account.account_global_legal_name)
         .sort((a, b) => {
@@ -546,7 +549,7 @@ export function AccountDetailsDialog({
               </section>
 
               {/* India Presence */}
-              {(account.account_first_center_year || account.years_in_india || account.account_center_employees || account.account_center_employees_range || account.account_nasscom_status || accountCenters.length > 0) && (
+              {canViewCenters && (account.account_first_center_year || account.years_in_india || account.account_center_employees || account.account_center_employees_range || account.account_nasscom_status || accountCenters.length > 0) && (
                 <section className="space-y-4">
                   <SectionHeader title="India Presence" />
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

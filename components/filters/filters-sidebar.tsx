@@ -10,6 +10,7 @@ import {
 } from '@/components/filters/filter-sections'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
+import { getSectionUnavailableMessage, isSectionEnabled } from '@/lib/config/dashboard-access'
 import { cn } from '@/lib/utils'
 import { isSectionVisible } from '@/lib/config/filters'
 import type { AvailableOptions, Filters } from '@/lib/types'
@@ -159,6 +160,7 @@ export function FiltersSidebar({
               variant="ghost"
               size="icon"
               onClick={() => handleCollapsedIconClick(section)}
+              disabled={!isSectionEnabled(section as "accounts" | "centers" | "prospects")}
               className={cn(
                 'h-10 w-10 rounded-xl border border-transparent bg-secondary/20 transition-colors hover:bg-secondary/30',
                 iconClass
@@ -218,7 +220,7 @@ export function FiltersSidebar({
 
         <Accordion type="single" collapsible value={openSection} onValueChange={setOpenSection} className="w-full space-y-2">
           {isSectionVisible("accounts") && (
-          <AccordionItem value="accounts" className="overflow-hidden rounded-xl border border-border/70 bg-secondary/30 px-3 data-[state=open]:bg-background data-[state=open]:shadow-sm">
+          <AccordionItem value="accounts" className={cn("overflow-hidden rounded-xl border border-border/70 bg-secondary/30 px-3 data-[state=open]:bg-background data-[state=open]:shadow-sm", !isSectionEnabled("accounts") && "opacity-80")}>
             <AccordionTrigger className="py-3 text-sm font-semibold hover:no-underline">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-5 w-5 shrink-0 items-center justify-center">
@@ -228,6 +230,7 @@ export function FiltersSidebar({
               </div>
             </AccordionTrigger>
             <AccordionContent className="pb-3 pt-1">
+              {isSectionEnabled("accounts") ? (
               <AccountFiltersSection
                 pendingFilters={pendingFilters}
                 availableOptions={availableOptions}
@@ -246,12 +249,17 @@ export function FiltersSidebar({
                 handleYearsInIndiaRangeChange={handleYearsInIndiaRangeChange}
                 formatRevenueInMillions={formatRevenueInMillions}
               />
+              ) : (
+                <p className="rounded-lg border border-dashed border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                  {getSectionUnavailableMessage("accounts")}
+                </p>
+              )}
             </AccordionContent>
           </AccordionItem>
           )}
 
           {isSectionVisible("centers") && (
-          <AccordionItem value="centers" className="overflow-hidden rounded-xl border border-border/70 bg-secondary/30 px-3 data-[state=open]:bg-background data-[state=open]:shadow-sm">
+          <AccordionItem value="centers" className={cn("overflow-hidden rounded-xl border border-border/70 bg-secondary/30 px-3 data-[state=open]:bg-background data-[state=open]:shadow-sm", !isSectionEnabled("centers") && "opacity-80")}>
             <AccordionTrigger className="py-3 text-sm font-semibold hover:no-underline">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-5 w-5 shrink-0 items-center justify-center">
@@ -261,6 +269,7 @@ export function FiltersSidebar({
               </div>
             </AccordionTrigger>
             <AccordionContent className="pb-3 pt-1">
+              {isSectionEnabled("centers") ? (
               <CenterFiltersSection
                 pendingFilters={pendingFilters}
                 availableOptions={availableOptions}
@@ -273,12 +282,17 @@ export function FiltersSidebar({
                 handleMaxCenterIncYearChange={handleMaxCenterIncYearChange}
                 handleCenterIncYearRangeChange={handleCenterIncYearRangeChange}
               />
+              ) : (
+                <p className="rounded-lg border border-dashed border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                  {getSectionUnavailableMessage("centers")}
+                </p>
+              )}
             </AccordionContent>
           </AccordionItem>
           )}
 
           {isSectionVisible("prospects") && (
-          <AccordionItem value="prospects" className="overflow-hidden rounded-xl border border-border/70 bg-secondary/30 px-3 data-[state=open]:bg-background data-[state=open]:shadow-sm">
+          <AccordionItem value="prospects" className={cn("overflow-hidden rounded-xl border border-border/70 bg-secondary/30 px-3 data-[state=open]:bg-background data-[state=open]:shadow-sm", !isSectionEnabled("prospects") && "opacity-80")}>
             <AccordionTrigger className="py-3 text-sm font-semibold hover:no-underline">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-5 w-5 shrink-0 items-center justify-center">
@@ -288,6 +302,7 @@ export function FiltersSidebar({
               </div>
             </AccordionTrigger>
             <AccordionContent className="pb-3 pt-1">
+              {isSectionEnabled("prospects") ? (
               <ProspectFiltersSection
                 pendingFilters={pendingFilters}
                 availableOptions={availableOptions}
@@ -296,6 +311,11 @@ export function FiltersSidebar({
                 setPendingFilters={setPendingFilters}
                 setActiveFilter={setActiveFilter}
               />
+              ) : (
+                <p className="rounded-lg border border-dashed border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                  {getSectionUnavailableMessage("prospects")}
+                </p>
+              )}
             </AccordionContent>
           </AccordionItem>
           )}

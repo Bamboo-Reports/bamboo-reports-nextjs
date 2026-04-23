@@ -1,5 +1,5 @@
 import React from "react"
-import { ChevronDown, ChevronUp } from "lucide-react"
+import { ChevronDown, ChevronUp, Lock } from "lucide-react"
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { EnhancedMultiSelect } from "@/components/enhanced-multi-select"
 import { AccountAutocomplete } from "@/components/filters/account-autocomplete"
 import { TitleKeywordInput } from "@/components/filters/title-keyword-input"
-import { isFilterEnabled } from "@/lib/config/filters"
+import { getPremiumFilterKeys, isFilterEnabled, isShowMoreEnabled } from "@/lib/config/filters"
 import type { Filters, AvailableOptions } from "@/lib/types"
 
 interface FilterSectionBaseProps {
@@ -78,20 +78,13 @@ export function AccountFiltersSection({
   formatRevenueInMillions,
 }: AccountFilterSectionProps) {
   const [showMoreAccountFilters, setShowMoreAccountFilters] = React.useState(false)
-  const hiddenAccountFilterKeys = [
-    "accountHqRegionValues",
-    "accountHqEmployeeRangeValues",
-    "accountHqIndustryValues",
-    "accountPrimaryNatureValues",
-    "accountNasscomStatusValues",
-    "accountSourceValues",
-    "accountTypeValues",
-    "accountDataCoverageValues",
-  ] as const
+  const hiddenAccountFilterKeys = getPremiumFilterKeys("accounts")
+  const canShowMoreAccountFilters = isShowMoreEnabled("accounts")
 
   const hiddenEnabledCount = hiddenAccountFilterKeys.reduce((count, key) => (
     isFilterEnabled(key) ? count + 1 : count
   ), 0)
+  const hasPremiumAccountFilters = hiddenAccountFilterKeys.length > 0
 
   return (
     <div className="pr-2">
@@ -334,27 +327,39 @@ export function AccountFiltersSection({
           </div>
           )}
 
-          {hiddenEnabledCount > 0 && (
+          {hasPremiumAccountFilters && (
           <div className="flex justify-center py-1">
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setShowMoreAccountFilters((prev) => !prev)}
-              aria-expanded={showMoreAccountFilters}
+              onClick={() => {
+                if (!canShowMoreAccountFilters) {
+                  toast.info("Premium filters are Not Procured.")
+                  return
+                }
+                setShowMoreAccountFilters((prev) => !prev)
+              }}
+              aria-expanded={canShowMoreAccountFilters ? showMoreAccountFilters : false}
               className="group h-9 rounded-full border-border/70 bg-muted/40 px-4 text-xs font-medium text-foreground shadow-sm transition-all hover:border-border hover:bg-muted/70 hover:shadow-md"
             >
-              {showMoreAccountFilters ? "Show Less Filters" : "Show More Filters"}
-              {showMoreAccountFilters ? (
-                <ChevronUp className="ml-1.5 h-3.5 w-3.5" />
+              {canShowMoreAccountFilters
+                ? (showMoreAccountFilters ? "Show Less Filters" : "Show More Filters")
+                : "Show More Filters"}
+              {canShowMoreAccountFilters ? (
+                showMoreAccountFilters ? (
+                  <ChevronUp className="ml-1.5 h-3.5 w-3.5" />
+                ) : (
+                  <ChevronDown className="ml-1.5 h-3.5 w-3.5" />
+                )
               ) : (
-                <ChevronDown className="ml-1.5 h-3.5 w-3.5" />
+                <Lock className="ml-1.5 h-3.5 w-3.5" />
               )}
             </Button>
           </div>
           )}
 
-          {showMoreAccountFilters && isFilterEnabled("accountHqRegionValues") && (
+          {canShowMoreAccountFilters && showMoreAccountFilters && isFilterEnabled("accountHqRegionValues") && (
           <div className="space-y-2">
             <Label className="text-xs font-medium">HQ Region</Label>
             <EnhancedMultiSelect
@@ -370,7 +375,7 @@ export function AccountFiltersSection({
             />
           </div>
           )}
-          {showMoreAccountFilters && isFilterEnabled("accountHqEmployeeRangeValues") && (
+          {canShowMoreAccountFilters && showMoreAccountFilters && isFilterEnabled("accountHqEmployeeRangeValues") && (
           <div className="space-y-2">
             <Label className="text-xs font-medium">HQ Employee Range</Label>
             <EnhancedMultiSelect
@@ -386,7 +391,7 @@ export function AccountFiltersSection({
             />
           </div>
           )}
-          {showMoreAccountFilters && isFilterEnabled("accountHqIndustryValues") && (
+          {canShowMoreAccountFilters && showMoreAccountFilters && isFilterEnabled("accountHqIndustryValues") && (
           <div className="space-y-2">
             <Label className="text-xs font-medium">Sub Industry</Label>
             <EnhancedMultiSelect
@@ -402,7 +407,7 @@ export function AccountFiltersSection({
             />
           </div>
           )}
-          {showMoreAccountFilters && isFilterEnabled("accountPrimaryNatureValues") && (
+          {canShowMoreAccountFilters && showMoreAccountFilters && isFilterEnabled("accountPrimaryNatureValues") && (
           <div className="space-y-2">
             <Label className="text-xs font-medium">Segment</Label>
             <EnhancedMultiSelect
@@ -418,7 +423,7 @@ export function AccountFiltersSection({
             />
           </div>
           )}
-          {showMoreAccountFilters && isFilterEnabled("accountNasscomStatusValues") && (
+          {canShowMoreAccountFilters && showMoreAccountFilters && isFilterEnabled("accountNasscomStatusValues") && (
           <div className="space-y-2">
             <Label className="text-xs font-medium">NASSCOM GCC Listing Status</Label>
             <EnhancedMultiSelect
@@ -434,7 +439,7 @@ export function AccountFiltersSection({
             />
           </div>
           )}
-          {showMoreAccountFilters && isFilterEnabled("accountSourceValues") && (
+          {canShowMoreAccountFilters && showMoreAccountFilters && isFilterEnabled("accountSourceValues") && (
           <div className="space-y-2">
             <Label className="text-xs font-medium">Source</Label>
             <EnhancedMultiSelect
@@ -450,7 +455,7 @@ export function AccountFiltersSection({
             />
           </div>
           )}
-          {showMoreAccountFilters && isFilterEnabled("accountTypeValues") && (
+          {canShowMoreAccountFilters && showMoreAccountFilters && isFilterEnabled("accountTypeValues") && (
           <div className="space-y-2">
             <Label className="text-xs font-medium">Type</Label>
             <EnhancedMultiSelect
@@ -466,7 +471,7 @@ export function AccountFiltersSection({
             />
           </div>
           )}
-          {showMoreAccountFilters && isFilterEnabled("accountDataCoverageValues") && (
+          {canShowMoreAccountFilters && showMoreAccountFilters && isFilterEnabled("accountDataCoverageValues") && (
           <div className="space-y-2">
             <Label className="text-xs font-medium">Coverage</Label>
             <EnhancedMultiSelect
@@ -501,16 +506,13 @@ export function CenterFiltersSection({
   handleCenterIncYearRangeChange,
 }: CenterFilterSectionProps) {
   const [showMoreCenterFilters, setShowMoreCenterFilters] = React.useState(false)
-  const hiddenCenterFilterKeys = [
-    "centerStateValues",
-    "centerFocusValues",
-    "techSoftwareInUseKeywords",
-    "centerCountryValues",
-  ] as const
+  const hiddenCenterFilterKeys = getPremiumFilterKeys("centers")
+  const canShowMoreCenterFilters = isShowMoreEnabled("centers")
 
   const hiddenCenterEnabledCount = hiddenCenterFilterKeys.reduce((count, key) => (
     isFilterEnabled(key) ? count + 1 : count
   ), 0)
+  const hasPremiumCenterFilters = hiddenCenterFilterKeys.length > 0
 
   return (
     <div className="pr-2">
@@ -686,27 +688,39 @@ export function CenterFiltersSection({
           </div>
           )}
 
-          {hiddenCenterEnabledCount > 0 && (
+          {hasPremiumCenterFilters && (
           <div className="flex justify-center py-1">
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setShowMoreCenterFilters((prev) => !prev)}
-              aria-expanded={showMoreCenterFilters}
+              onClick={() => {
+                if (!canShowMoreCenterFilters) {
+                  toast.info("Premium filters are Not Procured.")
+                  return
+                }
+                setShowMoreCenterFilters((prev) => !prev)
+              }}
+              aria-expanded={canShowMoreCenterFilters ? showMoreCenterFilters : false}
               className="group h-9 rounded-full border-border/70 bg-muted/40 px-4 text-xs font-medium text-foreground shadow-sm transition-all hover:border-border hover:bg-muted/70 hover:shadow-md"
             >
-              {showMoreCenterFilters ? "Show Less" : "Show More"}
-              {showMoreCenterFilters ? (
-                <ChevronUp className="ml-1.5 h-3.5 w-3.5" />
+              {canShowMoreCenterFilters
+                ? (showMoreCenterFilters ? "Show Less" : "Show More")
+                : "Show More Filters"}
+              {canShowMoreCenterFilters ? (
+                showMoreCenterFilters ? (
+                  <ChevronUp className="ml-1.5 h-3.5 w-3.5" />
+                ) : (
+                  <ChevronDown className="ml-1.5 h-3.5 w-3.5" />
+                )
               ) : (
-                <ChevronDown className="ml-1.5 h-3.5 w-3.5" />
+                <Lock className="ml-1.5 h-3.5 w-3.5" />
               )}
             </Button>
           </div>
           )}
 
-          {showMoreCenterFilters && isFilterEnabled("centerStateValues") && (
+          {canShowMoreCenterFilters && showMoreCenterFilters && isFilterEnabled("centerStateValues") && (
           <div className="space-y-2">
             <Label className="text-xs font-medium">State</Label>
             <EnhancedMultiSelect
@@ -723,7 +737,7 @@ export function CenterFiltersSection({
           </div>
           )}
 
-          {showMoreCenterFilters && isFilterEnabled("centerFocusValues") && (
+          {canShowMoreCenterFilters && showMoreCenterFilters && isFilterEnabled("centerFocusValues") && (
           <div className="space-y-2">
             <Label className="text-xs font-medium">Center Focus</Label>
             <EnhancedMultiSelect
@@ -740,7 +754,7 @@ export function CenterFiltersSection({
           </div>
           )}
 
-          {showMoreCenterFilters && isFilterEnabled("techSoftwareInUseKeywords") && (
+          {canShowMoreCenterFilters && showMoreCenterFilters && isFilterEnabled("techSoftwareInUseKeywords") && (
           <div className="space-y-2">
             <Label className="text-xs font-medium">Software In Use</Label>
             <TitleKeywordInput
@@ -754,7 +768,7 @@ export function CenterFiltersSection({
           </div>
           )}
 
-          {showMoreCenterFilters && isFilterEnabled("centerCountryValues") && (
+          {canShowMoreCenterFilters && showMoreCenterFilters && isFilterEnabled("centerCountryValues") && (
           <div className="space-y-2">
             <Label className="text-xs font-medium">Country</Label>
             <EnhancedMultiSelect
