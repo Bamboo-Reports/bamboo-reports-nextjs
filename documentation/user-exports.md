@@ -75,6 +75,7 @@ Required per environment:
 
 - **Why server-side?** Keeps ExcelJS off the client bundle, and lets exports include every column (`SELECT *`) without bloating the dashboard's initial payload. The dashboard `GET /api/dashboard` still uses narrow SELECT lists for speed.
 - **Filter preservation.** The client sends `account_global_legal_name[]` and `cn_unique_key[]` lists derived from the current filtered data. The server uses them in `= ANY(...)` clauses to constrain the SELECT. When the user hasn't filtered, the lists are `null` and the server exports the full tables.
+- **Deployment access enforcement.** Export availability is not just a UI concern. `app/api/exports/generate/route.ts` checks `lib/config/dashboard-access.ts` and rejects requests for datasets that are not procured for the current deployment.
 - **Non-blocking progress bar.** The export dialog runs a staged ramp (Fetching → Generating → Uploading) while the request is in flight, then snaps to 100 % on response.
 - **Re-download via signed URL.** `/api/exports/{id}/download` verifies ownership and returns a 302 to a 60-second Supabase Storage signed URL. Short TTL is fine because the browser follows the redirect immediately.
 - **PostgREST direct fetch for reads.** The listing and download-lookup routes talk to PostgREST directly (service-role key in `apikey` + `Authorization` headers) instead of supabase-js's `.select().eq()` chain. This side-steps a quirk where the newer `sb_secret_...` key format returned empty rows through supabase-js despite inserts/Storage working fine.
@@ -87,5 +88,6 @@ Required per environment:
 | `Export failed: Supabase server config missing` | `SUPABASE_SERVICE_ROLE_KEY` not set | Add the env var and restart the dev server |
 | `Failed to archive export` | Storage bucket missing or wrong name | Create a private bucket named exactly `user-exports` |
 | `Failed to record export: relation "public.user_exports" does not exist` | Schema SQL not run | Run `documentation/user-exports-schema.sql` |
+| `Centers export is Not Procured.` (or similar) | The dataset is disabled in `lib/config/dashboard-access.ts` for this deployment | Re-enable the dataset in config, or remove it from the export selection |
 | My exports dialog is empty despite rows in DB | Stale dev-server module cache | Hard-refresh the page; restart `next dev` |
 | Re-download 404 | User signed in as a different account than when the export was made | Users only see their own exports by design |
