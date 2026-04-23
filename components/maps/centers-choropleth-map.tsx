@@ -676,7 +676,7 @@ export function CentersChoroplethMap({
           className="absolute bottom-4 left-4 z-10 rounded-lg border bg-background/35 backdrop-blur-md p-3 shadow-sm min-w-[220px]"
           style={{
             fontFamily:
-              "'Google Sans', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+              "'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           }}
         >
           <div className="text-sm font-semibold text-muted-foreground dark:text-white mb-2 text-center">Total Centers</div>
