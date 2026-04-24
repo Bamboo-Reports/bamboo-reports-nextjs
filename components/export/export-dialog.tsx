@@ -38,6 +38,8 @@ interface ExportDialogProps {
   accountNames?: string[] | null
   /** Center cn_unique_keys to include; null = all centers. */
   centerKeys?: string[] | null
+  /** Locked prospect teasers matching the current export scope. */
+  lockedProspectsCount?: number
   onExportCompleted?: () => void
 }
 
@@ -78,7 +80,17 @@ const DATASET_META: Array<{
   },
 ]
 
-export function ExportDialog({ open, onOpenChange, data, isFiltered, filtersSnapshot, accountNames, centerKeys, onExportCompleted }: ExportDialogProps) {
+export function ExportDialog({
+  open,
+  onOpenChange,
+  data,
+  isFiltered,
+  filtersSnapshot,
+  accountNames,
+  centerKeys,
+  lockedProspectsCount = 0,
+  onExportCompleted,
+}: ExportDialogProps) {
   const [selection, setSelection] = useState<Record<ExportDatasetKey, boolean>>({
     accounts: true,
     centers: true,
@@ -164,14 +176,30 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered, filtersSnap
       row_count_centers: data.centers.length,
       row_count_services: data.services.length,
       row_count_prospects: data.prospects.length,
+      row_count_locked_prospects: lockedProspectsCount,
       selected_datasets: initiallySelectedDatasets,
       selected_dataset_count: initiallySelectedDatasets.length,
     })
-  }, [open, data, isFiltered])
+  }, [open, data, isFiltered, lockedProspectsCount])
 
   const totalSelected = useMemo(
     () => Object.values(selection).filter(Boolean).length,
     [selection]
+  )
+  const selectedRowCount = useMemo(
+    () => (Object.keys(selection) as ExportDatasetKey[]).reduce(
+      (total, key) => total + (selection[key] ? data[key].length : 0),
+      0
+    ),
+    [selection, data]
+  )
+  const readinessItems = useMemo(
+    () => DATASET_META.map((item) => ({
+      ...item,
+      count: selection[item.key] ? data[item.key].length : 0,
+      selected: selection[item.key],
+    })),
+    [selection, data]
   )
 
   const handleToggle = (key: ExportDatasetKey) => {
@@ -221,6 +249,7 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered, filtersSnap
       row_count_centers: selection.centers ? data.centers.length : 0,
       row_count_services: selection.services ? data.services.length : 0,
       row_count_prospects: selection.prospects ? data.prospects.length : 0,
+      row_count_locked_prospects: selection.prospects ? lockedProspectsCount : 0,
     })
 
     // Fake but plausible progress ramp while the server is working. The
@@ -298,6 +327,7 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered, filtersSnap
         row_count_centers: selection.centers ? data.centers.length : 0,
         row_count_services: selection.services ? data.services.length : 0,
         row_count_prospects: selection.prospects ? data.prospects.length : 0,
+        row_count_locked_prospects: selection.prospects ? lockedProspectsCount : 0,
         stage: toTrackedStringArray([stage])[0] ?? null,
         has_error: Boolean(error),
       })
@@ -342,6 +372,46 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered, filtersSnap
               >
                 Clear
               </Button>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-foreground">Export readiness summary</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {selectedRowCount.toLocaleString()} rows will be included in this export.
+                </p>
+              </div>
+              {selection.prospects && lockedProspectsCount > 0 ? (
+                <Badge variant="outline" className="w-fit border-amber-500/30 bg-amber-500/10 text-[11px] text-amber-700 dark:text-amber-300">
+                  {lockedProspectsCount.toLocaleString()} locked prospects excluded
+                </Badge>
+              ) : null}
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-4">
+              {readinessItems.map((item) => {
+                const Icon = item.icon
+                return (
+                  <div
+                    key={item.key}
+                    className={cn(
+                      "rounded-lg border px-3 py-2",
+                      item.selected
+                        ? "border-border/70 bg-background/70"
+                        : "border-border/40 bg-background/30 opacity-60"
+                    )}
+                  >
+                    <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+                      <Icon className={cn("h-3.5 w-3.5", item.accent)} />
+                      {item.label}
+                    </div>
+                    <div className="mt-1 text-lg font-semibold tabular-nums text-foreground">
+                      {item.count.toLocaleString()}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
 

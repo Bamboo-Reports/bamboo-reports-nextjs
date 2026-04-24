@@ -51,14 +51,10 @@ function ProfileThemeSwitcher() {
   }, [])
 
   const activeTheme = mounted ? (theme as ThemeMode | undefined) ?? 'light' : 'light'
-  const selectedLabel = THEME_OPTIONS.find((option) => option.value === activeTheme)?.label ?? 'Light'
 
   return (
     <div className="px-4 py-3">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground">Theme</span>
-        <span className="text-[11px] text-muted-foreground">{selectedLabel}</span>
-      </div>
+      <div className="mb-2 text-xs font-medium text-muted-foreground">Appearance</div>
       <div
         className="grid grid-cols-3 gap-1 rounded-xl border border-border/70 bg-muted/35 p-1"
         role="tablist"

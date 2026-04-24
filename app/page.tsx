@@ -785,6 +785,7 @@ function DashboardContent(): JSX.Element | null {
             }}
             isFiltered={activeFiltersCount > 0}
             filtersSnapshot={filters}
+            lockedProspectsCount={filteredLockedProspectTeasers.length}
             accountNames={Array.from(
               new Set(
                 filteredData.filteredAccounts
