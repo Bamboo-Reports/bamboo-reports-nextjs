@@ -12,9 +12,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Building2, Briefcase, Users, Sparkles } from "lucide-react"
+import { Building2, Briefcase, Users, Sparkles, CheckCircle2, Download } from "lucide-react"
 import type { ExportDatasetKey } from "@/lib/utils/export-helpers"
-import { requestServerExport } from "@/lib/exports/request-client"
+import { requestServerExport, type ServerExportResponse } from "@/lib/exports/request-client"
 import { captureEvent } from "@/lib/analytics/client"
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import { toTrackedStringArray } from "@/lib/analytics/tracking"
@@ -90,6 +90,7 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered, filtersSnap
   const [displayedProgress, setDisplayedProgress] = useState(0)
   const [stage, setStage] = useState("Preparing export...")
   const [error, setError] = useState<string | null>(null)
+  const [exportResult, setExportResult] = useState<ServerExportResponse | null>(null)
   const wasOpenRef = useRef(false)
   const rafRef = useRef<number | null>(null)
 
@@ -153,6 +154,7 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered, filtersSnap
     setDisplayedProgress(0)
     setStage("Preparing export...")
     setError(null)
+    setExportResult(null)
 
     const initiallySelectedDatasets = getSelectedDatasets(initialSelection)
 
@@ -258,16 +260,9 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered, filtersSnap
       rampCancelled = true
       await rampPromise.catch(() => undefined)
 
-      setProgress(95)
-      setStage("Starting download")
-
-      // Trigger the download via the signed-URL redirect route.
-      const token = result.accessToken
-      const url = `${result.downloadPath}?access_token=${encodeURIComponent(token)}`
-      window.open(url, "_self")
-
       setProgress(100)
       setStage("Export ready")
+      setExportResult(result)
 
       captureEvent(ANALYTICS_EVENTS.EXPORT_COMPLETED, {
         selected_datasets: selectedDatasets,
@@ -396,7 +391,31 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered, filtersSnap
             })}
           </div>
 
-          {(isExporting || error) && (
+          {exportResult ? (
+            <div className="flex flex-col items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-6 py-5 text-center">
+              <CheckCircle2 className="h-9 w-9 text-emerald-500" />
+              <div>
+                <p className="text-sm font-semibold">Your file is ready</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {exportResult.filename}
+                  {exportResult.totalRows > 0 && (
+                    <span className="ml-1">({exportResult.totalRows.toLocaleString()} rows)</span>
+                  )}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                className="gap-2"
+                onClick={() => {
+                  const url = `${exportResult.downloadPath}?access_token=${encodeURIComponent(exportResult.accessToken)}`
+                  window.open(url, "_self")
+                }}
+              >
+                <Download className="h-4 w-4" />
+                Download file
+              </Button>
+            </div>
+          ) : (isExporting || error) ? (
             <div className="rounded-lg border bg-muted/20 p-4">
               {isExporting && (
                 <>
@@ -414,22 +433,36 @@ export function ExportDialog({ open, onOpenChange, data, isFiltered, filtersSnap
               )}
               {error && <p className={isExporting ? "mt-2 text-xs text-destructive" : "text-xs text-destructive"}>{error}</p>}
             </div>
-          )}
+          ) : null}
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button
-            variant="ghost"
-            onClick={() => {
-              onOpenChange(false)
-            }}
-            disabled={isExporting}
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleExport} disabled={isExporting || totalSelected === 0}>
-            {isExporting ? "Exporting..." : "Export Selected"}
-          </Button>
+          {exportResult ? (
+            <>
+              <Button variant="ghost" onClick={() => onOpenChange(false)}>
+                Close
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setExportResult(null)}
+              >
+                Export again
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                onClick={() => onOpenChange(false)}
+                disabled={isExporting}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleExport} disabled={isExporting || totalSelected === 0}>
+                {isExporting ? "Exporting..." : "Export Selected"}
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
