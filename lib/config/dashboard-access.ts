@@ -25,7 +25,7 @@ export const DASHBOARD_ACCESS_CONFIG: DashboardAccessConfig = {
     prospects: "enabled",
   },
   limits: {
-    prospectsPerAccount: 2,
+    prospectsPerAccount: null,
   },
 }
 
