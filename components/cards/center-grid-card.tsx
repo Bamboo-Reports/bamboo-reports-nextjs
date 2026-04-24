@@ -33,7 +33,13 @@ export const CenterGridCard = memo(({ center, onClick }: CenterGridCardProps) =>
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <Card className="h-full">
+        <Card
+          className="h-full animate-stagger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          tabIndex={0}
+          role="button"
+          aria-label={`View details for ${centerName}`}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick() } }}
+        >
           <CardContent className="p-4 flex flex-col gap-4">
             <div className="flex items-start gap-3">
               <CompanyLogo

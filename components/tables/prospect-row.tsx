@@ -35,7 +35,7 @@ export const ProspectRow = memo(({ prospect, onClick }: ProspectRowProps) => {
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <TableRow
-          className="cursor-pointer hover:bg-muted/50 transition-colors focus-visible:bg-muted/70"
+          className="cursor-pointer hover:bg-muted/50 transition-colors focus-visible:bg-muted/70 animate-stagger"
           onClick={onClick}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {

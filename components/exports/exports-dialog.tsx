@@ -154,8 +154,29 @@ export function ExportsDialog({ open, onOpenChange }: ExportsDialogProps) {
             )}
 
             {loading && exports.length === 0 && (
-              <div className="flex items-center justify-center py-24 text-sm text-muted-foreground">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading exports...
+              <div className="overflow-hidden rounded-xl border border-border/60 bg-background/40 backdrop-blur-sm dark:bg-white/5 dark:border-white/10">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[180px]">Date</TableHead>
+                      <TableHead>Filename</TableHead>
+                      <TableHead>Datasets</TableHead>
+                      <TableHead className="w-[100px] text-right">Size</TableHead>
+                      <TableHead className="w-[60px] text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <TableRow key={i} className="animate-stagger">
+                        <TableCell><div className="skeleton-loading rounded h-3 w-28" /></TableCell>
+                        <TableCell><div className="skeleton-loading rounded h-3 w-48" /></TableCell>
+                        <TableCell><div className="skeleton-loading rounded h-3 w-32" /></TableCell>
+                        <TableCell className="text-right"><div className="skeleton-loading rounded h-3 w-12 ml-auto" /></TableCell>
+                        <TableCell className="text-right"><div className="skeleton-loading rounded h-3 w-6 ml-auto" /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
 

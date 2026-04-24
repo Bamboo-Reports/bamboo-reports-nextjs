@@ -36,7 +36,13 @@ export const ProspectGridCard = memo(({ prospect, onClick }: ProspectGridCardPro
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <Card className="h-full">
+        <Card
+          className="h-full animate-stagger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          tabIndex={0}
+          role="button"
+          aria-label={`View details for ${fullName || "prospect"}`}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick() } }}
+        >
           <CardContent className="p-4 flex flex-col gap-4">
             <div className="flex items-start gap-3">
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

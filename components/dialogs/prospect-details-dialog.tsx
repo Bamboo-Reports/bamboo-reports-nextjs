@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Copy, Linkedin, Mail } from "lucide-react"
+import { Check, Copy, Linkedin, Mail, SlidersHorizontal } from "lucide-react"
 import type { Prospect } from "@/lib/types"
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard"
 import { Badge } from "@/components/ui/badge"
@@ -92,6 +92,7 @@ export function ProspectDetailsDialog({
   onOpenChange,
 }: ProspectDetailsDialogProps) {
   const copy = useCopyToClipboard()
+  const [copied, setCopied] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [current, setCurrent] = useState<Prospect | null>(prospect)
   const [deptFilter, setDeptFilter] = useState<Set<string>>(new Set())
@@ -252,12 +253,18 @@ export function ProspectDetailsDialog({
                         <span className="text-sm text-foreground/90 break-all">{p.prospect_email}</span>
                         <button
                           type="button"
-                          onClick={() => copy(p.prospect_email!, "Email")}
+                          onClick={() => {
+                            copy(p.prospect_email!, "Email")
+                            setCopied(true)
+                            setTimeout(() => setCopied(false), 1500)
+                          }}
                           className="p-1 rounded text-muted-foreground hover:bg-background/60 hover:text-foreground transition-colors shrink-0"
-                          title="Copy email"
+                          title={copied ? "Copied!" : "Copy email"}
                           aria-label="Copy email"
                         >
-                          <Copy className="h-3.5 w-3.5" />
+                          {copied
+                            ? <Check className="h-3.5 w-3.5 text-green-500 animate-scale-in" />
+                            : <Copy className="h-3.5 w-3.5" />}
                         </button>
                       </div>
                     </div>
@@ -309,7 +316,11 @@ export function ProspectDetailsDialog({
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground py-6 text-center">No contacts match the selected filters.</p>
+                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/60 bg-background/40 py-10 text-center backdrop-blur-sm dark:bg-white/5 dark:border-white/10 animate-fade-in">
+                  <SlidersHorizontal className="mb-2 h-7 w-7 text-muted-foreground/50" />
+                  <p className="text-sm font-medium text-foreground">No matching contacts</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Adjust the department or level filters above.</p>
+                </div>
               )}
             </section>
           ) : null}

@@ -235,7 +235,7 @@ export const SummaryCards = React.memo(function SummaryCards({
               }
             } : undefined}
             className={cn(
-              'relative overflow-hidden border bg-gradient-to-br from-card via-card to-secondary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-300 ease-out',
+              'relative overflow-hidden border bg-gradient-to-br from-card via-card to-secondary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-300 ease-out animate-stagger',
               card.interactive && 'cursor-pointer select-none',
               !card.interactive && card.message && 'cursor-help',
               isActive

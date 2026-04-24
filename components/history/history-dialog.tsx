@@ -35,18 +35,21 @@ const TYPE_META = {
   account: {
     icon: Building2,
     iconClass: "text-primary",
+    borderClass: "border-primary/20",
     badgeClass: "bg-primary/10 text-primary border-primary/20",
     label: "Account",
   },
   center: {
     icon: Briefcase,
     iconClass: "text-[hsl(var(--chart-2))]",
+    borderClass: "border-[hsl(var(--chart-2))]/25",
     badgeClass: "bg-[hsl(var(--chart-2)/0.12)] text-[hsl(var(--chart-2))] border-[hsl(var(--chart-2)/0.25)]",
     label: "Center",
   },
   prospect: {
     icon: Users,
     iconClass: "text-[hsl(var(--chart-3))]",
+    borderClass: "border-[hsl(var(--chart-3))]/25",
     badgeClass: "bg-[hsl(var(--chart-3)/0.12)] text-[hsl(var(--chart-3))] border-[hsl(var(--chart-3)/0.25)]",
     label: "Prospect",
   },
@@ -125,7 +128,7 @@ export function HistoryDialog({
                       }}
                       className="flex w-full items-center gap-4 px-4 py-3.5 text-left transition-colors hover:bg-muted/40"
                     >
-                      <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border bg-background/60", `border-[${meta.iconClass}]/20`)}>
+                      <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border bg-background/60", meta.borderClass)}>
                         <Icon className={cn("h-4 w-4", meta.iconClass)} />
                       </div>
                       <div className="min-w-0 flex-1">
