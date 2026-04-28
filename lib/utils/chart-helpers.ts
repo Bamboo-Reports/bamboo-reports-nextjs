@@ -35,11 +35,11 @@ export const PIE_CHART_COLORS = [
 /**
  * Calculate chart data from accounts
  */
-export const calculateChartData = (accounts: Account[], field: keyof Account): ChartData[] => {
+export const calculateChartData = <T>(items: T[], field: keyof T): ChartData[] => {
   const counts = new Map<string, number>()
 
-  accounts.forEach((account) => {
-    const value = account[field] || "Unknown"
+  items.forEach((item) => {
+    const value = String(item[field] ?? "") || "Unknown"
     counts.set(value, (counts.get(value) || 0) + 1)
   })
 
@@ -56,7 +56,7 @@ export const calculateCenterChartData = (centers: Center[], field: keyof Center)
   const counts = new Map<string, number>()
 
   centers.forEach((center) => {
-    const value = center[field] || "Unknown"
+    const value = String(center[field] ?? "") || "Unknown"
     counts.set(value, (counts.get(value) || 0) + 1)
   })
 

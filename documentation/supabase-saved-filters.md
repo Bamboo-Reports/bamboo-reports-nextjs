@@ -147,7 +147,16 @@ for each row execute function public.set_updated_at();
 
 ### 4.2 Application Integration
 - **Saving:** The frontend serializes the entire `filters` state object to JSON and sends it to Supabase.
-- **Loading:** The frontend fetches the JSON, parses it, and runs it through `withFilterDefaults` to ensure required keys and range defaults are present.
+- **Loading:** The frontend fetches the JSON, parses it, runs it through `withFilterDefaults` to ensure required keys and range defaults are present, and then sanitizes disabled keys before applying it to the dashboard state.
+
+### 4.3 Deployment Access and Premium Filter Sanitization
+
+Saved filters are intentionally forward-compatible with deployment packaging changes.
+
+- If a whole section is disabled via `lib/config/dashboard-access.ts`, any saved-filter keys for that section are ignored at load/runtime.
+- If premium filters are disabled via `showMoreEnabled: false` in `lib/config/filters.ts`, any keys listed in that section's `premiumFilterKeys` are ignored at load/runtime.
+- No database migration is required when packaging changes. Existing `saved_filters.filters` JSON payloads remain valid; inaccessible keys are simply treated as inert.
+- This also means inaccessible keys do not contribute to active-filter counts or result filtering after load.
 
 ---
 
@@ -217,4 +226,3 @@ CREATE POLICY "Users can view filters shared with them"
 ### 5.5 Migration
 
 See `documentation/sql/filter-shares-migration.sql` for the complete migration script.
-

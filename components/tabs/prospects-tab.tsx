@@ -10,16 +10,21 @@ import { ProspectGridCard } from "@/components/cards/prospect-grid-card"
 import { PieChartCard } from "@/components/charts/pie-chart-card"
 import { EmptyState } from "@/components/states/empty-state"
 import { ProspectDetailsDialog } from "@/components/dialogs/prospect-details-dialog"
+import { LockedProspectTeaserCard, LockedProspectTeaserRow } from "@/components/prospects/locked-prospect-teaser-section"
 import { getPaginatedData } from "@/lib/utils/helpers"
 import { ViewSwitcher } from "@/components/ui/view-switcher"
 import { SortButton } from "@/components/ui/sort-button"
 import { PaginationControls } from "@/components/ui/pagination-controls"
+import { TableColumnMenu } from "@/components/tables/table-column-menu"
+import { useTableColumnPreferences } from "@/hooks/use-table-column-preferences"
 import { captureEvent } from "@/lib/analytics/client"
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
-import type { Prospect } from "@/lib/types"
+import type { Prospect, LockedProspectTeaser } from "@/lib/types"
 
 interface ProspectsTabProps {
   prospects: Prospect[]
+  allProspects: Prospect[]
+  lockedProspectTeasers: LockedProspectTeaser[]
   prospectChartData: {
     departmentData: Array<{ name: string; value: number; fill?: string }>
     levelData: Array<{ name: string; value: number; fill?: string }>
@@ -29,27 +34,38 @@ interface ProspectsTabProps {
   currentPage: number
   setCurrentPage: (page: number | ((prev: number) => number)) => void
   itemsPerPage: number
+  onRecordOpened?: (item: { type: "prospect"; id: string; title: string; subtitle: string }) => void
 }
 
 export function ProspectsTab({
   prospects,
+  allProspects,
+  lockedProspectTeasers,
   prospectChartData,
   prospectsView,
   setProspectsView,
   currentPage,
   setCurrentPage,
   itemsPerPage,
+  onRecordOpened,
 }: ProspectsTabProps) {
   const [selectedProspect, setSelectedProspect] = useState<Prospect | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [sort, setSort] = useState<{
-    key: "name" | "location" | "title" | "department" | "headType"
+    key: "name" | "location" | "title" | "department"
     direction: "asc" | "desc" | null
   }>({
     key: "name",
     direction: null,
   })
   const [dataLayout, setDataLayout] = useState<"table" | "grid">("table")
+  const {
+    columns,
+    visibleColumnSet,
+    isColumnVisible,
+    setColumnVisible,
+    resetColumns,
+  } = useTableColumnPreferences("prospects")
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -85,6 +101,12 @@ export function ProspectsTab({
     setIsDialogOpen(true)
     const prospectName = getProspectDisplayName(prospect)
     const recordId = `${prospect.account_global_legal_name}-${prospectName}-${prospect.prospect_title ?? ""}`
+    onRecordOpened?.({
+      type: "prospect",
+      id: `${prospect.account_global_legal_name}::${prospectName}`,
+      title: prospectName,
+      subtitle: prospect.prospect_title || prospect.prospect_department || prospect.account_global_legal_name || "",
+    })
     openedRecordRef.current = {
       recordId,
       openedAt: Date.now(),
@@ -167,11 +189,9 @@ export function ProspectsTab({
             [prospect.prospect_first_name, prospect.prospect_last_name].filter(Boolean).join(" ")
           )
         case "location":
-          return [prospect.prospect_city, prospect.prospect_country].filter(Boolean).join(", ")
+          return [prospect.prospect_city, prospect.prospect_state].filter(Boolean).join(", ") || prospect.prospect_country || ""
         case "title":
           return prospect.prospect_title
-        case "headType":
-          return prospect.head_type
         default:
           return prospect.prospect_department
       }
@@ -181,8 +201,31 @@ export function ProspectsTab({
     return sort.direction === "asc" ? sorted : sorted.reverse()
   }, [prospects, sort])
 
+  const lockedTeaserCountsByAccount = React.useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const teaser of lockedProspectTeasers) {
+      counts.set(teaser.account_global_legal_name, (counts.get(teaser.account_global_legal_name) ?? 0) + 1)
+    }
+    return counts
+  }, [lockedProspectTeasers])
+
+  const gridItems = React.useMemo(
+    () => [
+      ...sortedProspects.map((prospect) => ({ type: "visible" as const, prospect })),
+      ...lockedProspectTeasers.map((teaser) => ({ type: "locked" as const, teaser })),
+    ],
+    [sortedProspects, lockedProspectTeasers]
+  )
+  const tableItems = React.useMemo(
+    () => [
+      ...sortedProspects.map((prospect) => ({ type: "visible" as const, prospect })),
+      ...lockedProspectTeasers.map((teaser) => ({ type: "locked" as const, teaser })),
+    ],
+    [sortedProspects, lockedProspectTeasers]
+  )
+
   // Show empty state when no prospects
-  if (prospects.length === 0) {
+  if (prospects.length === 0 && lockedProspectTeasers.length === 0) {
     return (
       <TabsContent value="prospects">
         <EmptyState type="no-results" />
@@ -246,27 +289,36 @@ export function ProspectsTab({
            <CardHeader className="shrink-0 px-6 py-3">
              <div className="flex flex-wrap items-center gap-3">
                <CardTitle className="text-base">Prospects Data</CardTitle>
-               <ViewSwitcher
-                 value={dataLayout}
-                 onValueChange={(value) => setDataLayout(value as "table" | "grid")}
-                 options={[
-                   {
-                     value: "table",
-                     label: <span className="text-[hsl(var(--chart-2))]">Table</span>,
-                     icon: (
-                       <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />
-                     ),
-                   },
-                   {
-                     value: "grid",
-                     label: <span className="text-[hsl(var(--chart-3))]">Grid</span>,
-                     icon: (
-                       <LayoutGrid className="h-4 w-4 text-[hsl(var(--chart-3))]" />
-                     ),
-                   },
-                 ]}
-                 className="ml-auto"
-               />
+               <div className="ml-auto flex items-center gap-2">
+                 {dataLayout === "table" && (
+                   <TableColumnMenu
+                     columns={columns}
+                     visibleColumnSet={visibleColumnSet}
+                     onToggleColumn={setColumnVisible}
+                     onReset={resetColumns}
+                   />
+                 )}
+                 <ViewSwitcher
+                   value={dataLayout}
+                   onValueChange={(value) => setDataLayout(value as "table" | "grid")}
+                   options={[
+                     {
+                       value: "table",
+                       label: <span className="text-[hsl(var(--chart-2))]">Table</span>,
+                       icon: (
+                         <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />
+                       ),
+                     },
+                     {
+                       value: "grid",
+                       label: <span className="text-[hsl(var(--chart-3))]">Grid</span>,
+                       icon: (
+                         <LayoutGrid className="h-4 w-4 text-[hsl(var(--chart-3))]" />
+                       ),
+                     },
+                   ]}
+                 />
+               </div>
              </div>
            </CardHeader>
             <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
@@ -275,28 +327,46 @@ export function ProspectsTab({
                   <Table className="table-fixed">
                     <TableHeader>
                       <TableRow>
+                        {isColumnVisible("avatar") && (
                         <TableHead className="w-16"></TableHead>
+                        )}
+                        {isColumnVisible("name") && (
                         <TableHead className="w-[220px]">
                           <SortButton label="Name" sortKey="name" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                         </TableHead>
+                        )}
+                        {isColumnVisible("location") && (
                         <TableHead className="w-[200px]">
                           <SortButton label="Location" sortKey="location" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                         </TableHead>
-                        <TableHead className="w-[220px]">
+                        )}
+                        {isColumnVisible("title") && (
+                        <TableHead className="w-[180px]">
                           <SortButton label="Job Title" sortKey="title" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                         </TableHead>
+                        )}
+                        {isColumnVisible("department") && (
                         <TableHead className="w-[180px]">
                           <SortButton label="Department" sortKey="department" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                         </TableHead>
+                        )}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {getPaginatedData(sortedProspects, currentPage, itemsPerPage).map(
-                        (prospect, index) => (
+                      {getPaginatedData(tableItems, currentPage, itemsPerPage).map((item, index) =>
+                        item.type === "visible" ? (
                           <ProspectRow
-                            key={`${prospect.prospect_email}-${index}`}
-                            prospect={prospect}
-                            onClick={() => handleProspectClick(prospect, "table_row")}
+                            key={`${item.prospect.prospect_email}-${index}`}
+                            prospect={item.prospect}
+                            onClick={() => handleProspectClick(item.prospect, "table_row")}
+                            visibleColumns={visibleColumnSet}
+                          />
+                        ) : (
+                          <LockedProspectTeaserRow
+                            key={item.teaser.id}
+                            teaser={item.teaser}
+                            remainingCount={lockedTeaserCountsByAccount.get(item.teaser.account_global_legal_name) ?? 0}
+                            visibleColumns={visibleColumnSet}
                           />
                         )
                       )}
@@ -322,12 +392,18 @@ export function ProspectsTab({
                       </button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                      {getPaginatedData(sortedProspects, currentPage, itemsPerPage).map(
-                        (prospect, index) => (
+                      {getPaginatedData(gridItems, currentPage, itemsPerPage).map((item, index) =>
+                        item.type === "visible" ? (
                           <ProspectGridCard
-                            key={`${prospect.prospect_email}-${index}`}
-                            prospect={prospect}
-                            onClick={() => handleProspectClick(prospect, "grid_card")}
+                            key={`${item.prospect.prospect_email}-${index}`}
+                            prospect={item.prospect}
+                            onClick={() => handleProspectClick(item.prospect, "grid_card")}
+                          />
+                        ) : (
+                          <LockedProspectTeaserCard
+                            key={item.teaser.id}
+                            teaser={item.teaser}
+                            remainingCount={lockedTeaserCountsByAccount.get(item.teaser.account_global_legal_name) ?? 0}
                           />
                         )
                       )}
@@ -335,13 +411,13 @@ export function ProspectsTab({
                   </div>
                 )}
               </div>
-                  {prospects.length > 0 && (
+                  {(dataLayout === "grid" ? gridItems.length : tableItems.length) > 0 && (
                     <PaginationControls
                       currentPage={currentPage}
-                      totalItems={prospects.length}
+                      totalItems={dataLayout === "grid" ? gridItems.length : tableItems.length}
                       itemsPerPage={itemsPerPage}
                       onPageChange={setCurrentPage}
-                      dataLength={prospects.length}
+                      dataLength={dataLayout === "grid" ? gridItems.length : tableItems.length}
                     />
                   )}
             </CardContent>
@@ -351,6 +427,7 @@ export function ProspectsTab({
       {/* Prospect Details Dialog */}
       <ProspectDetailsDialog
         prospect={selectedProspect}
+        allProspects={allProspects}
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
       />

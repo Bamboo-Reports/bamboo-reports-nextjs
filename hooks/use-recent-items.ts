@@ -12,7 +12,6 @@ export interface RecentItem {
 }
 
 const STORAGE_KEY = "br-recent-items"
-const MAX_RECENT_ITEMS = 5
 const RECENT_SEARCHES_KEY = "br-recent-searches"
 const MAX_RECENT_SEARCHES = 5
 
@@ -47,7 +46,7 @@ export function useRecentItems() {
     (item: Omit<RecentItem, "viewedAt">) => {
       setRecentItems((prev) => {
         const filtered = prev.filter((r) => !(r.type === item.type && r.id === item.id))
-        const next = [{ ...item, viewedAt: Date.now() }, ...filtered].slice(0, MAX_RECENT_ITEMS)
+        const next = [{ ...item, viewedAt: Date.now() }, ...filtered]
         saveToStorage(STORAGE_KEY, next)
         return next
       })

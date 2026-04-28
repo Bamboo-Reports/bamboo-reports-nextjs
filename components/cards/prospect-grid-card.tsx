@@ -30,12 +30,19 @@ export const ProspectGridCard = memo(({ prospect, onClick }: ProspectGridCardPro
     .slice(0, 2)
     .map((part) => part[0])
     .join("")
-  const location = [prospect.prospect_city, prospect.prospect_country].filter(Boolean).join(", ")
+  const accountName = prospect.account_global_legal_name || "Account"
+  const location = [prospect.prospect_city, prospect.prospect_state].filter(Boolean).join(", ") || prospect.prospect_country || ""
 
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <Card className="h-full">
+        <Card
+          className="h-full animate-stagger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          tabIndex={0}
+          role="button"
+          aria-label={`View details for ${fullName || "prospect"}`}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick() } }}
+        >
           <CardContent className="p-4 flex flex-col gap-4">
             <div className="flex items-start gap-3">
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -50,9 +57,9 @@ export const ProspectGridCard = memo(({ prospect, onClick }: ProspectGridCardPro
                 </h3>
                 <p
                   className="text-sm text-muted-foreground mt-1 truncate"
-                  title={location || prospect.prospect_country || "-"}
+                  title={accountName}
                 >
-                  {location || prospect.prospect_country || "-"}
+                  {accountName}
                 </p>
               </div>
               {prospect.head_type === "GCC Head" && (
@@ -71,6 +78,15 @@ export const ProspectGridCard = memo(({ prospect, onClick }: ProspectGridCardPro
               )}
             </div>
             <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between gap-3 min-w-0">
+                <span className="text-muted-foreground">Location</span>
+                <span
+                  className="font-medium text-foreground text-right truncate max-w-[160px]"
+                  title={location || "-"}
+                >
+                  {location || "-"}
+                </span>
+              </div>
               <div className="flex items-center justify-between gap-3 min-w-0">
                 <span className="text-muted-foreground">Department</span>
                 <span

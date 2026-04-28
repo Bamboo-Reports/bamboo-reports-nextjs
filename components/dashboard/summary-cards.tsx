@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Briefcase, Building, Clock, UserCheck, Users } from 'lucide-react'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getSectionUnavailableMessage, isSectionEnabled } from '@/lib/config/dashboard-access'
 import { cn } from '@/lib/utils'
 
 function formatCompactNumber(num: number): string {
@@ -98,6 +100,10 @@ interface SummaryCardsProps {
   onSelect: (view: "accounts" | "centers" | "prospects") => void
 }
 
+function getCardStatusLabel(cardId: string, interactive: boolean): string {
+  return interactive ? "Currently visible" : "Not Procured"
+}
+
 export const SummaryCards = React.memo(function SummaryCards({
   filteredAccountsCount,
   totalAccountsCount,
@@ -112,6 +118,9 @@ export const SummaryCards = React.memo(function SummaryCards({
   activeView,
   onSelect,
 }: SummaryCardsProps): JSX.Element {
+  const accountsEnabled = isSectionEnabled("accounts")
+  const centersEnabled = isSectionEnabled("centers")
+  const prospectsEnabled = isSectionEnabled("prospects")
   const [compact, setCompact] = useState(false)
   const basePixelRatioRef = useRef(typeof window !== 'undefined' ? window.devicePixelRatio : 1)
 
@@ -147,7 +156,8 @@ export const SummaryCards = React.memo(function SummaryCards({
       colorVar: '--chart-1',
       icon: Building,
       iconClassName: 'text-primary',
-      clickable: true,
+      interactive: accountsEnabled,
+      message: accountsEnabled ? null : getSectionUnavailableMessage("accounts"),
     },
     {
       id: 'centers' as const,
@@ -157,7 +167,8 @@ export const SummaryCards = React.memo(function SummaryCards({
       colorVar: '--chart-2',
       icon: Briefcase,
       iconClassName: 'text-[hsl(var(--chart-2))]',
-      clickable: true,
+      interactive: centersEnabled,
+      message: centersEnabled ? null : getSectionUnavailableMessage("centers"),
     },
     {
       id: 'upcoming-centers' as const,
@@ -167,7 +178,10 @@ export const SummaryCards = React.memo(function SummaryCards({
       colorVar: '--chart-5',
       icon: Clock,
       iconClassName: 'text-[hsl(var(--chart-5))]',
-      clickable: false,
+      interactive: false,
+      message: centersEnabled
+        ? "Upcoming Centers is an overview stat. Only Accounts, Centers, and Prospects open as views."
+        : getSectionUnavailableMessage("centers"),
     },
     {
       id: 'prospects' as const,
@@ -177,7 +191,8 @@ export const SummaryCards = React.memo(function SummaryCards({
       colorVar: '--chart-3',
       icon: Users,
       iconClassName: 'text-[hsl(var(--chart-3))]',
-      clickable: true,
+      interactive: prospectsEnabled,
+      message: prospectsEnabled ? null : getSectionUnavailableMessage("prospects"),
     },
     {
       id: 'headcount' as const,
@@ -187,7 +202,10 @@ export const SummaryCards = React.memo(function SummaryCards({
       colorVar: '--chart-4',
       icon: UserCheck,
       iconClassName: 'text-[hsl(var(--chart-4))]',
-      clickable: false,
+      interactive: false,
+      message: centersEnabled
+        ? "Headcount is an overview stat. Only Accounts, Centers, and Prospects open as views."
+        : getSectionUnavailableMessage("centers"),
     },
   ]
 
@@ -195,27 +213,36 @@ export const SummaryCards = React.memo(function SummaryCards({
     <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6" aria-label="Dashboard sections" data-tour="summary-cards">
       {cards.map((card) => {
         const Icon = card.icon
-        const isActive = card.clickable && activeView === card.id
+        const isActive = card.interactive && activeView === card.id
         return (
           <Card
             key={card.title}
-            role={card.clickable ? "button" : undefined}
-            tabIndex={card.clickable ? 0 : undefined}
-            aria-pressed={card.clickable ? activeView === card.id : undefined}
-            onClick={card.clickable ? () => onSelect(card.id as "accounts" | "centers" | "prospects") : undefined}
-            onKeyDown={card.clickable ? (event) => {
+            role={card.interactive ? "button" : undefined}
+            tabIndex={card.interactive ? 0 : undefined}
+            aria-pressed={card.interactive ? activeView === card.id : undefined}
+            onClick={(() => {
+              if (card.interactive) {
+                return () => onSelect(card.id as "accounts" | "centers" | "prospects")
+              }
+              const message = card.message
+              if (!message) return undefined
+              return () => toast.info(message, { id: `summary-readonly-${card.id}` })
+            })()}
+            onKeyDown={card.interactive ? (event) => {
               if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault()
                 onSelect(card.id as "accounts" | "centers" | "prospects")
               }
             } : undefined}
             className={cn(
-              'relative overflow-hidden border bg-gradient-to-br from-card via-card to-secondary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-300 ease-out',
-              card.clickable && 'cursor-pointer select-none',
+              'relative overflow-hidden border bg-gradient-to-br from-card via-card to-secondary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-300 ease-out animate-stagger',
+              card.interactive && 'cursor-pointer select-none',
+              !card.interactive && card.message && 'cursor-help',
               isActive
                 ? 'ring-2 ring-sidebar-ring border-sidebar-ring/70 shadow-[0_18px_55px_-35px_rgba(0,0,0,0.6)] scale-[1.02]'
                 : 'border-border/70 shadow-[0_14px_42px_-30px_rgba(0,0,0,0.45)] scale-100',
-              !isActive && card.clickable && 'hover:-translate-y-0.5 hover:shadow-[0_16px_48px_-32px_rgba(0,0,0,0.5)]'
+              !isActive && card.interactive && 'hover:-translate-y-0.5 hover:shadow-[0_16px_48px_-32px_rgba(0,0,0,0.5)]',
+              !card.interactive && 'opacity-80'
             )}
           >
             <div
@@ -246,26 +273,14 @@ export const SummaryCards = React.memo(function SummaryCards({
                   compact={compact}
                   className="text-sidebar-foreground"
                 />
-                <p className="mt-0.5 text-xs text-muted-foreground">Currently visible</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {getCardStatusLabel(card.id, card.interactive)}
+                </p>
               </div>
               <span className="inline-flex items-center rounded-full border border-border/60 bg-secondary/70 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground backdrop-blur-sm whitespace-nowrap">
                 {compact ? formatCompactNumber(card.total) : card.total.toLocaleString()} total
               </span>
             </CardContent>
-            {/* Active indicator bar */}
-            {card.clickable && (
-              <div
-                className="absolute bottom-0 left-0 right-0 h-[2.5px] transition-all duration-300 ease-out"
-                style={{
-                  background: isActive
-                    ? `linear-gradient(90deg, transparent, hsl(var(${card.colorVar})), transparent)`
-                    : 'transparent',
-                  opacity: isActive ? 1 : 0,
-                  transform: isActive ? 'scaleX(1)' : 'scaleX(0)',
-                }}
-                aria-hidden="true"
-              />
-            )}
           </Card>
         )
       })}

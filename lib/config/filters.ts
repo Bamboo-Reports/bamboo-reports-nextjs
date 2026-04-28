@@ -1,3 +1,7 @@
+import { isSectionEnabled, type DashboardSection } from "@/lib/config/dashboard-access"
+import { createDefaultFilters } from "@/lib/dashboard/defaults"
+import type { Filters } from "@/lib/types"
+
 /**
  * Filter Configuration
  *
@@ -44,6 +48,10 @@ export interface FilterSectionConfig {
   label: string
   /** Whether the entire section is visible */
   enabled: boolean
+  /** Whether premium "Show More" filters are available for this section */
+  showMoreEnabled?: boolean
+  /** Filter keys gated behind the "Show More" premium reveal */
+  premiumFilterKeys?: string[]
   /** Filters within this section */
   filters: FilterConfig[]
 }
@@ -58,6 +66,17 @@ export const FILTER_SECTIONS: FilterSectionConfig[] = [
     id: "accounts",
     label: "Account Attributes",
     enabled: true,
+    showMoreEnabled: true,
+    premiumFilterKeys: [
+      "accountHqRegionValues",
+      "accountHqEmployeeRangeValues",
+      "accountHqIndustryValues",
+      "accountPrimaryNatureValues",
+      "accountNasscomStatusValues",
+      "accountSourceValues",
+      "accountTypeValues",
+      "accountDataCoverageValues",
+    ],
     filters: [
       {
         key: "accountGlobalLegalNameKeywords",
@@ -200,6 +219,13 @@ export const FILTER_SECTIONS: FilterSectionConfig[] = [
     id: "centers",
     label: "Center Attributes",
     enabled: true,
+    showMoreEnabled: true,
+    premiumFilterKeys: [
+      "centerStateValues",
+      "centerFocusValues",
+      "techSoftwareInUseKeywords",
+      "centerCountryValues",
+    ],
     filters: [
       {
         key: "centerStatusValues",
@@ -353,10 +379,17 @@ export const FILTER_SECTIONS: FilterSectionConfig[] = [
 
 /** Set of all enabled filter keys (respects both section and filter level) */
 const _enabledFilterKeys = new Set<string>()
+const _filterKeyToSection = new Map<string, DashboardSection>()
+const _premiumFilterKeys = new Set<string>()
 
 for (const section of FILTER_SECTIONS) {
   if (!section.enabled) continue
+  const premiumKeys = new Set(section.premiumFilterKeys ?? [])
   for (const filter of section.filters) {
+    _filterKeyToSection.set(filter.key, section.id as DashboardSection)
+    if (premiumKeys.has(filter.key)) {
+      _premiumFilterKeys.add(filter.key)
+    }
     if (filter.enabled) {
       _enabledFilterKeys.add(filter.key)
     }
@@ -368,7 +401,30 @@ export const ENABLED_FILTER_KEYS: ReadonlySet<string> = _enabledFilterKeys
 
 /** Check if a specific filter is enabled */
 export function isFilterEnabled(filterKey: string): boolean {
+  const section = _filterKeyToSection.get(filterKey)
+  if (section && !isSectionEnabled(section)) {
+    return false
+  }
+  if (isPremiumFilter(filterKey) && section && !isShowMoreEnabled(section)) {
+    return false
+  }
   return ENABLED_FILTER_KEYS.has(filterKey)
+}
+
+export function isShowMoreEnabled(sectionId: string): boolean {
+  const section = FILTER_SECTIONS.find((s) => s.id === sectionId)
+  if (!section || !section.enabled) return false
+  return Boolean(section.showMoreEnabled)
+}
+
+export function getPremiumFilterKeys(sectionId: string): string[] {
+  const section = FILTER_SECTIONS.find((s) => s.id === sectionId)
+  if (!section) return []
+  return section.premiumFilterKeys ?? []
+}
+
+export function isPremiumFilter(filterKey: string): boolean {
+  return _premiumFilterKeys.has(filterKey)
 }
 
 /** Check if a section has any enabled filters */
@@ -388,4 +444,19 @@ export function getEnabledFiltersForSection(sectionId: string): string[] {
   const section = FILTER_SECTIONS.find((s) => s.id === sectionId)
   if (!section || !section.enabled) return []
   return section.filters.filter((f) => f.enabled).map((f) => f.key)
+}
+
+export function sanitizeFilters(sourceFilters: Filters): Filters {
+  const defaults = createDefaultFilters()
+  const sanitized: Filters = { ...sourceFilters }
+  const sanitizedRecord = sanitized as unknown as Record<string, Filters[keyof Filters]>
+  const defaultsRecord = defaults as unknown as Record<string, Filters[keyof Filters]>
+
+  ;(Object.keys(defaults) as Array<keyof Filters>).forEach((key) => {
+    if (!isFilterEnabled(key)) {
+      sanitizedRecord[key] = defaultsRecord[key]
+    }
+  })
+
+  return sanitized
 }

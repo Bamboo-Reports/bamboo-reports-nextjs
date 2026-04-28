@@ -26,15 +26,19 @@ import { MapErrorBoundary } from "@/components/maps/map-error-boundary"
 import { ViewSwitcher } from "@/components/ui/view-switcher"
 import { SortButton } from "@/components/ui/sort-button"
 import { PaginationControls } from "@/components/ui/pagination-controls"
+import { TableColumnMenu } from "@/components/tables/table-column-menu"
+import { useTableColumnPreferences } from "@/hooks/use-table-column-preferences"
 import { captureEvent } from "@/lib/analytics/client"
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
+import { canAccessAccountsMapView } from "@/lib/config/dashboard-access"
 import { getPaginatedData } from "@/lib/utils/helpers"
-import type { Account, Center, Prospect, Service, Function, Tech } from "@/lib/types"
+import type { Account, Center, Prospect, Service, Function, Tech, LockedProspectTeaser } from "@/lib/types"
 
 interface AccountsTabProps {
   accounts: Account[]
   centers: Center[]
   prospects: Prospect[]
+  lockedProspectTeasers: LockedProspectTeaser[]
   services: Service[]
   tech: Tech[]
   functions: Function[]
@@ -49,12 +53,14 @@ interface AccountsTabProps {
   currentPage: number
   setCurrentPage: (page: number | ((prev: number) => number)) => void
   itemsPerPage: number
+  onRecordOpened?: (item: { type: "account"; id: string; title: string; subtitle: string }) => void
 }
 
 export function AccountsTab({
   accounts,
   centers,
   prospects,
+  lockedProspectTeasers,
   services,
   tech,
   accountChartData,
@@ -63,11 +69,13 @@ export function AccountsTab({
   currentPage,
   setCurrentPage,
   itemsPerPage,
+  onRecordOpened,
 }: AccountsTabProps) {
+  const allowMapView = canAccessAccountsMapView()
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [sort, setSort] = useState<{
-    key: "name" | "location" | "industry" | "revenue"
+    key: "name" | "location" | "industry" | "revenue" | "employees"
     direction: "asc" | "desc" | null
   }>({
     key: "name",
@@ -75,11 +83,24 @@ export function AccountsTab({
   })
   const [dataLayout, setDataLayout] = useState<"table" | "grid">("table")
   const [mapMode, setMapMode] = useState<"city" | "state">("state")
+  const {
+    columns,
+    visibleColumnSet,
+    isColumnVisible,
+    setColumnVisible,
+    resetColumns,
+  } = useTableColumnPreferences("accounts")
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     scrollContainerRef.current?.scrollTo({ top: 0 })
   }, [currentPage])
+
+  useEffect(() => {
+    if (!allowMapView && accountsView === "map") {
+      setAccountsView("chart")
+    }
+  }, [allowMapView, accountsView, setAccountsView])
   const previousDataLayoutRef = React.useRef<"table" | "grid">("table")
   const previousMapModeRef = React.useRef<"city" | "state">("state")
   const openedRecordRef = React.useRef<{
@@ -106,6 +127,12 @@ export function AccountsTab({
       openedFrom,
       account,
     }
+    onRecordOpened?.({
+      type: "account",
+      id: account.account_global_legal_name ?? "",
+      title: account.account_global_legal_name ?? "Unknown Account",
+      subtitle: [account.account_hq_city, account.account_hq_country].filter(Boolean).join(", "),
+    })
     captureEvent(ANALYTICS_EVENTS.RECORD_OPENED, {
       entity: "account",
       record_id: account.account_global_legal_name,
@@ -230,13 +257,15 @@ export function AccountsTab({
                 <PieChartIcon className="h-4 w-4 text-[hsl(var(--chart-1))]" />
               ),
             },
-            {
-              value: "map",
-              label: <span className="text-[hsl(var(--chart-4))]">Map</span>,
-              icon: (
-                <MapIcon className="h-4 w-4 text-[hsl(var(--chart-4))]" />
-              ),
-            },
+            ...(allowMapView
+              ? [{
+                  value: "map",
+                  label: <span className="text-[hsl(var(--chart-4))]">Map</span>,
+                  icon: (
+                    <MapIcon className="h-4 w-4 text-[hsl(var(--chart-4))]" />
+                  ),
+                }]
+              : []),
             {
               value: "data",
               label: <span className="text-[hsl(var(--chart-2))]">Data</span>,
@@ -324,27 +353,36 @@ export function AccountsTab({
           <CardHeader className="shrink-0 px-6 py-3">
             <div className="flex flex-wrap items-center gap-3">
               <CardTitle className="text-base">Accounts Data</CardTitle>
-              <ViewSwitcher
-                value={dataLayout}
-                onValueChange={(value) => setDataLayout(value as "table" | "grid")}
-                options={[
-                  {
-                    value: "table",
-                    label: <span className="text-[hsl(var(--chart-2))]">Table</span>,
-                    icon: (
-                      <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />
-                    ),
-                  },
-                  {
-                    value: "grid",
-                    label: <span className="text-[hsl(var(--chart-3))]">Grid</span>,
-                    icon: (
-                      <LayoutGrid className="h-4 w-4 text-[hsl(var(--chart-3))]" />
-                    ),
-                  },
-                ]}
-                className="ml-auto"
-              />
+              <div className="ml-auto flex items-center gap-2">
+                {dataLayout === "table" && (
+                  <TableColumnMenu
+                    columns={columns}
+                    visibleColumnSet={visibleColumnSet}
+                    onToggleColumn={setColumnVisible}
+                    onReset={resetColumns}
+                  />
+                )}
+                <ViewSwitcher
+                  value={dataLayout}
+                  onValueChange={(value) => setDataLayout(value as "table" | "grid")}
+                  options={[
+                    {
+                      value: "table",
+                      label: <span className="text-[hsl(var(--chart-2))]">Table</span>,
+                      icon: (
+                        <TableIcon className="h-4 w-4 text-[hsl(var(--chart-2))]" />
+                      ),
+                    },
+                    {
+                      value: "grid",
+                      label: <span className="text-[hsl(var(--chart-3))]">Grid</span>,
+                      icon: (
+                        <LayoutGrid className="h-4 w-4 text-[hsl(var(--chart-3))]" />
+                      ),
+                    },
+                  ]}
+                />
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
@@ -353,18 +391,26 @@ export function AccountsTab({
                 <Table className="table-fixed">
                   <TableHeader>
                     <TableRow>
+                      {isColumnVisible("name") && (
                       <TableHead className="w-[280px]">
                         <SortButton label="Account Name" sortKey="name" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                       </TableHead>
+                      )}
+                      {isColumnVisible("industry") && (
                       <TableHead className="w-[220px]">
                         <SortButton label="Sub Industry" sortKey="industry" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                       </TableHead>
+                      )}
+                      {isColumnVisible("revenue") && (
                       <TableHead className="w-[140px]">
                         <SortButton label="Revenue Range" sortKey="revenue" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                       </TableHead>
+                      )}
+                      {isColumnVisible("employees") && (
                       <TableHead className="w-[200px]">
                         <SortButton label="GCC Aggregate Headcount (India)" sortKey="employees" currentKey={sort.key} direction={sort.direction} onClick={handleSort} />
                       </TableHead>
+                      )}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -374,6 +420,7 @@ export function AccountsTab({
                           key={`${account.account_global_legal_name}-${index}`}
                           account={account}
                           onClick={() => handleAccountClick(account, "table_row")}
+                          visibleColumns={visibleColumnSet}
                         />
                       )
                     )}
@@ -430,6 +477,7 @@ export function AccountsTab({
         account={selectedAccount}
         centers={centers}
         prospects={prospects}
+        lockedProspectTeasers={lockedProspectTeasers}
         services={services}
         tech={tech}
         open={isDialogOpen}

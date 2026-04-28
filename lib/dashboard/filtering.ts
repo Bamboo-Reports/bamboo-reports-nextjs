@@ -12,6 +12,12 @@ import type {
 import { parseRevenue } from "@/lib/utils/helpers"
 import { createValueMatcher, createKeywordMatcher } from "@/lib/utils/filter-helpers"
 
+type FilteringAccess = {
+  accountsEnabled?: boolean
+  centersEnabled?: boolean
+  prospectsEnabled?: boolean
+}
+
 export type FilteredData = {
   filteredAccounts: Account[]
   filteredCenters: Center[]
@@ -124,8 +130,13 @@ export function getFilteredData(
   services: Service[],
   prospects: Prospect[],
   tech: Tech[],
-  filters: Filters
+  filters: Filters,
+  access: FilteringAccess = {}
 ): FilteredData {
+  const accountsEnabled = access.accountsEnabled ?? true
+  const centersEnabled = access.centersEnabled ?? true
+  const prospectsEnabled = access.prospectsEnabled ?? true
+
   const matchAccountRegion = createValueMatcher(filters.accountHqRegionValues)
   const matchAccountCountry = createValueMatcher(filters.accountHqCountryValues)
   const matchAccountIndustry = createValueMatcher(filters.accountHqIndustryValues)
@@ -222,94 +233,117 @@ export function getFilteredData(
     accountNameSet.add(account.account_global_legal_name)
   }
 
-  for (const center of centers) {
-    if (hasAccountFilters && !accountNameSet.has(center.account_global_legal_name)) continue
-    if (!matchCenterType(center.center_type)) continue
-    if (!matchCenterFocus(center.center_focus)) continue
-    if (!matchCenterCity(center.center_city)) continue
-    if (!matchCenterState(center.center_state)) continue
-    if (!matchCenterCountry(center.center_country)) continue
-    if (!matchCenterEmployees(center.center_employees_range)) continue
-    if (!matchCenterStatus(center.center_status)) continue
-    if (!matchCenterIncYear(center.center_inc_year)) continue
-    if (hasCenterSoftwareFilters && !matchCenterSoftwareInUse(centerSoftwareIndex.get(center.cn_unique_key) ?? "")) {
-      continue
+  if (centersEnabled) {
+    for (const center of centers) {
+      if (hasAccountFilters && !accountNameSet.has(center.account_global_legal_name)) continue
+      if (!matchCenterType(center.center_type)) continue
+      if (!matchCenterFocus(center.center_focus)) continue
+      if (!matchCenterCity(center.center_city)) continue
+      if (!matchCenterState(center.center_state)) continue
+      if (!matchCenterCountry(center.center_country)) continue
+      if (!matchCenterEmployees(center.center_employees_range)) continue
+      if (!matchCenterStatus(center.center_status)) continue
+      if (!matchCenterIncYear(center.center_inc_year)) continue
+      if (hasCenterSoftwareFilters && !matchCenterSoftwareInUse(centerSoftwareIndex.get(center.cn_unique_key) ?? "")) {
+        continue
+      }
+
+      filteredCenters.push(center)
+      centerKeySet.add(center.cn_unique_key)
     }
 
-    filteredCenters.push(center)
-    centerKeySet.add(center.cn_unique_key)
+    const functionCenterKeySet = new Set<string>()
+    for (const func of functions) {
+      if (!centerKeySet.has(func.cn_unique_key)) continue
+      if (!hasFunctionFilters || matchFunctionType(func.function_name)) {
+        filteredFunctions.push(func)
+        if (hasFunctionFilters) {
+          functionCenterKeySet.add(func.cn_unique_key)
+        }
+      }
+    }
+
+    if (hasFunctionFilters) {
+      filteredCenters = filteredCenters.filter((center) => functionCenterKeySet.has(center.cn_unique_key))
+      centerKeySet = functionCenterKeySet
+    }
   }
 
-  const functionCenterKeySet = new Set<string>()
-  for (const func of functions) {
-    if (!centerKeySet.has(func.cn_unique_key)) continue
-    if (!hasFunctionFilters || matchFunctionType(func.function_name)) {
-      filteredFunctions.push(func)
-      if (hasFunctionFilters) {
-        functionCenterKeySet.add(func.cn_unique_key)
+  if (prospectsEnabled) {
+    for (const prospect of prospects) {
+      if (hasAccountFilters && !accountNameSet.has(prospect.account_global_legal_name)) continue
+      const matchesProspect =
+        matchProspectDepartment(prospect.prospect_department) &&
+        matchProspectHeadType(prospect.head_type) &&
+        matchProspectLevel(prospect.prospect_level) &&
+        matchProspectCity(prospect.prospect_city) &&
+        matchProspectTitle(prospect.prospect_title)
+
+      if (matchesProspect || !hasProspectFilters) {
+        filteredProspects.push(prospect)
+      }
+    }
+
+    if (hasProspectFilters) {
+      const accountNamesWithProspects = new Set<string>()
+      for (const prospect of filteredProspects) {
+        accountNamesWithProspects.add(prospect.account_global_legal_name)
+      }
+
+      filteredAccounts = filteredAccounts.filter((account) =>
+        accountNamesWithProspects.has(account.account_global_legal_name)
+      )
+      accountNameSet = accountNamesWithProspects
+
+      if (centersEnabled) {
+        filteredCenters = filteredCenters.filter((center) => accountNameSet.has(center.account_global_legal_name))
+        centerKeySet = new Set<string>()
+        for (const center of filteredCenters) {
+          centerKeySet.add(center.cn_unique_key)
+        }
       }
     }
   }
 
-  if (hasFunctionFilters) {
-    filteredCenters = filteredCenters.filter((center) => functionCenterKeySet.has(center.cn_unique_key))
-    centerKeySet = functionCenterKeySet
-  }
-
-  for (const prospect of prospects) {
-    if (hasAccountFilters && !accountNameSet.has(prospect.account_global_legal_name)) continue
-    const matchesProspect =
-      matchProspectDepartment(prospect.prospect_department) &&
-      matchProspectHeadType(prospect.head_type) &&
-      matchProspectLevel(prospect.prospect_level) &&
-      matchProspectCity(prospect.prospect_city) &&
-      matchProspectTitle(prospect.prospect_title)
-
-    if (matchesProspect || !hasProspectFilters) {
-      filteredProspects.push(prospect)
-    }
-  }
-
-  if (hasProspectFilters) {
-    const accountNamesWithProspects = new Set<string>()
-    for (const prospect of filteredProspects) {
-      accountNamesWithProspects.add(prospect.account_global_legal_name)
-    }
-
-    filteredAccounts = filteredAccounts.filter((account) =>
-      accountNamesWithProspects.has(account.account_global_legal_name)
-    )
-    accountNameSet = accountNamesWithProspects
-
-    filteredCenters = filteredCenters.filter((center) => accountNameSet.has(center.account_global_legal_name))
-    centerKeySet = new Set<string>()
-    for (const center of filteredCenters) {
-      centerKeySet.add(center.cn_unique_key)
-    }
-  }
-
   const filteredServices: Service[] = []
-  for (const service of services) {
-    if (centerKeySet.has(service.cn_unique_key)) {
-      filteredServices.push(service)
+  if (centersEnabled) {
+    for (const service of services) {
+      if (centerKeySet.has(service.cn_unique_key)) {
+        filteredServices.push(service)
+      }
     }
   }
+
+  const finalFilteredAccounts = centersEnabled
+    ? filteredAccounts.filter((account) =>
+        filteredCenters.some((center) => center.account_global_legal_name === account.account_global_legal_name)
+      )
+    : filteredAccounts
 
   const finalAccountNameSet = new Set<string>()
-  for (const center of filteredCenters) {
-    finalAccountNameSet.add(center.account_global_legal_name)
+  if (accountsEnabled) {
+    for (const account of finalFilteredAccounts) {
+      finalAccountNameSet.add(account.account_global_legal_name)
+    }
+  } else if (centersEnabled) {
+    for (const center of filteredCenters) {
+      finalAccountNameSet.add(center.account_global_legal_name)
+    }
+  } else if (prospectsEnabled) {
+    for (const prospect of filteredProspects) {
+      finalAccountNameSet.add(prospect.account_global_legal_name)
+    }
   }
 
-  const finalFilteredAccounts = filteredAccounts.filter((account) =>
-    finalAccountNameSet.has(account.account_global_legal_name)
-  )
-  const finalFilteredFunctions = filteredFunctions.filter((func) => centerKeySet.has(func.cn_unique_key))
-  const finalFilteredProspects = filteredProspects.filter((prospect) =>
-    finalAccountNameSet.has(prospect.account_global_legal_name)
-  )
+  const finalFilteredFunctions = centersEnabled
+    ? filteredFunctions.filter((func) => centerKeySet.has(func.cn_unique_key))
+    : []
+  const finalFilteredProspects = prospectsEnabled
+    ? filteredProspects.filter((prospect) => finalAccountNameSet.has(prospect.account_global_legal_name))
+    : []
 
   return {
-    filteredAccounts: finalFilteredAccounts,
+    filteredAccounts: accountsEnabled ? finalFilteredAccounts : [],
     filteredCenters: filteredCenters,
     filteredFunctions: finalFilteredFunctions,
     filteredServices: filteredServices,
@@ -369,12 +403,13 @@ export function getAvailableOptions(
   functions: Function[],
   prospects: Prospect[],
   tech: Tech[],
-  filters: AvailableOptionsFilterState
+  filters: AvailableOptionsFilterState,
+  access: FilteringAccess = {}
 ): AvailableOptions {
   type FacetKey = keyof AvailableOptions
 
   const facetDataCache = new Map<FacetKey, FilteredData>()
-  const baseFilteredData = getFilteredData(accounts, centers, functions, [], prospects, tech, filters as Filters)
+  const baseFilteredData = getFilteredData(accounts, centers, functions, [], prospects, tech, filters as Filters, access)
 
   const hasActiveFacetSelection = (key: FacetKey) => filters[key].length > 0
 
@@ -392,7 +427,7 @@ export function getAvailableOptions(
     } as Filters
 
     // Services are not needed to compute filter option counts.
-    const scopedData = getFilteredData(accounts, centers, functions, [], prospects, tech, scopedFilters)
+    const scopedData = getFilteredData(accounts, centers, functions, [], prospects, tech, scopedFilters, access)
     facetDataCache.set(key, scopedData)
     return scopedData
   }

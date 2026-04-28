@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react"
 import { captureEvent } from "@/lib/analytics/client"
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
+import { isSectionEnabled } from "@/lib/config/dashboard-access"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
-import type { Account, Center, Function, Service, Tech, Prospect } from "@/lib/types"
+import type { DashboardSummaryMetrics } from "@/app/actions/data"
+import type { Account, Center, Function, Service, Tech, Prospect, LockedProspectTeaser } from "@/lib/types"
 
 interface UseDashboardDataOptions {
   enabled: boolean
@@ -15,16 +17,29 @@ interface AllDataResult {
   services: unknown[]
   tech: unknown[]
   prospects: unknown[]
+  lockedProspectTeasers: unknown[]
+  summary?: DashboardSummaryMetrics
   error?: string
 }
 
 export function useDashboardData({ enabled }: UseDashboardDataOptions) {
+  const accountsEnabled = isSectionEnabled("accounts")
+  const centersEnabled = isSectionEnabled("centers")
+  const prospectsEnabled = isSectionEnabled("prospects")
   const [accounts, setAccounts] = useState<Account[]>([])
   const [centers, setCenters] = useState<Center[]>([])
   const [functions, setFunctions] = useState<Function[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [tech, setTech] = useState<Tech[]>([])
   const [prospects, setProspects] = useState<Prospect[]>([])
+  const [lockedProspectTeasers, setLockedProspectTeasers] = useState<LockedProspectTeaser[]>([])
+  const [summary, setSummary] = useState<DashboardSummaryMetrics>({
+    totalAccountsCount: 0,
+    totalCentersCount: 0,
+    totalUpcomingCentersCount: 0,
+    totalProspectsCount: 0,
+    totalHeadcount: 0,
+  })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [connectionStatus, setConnectionStatus] = useState<string>("")
@@ -41,6 +56,14 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
       setServices([])
       setTech([])
       setProspects([])
+      setLockedProspectTeasers([])
+      setSummary({
+        totalAccountsCount: 0,
+        totalCentersCount: 0,
+        totalUpcomingCentersCount: 0,
+        totalProspectsCount: 0,
+        totalHeadcount: 0,
+      })
 
       // Get auth token for API requests
       const supabase = getSupabaseBrowserClient()
@@ -86,15 +109,23 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
       const servicesData = Array.isArray(data.services) ? data.services : []
       const techData = Array.isArray(data.tech) ? data.tech : []
       const prospectsData = Array.isArray(data.prospects) ? data.prospects : []
+      const lockedProspectTeasersData = Array.isArray(data.lockedProspectTeasers) ? data.lockedProspectTeasers : []
+      const fallbackCentersData = centersData as Center[]
+      const summaryData: DashboardSummaryMetrics = data.summary ?? {
+        totalAccountsCount: accountsData.length,
+        totalCentersCount: fallbackCentersData.length,
+        totalUpcomingCentersCount: fallbackCentersData.filter((center) => center.center_status === "Upcoming").length,
+        totalProspectsCount: prospectsData.length,
+        totalHeadcount: fallbackCentersData.reduce((sum, center) => sum + (center.center_employees ?? 0), 0),
+      }
 
-      if (
-        accountsData.length === 0 &&
-        centersData.length === 0 &&
-        functionsData.length === 0 &&
-        servicesData.length === 0 &&
-        techData.length === 0 &&
-        prospectsData.length === 0
-      ) {
+      const enabledPrimaryData = {
+        accounts: accountsEnabled ? accountsData.length : 0,
+        centers: centersEnabled ? centersData.length : 0,
+        prospects: prospectsEnabled ? prospectsData.length : 0,
+      }
+
+      if (Object.values(enabledPrimaryData).every((count) => count === 0)) {
         setError("No data found in database tables. Please check if your tables contain data.")
         setConnectionStatus("No data available")
         captureEvent(ANALYTICS_EVENTS.DATA_LOAD_FAILED, {
@@ -110,6 +141,8 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
       setServices(servicesData as Service[])
       setTech(techData as Tech[])
       setProspects(prospectsData as Prospect[])
+      setLockedProspectTeasers(lockedProspectTeasersData as LockedProspectTeaser[])
+      setSummary(summaryData)
 
       setConnectionStatus(
         `Successfully loaded: ${accountsData.length} accounts, ${centersData.length} centers, ${functionsData.length} functions, ${servicesData.length} services, ${techData.length} tech, ${prospectsData.length} prospects`
@@ -136,7 +169,7 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [accountsEnabled, centersEnabled, prospectsEnabled])
 
   useEffect(() => {
     if (!enabled) return
@@ -150,6 +183,8 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
     services,
     tech,
     prospects,
+    lockedProspectTeasers,
+    summary,
     loading,
     error,
     connectionStatus,

@@ -53,6 +53,7 @@ Bamboo Reports provides a unified view of business entities (**Accounts**, **Cen
 - **Smart Summary Cards:** Real-time filtered vs. total counts per entity.
 - **Interactive Charts:** Recharts-powered Pie/Donut charts and Highcharts treemaps for categorical breakdowns (Region, Nature, Revenue, Employees, Technology).
 - **Tabbed Navigation:** Seamless switching between Accounts, Centers, Prospects, and Services contexts.
+- **Deployment-Level Access Control:** Accounts, Centers, and Prospects can be enabled or disabled per deployment via `lib/config/dashboard-access.ts`.
 - **Geospatial Analytics:**
   - MapTiler (MapLibre) cluster map optimized for 5000+ center points.
   - State-level choropleth map with disputed boundary handling (configurable per geopolitical viewpoint).
@@ -61,6 +62,7 @@ Bamboo Reports provides a unified view of business entities (**Accounts**, **Cen
 - **Multi-Select Filters:** Country, Region, Industry, Category, Nature, Technology, Functions, and more.
 - **Precision Slicing:** "Include" vs. "Exclude" toggle per filter group.
 - **Range Sliders:** Revenue, Employee count, and Years in India sliders with logarithmic scaling.
+- **Premium Filter Reveal:** Accounts and Centers support config-driven `Show More` premium filters via `lib/config/filters.ts`.
 - **Saved Filters:** Persist complex filter sets to Supabase with Row-Level Security isolation.
 - **Debounced Search:** 300ms debounce on keyword inputs to optimize performance.
 - **Active Filter Count:** Visual badge indicator showing the number of applied filters.
@@ -71,10 +73,13 @@ Bamboo Reports provides a unified view of business entities (**Accounts**, **Cen
 - **Type Safety:** Shared TypeScript definitions ensuring consistency from database to UI.
 
 ### Export and Integrations
-- **Excel Exports:** Native `.xlsx` generation using ExcelJS with ZIP compression.
-- **Multi-Sheet Support:** Export all filtered entities into separate sheets in a single file.
+- **Server-Side `.xlsx` Exports:** ExcelJS builds multi-sheet workbooks on the server against a full-schema `SELECT *`, so exports include every database column regardless of what the dashboard renders.
+- **Filter-Aware:** The client sends account / center identifier lists so filtered exports only include matching rows; unfiltered exports pull the full tables.
+- **Audit Log + Re-Download:** Every export is archived to a private Supabase Storage bucket and logged in `public.user_exports` with IP, user-agent, filters snapshot, and row counts. Users re-download past exports from the **My exports** dialog via short-lived signed URLs.
 - **Logo Integration:** Automated company logo fetching via Logo.dev API with fallback initials.
 - **Financial Data:** Stock information and financial metrics via Yahoo Finance integration.
+
+> **Details:** See [User Exports & Audit Log](documentation/user-exports.md) for the architecture, setup steps, and troubleshooting.
 
 ### Notifications
 - **Recently Updated Accounts:** Tracks account-level changes with grouped notifications.
@@ -135,7 +140,7 @@ For a comprehensive breakdown of every technology used in this project, see the 
 | **shadcn/ui** | Accessible component primitives (Radix UI) |
 | **Lucide React** | Consistent iconography |
 | **next-themes** | Dark/Light mode support |
-| **Geist** | Font and design system |
+| **DM Sans** | Primary typeface (Google Fonts, variable) |
 
 ### Data Visualization
 | Technology | Purpose |
@@ -205,7 +210,7 @@ bamboo-reports-nextjs/
 ├── lib/                            # Utilities & Configuration
 │   ├── analytics/                  # PostHog client, events, tracking
 │   ├── auth/                       # Role-based access control
-│   ├── config/                     # Environment, MapTiler, notifications
+│   ├── config/                     # Environment, dashboard access, filters, MapTiler, notifications
 │   ├── dashboard/                  # Dashboard utility functions
 │   ├── db/                         # Neon PostgreSQL client + retry logic
 │   ├── finance/                    # Financial data utilities
@@ -285,16 +290,44 @@ bamboo-reports-nextjs/
 | `DATABASE_URL` | **Yes** | Neon PostgreSQL connection string. |
 | `NEXT_PUBLIC_SUPABASE_URL` | **Yes** | Your Supabase project URL. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **Yes** | Supabase public anon key (safe for client). |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Yes** | Supabase service-role secret. Server-only — used to write/read `user_exports` and upload archived exports to Storage. |
+| `DASHBOARD_CACHE_TTL_MS` | No | Override for the in-memory dashboard cache TTL. Default: `3600000` (1 hour). |
 | `NEXT_PUBLIC_MAPTILER_KEY` | **Yes** | MapTiler public key for rendering map tiles. |
 | `NEXT_PUBLIC_MAPTILER_STATE_STYLE_ID` | No | MapTiler style ID for state choropleth view. |
 | `NEXT_PUBLIC_MAPTILER_CITY_STYLE_ID` | No | MapTiler style ID for city-level view. |
 | `NEXT_PUBLIC_MAPTILER_STYLE_ID` | No | Legacy fallback style ID (used if mode-specific IDs are not set). |
 | `NEXT_PUBLIC_MAP_VIEWPOINT_ISO2` | No | Geopolitical viewpoint for choropleth (e.g., `IN` for India). |
-| `NEXT_PUBLIC_LOGO_DEV_TOKEN` | No | Logo.dev publishable token for company logos. |
+| `NEXT_PUBLIC_LOGO_DEV_KEY` | No | Logo.dev publishable key for company logos. |
 | `NEXT_PUBLIC_POSTHOG_KEY` | No | PostHog project API key for analytics. |
 | `NEXT_PUBLIC_POSTHOG_HOST` | No | PostHog host URL (defaults to PostHog cloud). |
 | `NEXT_PUBLIC_NOTIFICATIONS_ENABLED` | No | Feature flag: `enabled` or `disabled`. |
 | `NEXT_PUBLIC_ENVIRONMENT_LABEL` | No | Environment tag displayed in the UI: `DEV`, `PROD`, or empty. |
+
+---
+
+## Deployment Config
+
+Two local config files control client-specific packaging without changing the core dashboard:
+
+- `lib/config/dashboard-access.ts`
+  - Controls whether top-level sections like `accounts`, `centers`, and `prospects` are accessible.
+  - Also supports deployment-level `prospectsPerAccount` packaging, so a client can see only the first `N` contacts per account while the total prospects badge still reflects the full platform count.
+  - When a prospect limit is configured, the remaining contacts stay visible only as locked teaser rows/cards. They do not expose real names, emails, LinkedIn URLs, search results, or export rows.
+  - The same config is respected by dashboard navigation, search, exports, and server-side export enforcement.
+- `lib/config/filters.ts`
+  - Controls which individual filters are enabled.
+  - Also controls premium `Show More` behavior for Account and Center filters via `showMoreEnabled` and `premiumFilterKeys`.
+
+Typical use cases:
+
+- Client only needs Accounts + Prospects:
+  - Set `centers` to `"disabled"` in `lib/config/dashboard-access.ts`
+- Client bought only 2 contacts per account:
+  - Set `limits.prospectsPerAccount` to `2` in `lib/config/dashboard-access.ts`
+- Client should see all contacts again:
+  - Set `limits.prospectsPerAccount` to `null` in `lib/config/dashboard-access.ts`
+- Client has standard filters only:
+  - Set `showMoreEnabled: false` for the relevant filter section in `lib/config/filters.ts`
 
 ---
 
@@ -310,9 +343,12 @@ The app delegates identity management to **Supabase Auth**.
 - **User Data:**
   - **`public.profiles`**: Stores user metadata (First Name, Last Name, Email, Role).
   - **`public.saved_filters`**: Stores JSON blobs of user's filter configurations.
+  - **`public.user_exports`**: Audit log of exports with metadata (IP, user-agent, row counts, filters snapshot). Pairs with the private `user-exports` Storage bucket for the archived `.xlsx` files.
 - **Security:** Row-Level Security (RLS) ensures full data isolation between users.
 
-> **Setup Guide:** Follow the [Supabase Auth Setup](documentation/supabase-auth-setup.md) guide to initialize your Supabase project tables.
+> **Setup Guides:**
+> - Auth & profiles: [Supabase Auth Setup](documentation/supabase-auth-setup.md)
+> - Exports audit log + bucket: [User Exports & Audit Log](documentation/user-exports.md)
 
 ---
 
@@ -387,11 +423,14 @@ Subsequent pushes to the `main` branch trigger automatic deployments.
 | **Map not loading** | Invalid MapTiler Key | Check `NEXT_PUBLIC_MAPTILER_KEY`. Ensure the key is active and has map tile access. |
 | **"Database connection failed"** | Neon scaling / network | The Neon instance might be sleeping. Retry after a few seconds. Verify `DATABASE_URL`. |
 | **Auth errors (401/403)** | Supabase config | Verify `NEXT_PUBLIC_SUPABASE_URL` and `ANON_KEY`. Check RLS policies in Supabase dashboard. |
-| **Missing logos** | Logo.dev token | Ensure `NEXT_PUBLIC_LOGO_DEV_TOKEN` is set. If omitted, fallback initials are used. |
+| **Missing logos** | Logo.dev key | Ensure `NEXT_PUBLIC_LOGO_DEV_KEY` is set. If omitted, fallback initials are used. |
 | **Notifications not showing** | Feature flag | Set `NEXT_PUBLIC_NOTIFICATIONS_ENABLED=enabled` in your environment. |
 | **Charts not rendering** | Data issue | Check browser console for errors. Ensure data is being returned from server actions. |
 | **Choropleth seams visible** | MapTiler style | Disable disputed boundary layers in your MapTiler style. See [Map Disputed Boundaries](documentation/map-disputed-boundaries.md). |
 | **Export button disabled** | User role | Only `admin` users can export. Update the role in the `profiles` table. |
+| **Export fails with "Failed to archive export"** | `user-exports` Storage bucket missing | Create a **private** bucket named exactly `user-exports` in the Supabase dashboard. |
+| **Export fails with "Failed to record export: relation 'public.user_exports' does not exist"** | Schema SQL not run | Execute `documentation/user-exports-schema.sql` against your Supabase project. |
+| **"My exports" dialog is empty after a successful export** | Dev-server module cache | Hard-refresh the page; restart `next dev`. |
 
 ---
 
@@ -408,6 +447,7 @@ Detailed documentation for specific subsystems lives in the `documentation/` fol
 | [**Developer Workflow**](documentation/developer-workflow.md) | Guide for common tasks, coding standards, and troubleshooting |
 | [**Supabase Auth**](documentation/supabase-auth-setup.md) | Setting up the `profiles` table, RLS policies, and auth triggers |
 | [**Saved Filters**](documentation/supabase-saved-filters.md) | Technical spec for the saved filters JSON structure |
+| [**User Exports & Audit Log**](documentation/user-exports.md) | Server-side export generation, Storage archive, and audit table |
 | [**Logo Integration**](documentation/logo-integration.md) | Setup and usage guide for the Logo.dev integration |
 | [**Map Disputed Boundaries**](documentation/map-disputed-boundaries.md) | State choropleth disputed-boundary behavior and alias rules |
 

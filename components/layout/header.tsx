@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Compass, LogOut, Mail, Phone, RefreshCw, Search, ShieldCheck, Terminal, UserRound } from 'lucide-react'
-import { ThemeToggle } from '@/components/theme-toggle'
+import { Clock, Compass, FileArchive, LogOut, Monitor, Moon, RefreshCw, Search, Sun, Terminal, UserRound } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -26,10 +26,69 @@ interface HeaderProps {
   onRefresh: () => void
   onStartTour?: () => void
   onOpenSearch?: () => void
+  onOpenExports?: () => void
+  onOpenHistory?: () => void
 }
 
+type ThemeMode = 'light' | 'dark' | 'system'
 
-export const Header = React.memo(function Header({ onRefresh, onStartTour, onOpenSearch }: HeaderProps): JSX.Element {
+const THEME_OPTIONS: Array<{
+  value: ThemeMode
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+}> = [
+  { value: 'light', label: 'Light', icon: Sun },
+  { value: 'dark', label: 'Dark', icon: Moon },
+  { value: 'system', label: 'System', icon: Monitor },
+]
+
+function ProfileThemeSwitcher() {
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const activeTheme = mounted ? (theme as ThemeMode | undefined) ?? 'light' : 'light'
+
+  return (
+    <div className="px-4 py-3">
+      <div className="mb-2 text-xs font-medium text-muted-foreground">Appearance</div>
+      <div
+        className="grid grid-cols-3 gap-1 rounded-xl border border-border/70 bg-muted/35 p-1"
+        role="tablist"
+        aria-label="Theme preference"
+      >
+        {THEME_OPTIONS.map((option) => {
+          const Icon = option.icon
+          const isActive = activeTheme === option.value
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              disabled={!mounted}
+              onClick={() => setTheme(option.value)}
+              className={
+                isActive
+                  ? "inline-flex items-center justify-center gap-1.5 rounded-lg bg-background px-2 py-1.5 text-xs font-semibold text-foreground shadow-sm ring-1 ring-border/60 transition-colors"
+                  : "inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-background/50 hover:text-foreground disabled:pointer-events-none disabled:opacity-60"
+              }
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {option.label}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+export const Header = React.memo(function Header({ onRefresh, onStartTour, onOpenSearch, onOpenExports, onOpenHistory }: HeaderProps): JSX.Element {
   const environmentLabel = getEnvironmentLabel()
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -44,7 +103,7 @@ export const Header = React.memo(function Header({ onRefresh, onStartTour, onOpe
     const loadProfile = async (userId: string) => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, user_id, first_name, last_name, email, phone, role')
+        .select('id, user_id, first_name, last_name, email, phone, role, credits_remaining')
         .eq('user_id', userId)
         .single()
 
@@ -109,12 +168,16 @@ export const Header = React.memo(function Header({ onRefresh, onStartTour, onOpe
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join('') || 'U'
-  const formattedLastSignIn =
-    lastSignInAt && !Number.isNaN(Date.parse(lastSignInAt))
-      ? new Date(lastSignInAt).toLocaleString()
-      : 'Unknown'
+  const formattedLastSignIn = (() => {
+    if (!lastSignInAt || Number.isNaN(Date.parse(lastSignInAt))) return 'Unknown'
+    const d = new Date(lastSignInAt)
+    const date = d.toLocaleDateString(undefined, { day: '2-digit', month: 'short' })
+    const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false })
+    return `${date} · ${time}`
+  })()
+  const roleLabel = normalizedRole === 'admin' ? 'Admin' : 'Viewer'
 
-  const environmentBadgeLabel = environmentLabel === "DEV" ? "</> DEV" : null
+  const environmentBadgeLabel = environmentLabel === "DEV" ? "DEV" : null
 
   return (
     <div className="sticky top-0 z-20 border-b border-border/80 bg-background/95 backdrop-blur-md">
@@ -138,7 +201,7 @@ export const Header = React.memo(function Header({ onRefresh, onStartTour, onOpe
                   <div className="inline-flex shrink-0 items-center gap-1 rounded-md border border-amber-500/25 bg-amber-500/8 px-2 py-0.5 dark:border-amber-400/20 dark:bg-amber-500/10">
                     <Terminal className="h-3 w-3 shrink-0 text-amber-600 dark:text-amber-400" />
                     <span className="font-mono text-[10px] font-bold uppercase leading-none tracking-widest text-amber-700 dark:text-amber-300">
-                      dev
+                      {environmentBadgeLabel}
                     </span>
                   </div>
                 ) : null}
@@ -162,7 +225,6 @@ export const Header = React.memo(function Header({ onRefresh, onStartTour, onOpe
               <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-300" />
             </Button>
             {NOTIFICATIONS_ENABLED ? <NotificationDropdown /> : null}
-            <ThemeToggle />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8" title="Profile" aria-label="Open profile menu">
@@ -170,61 +232,112 @@ export const Header = React.memo(function Header({ onRefresh, onStartTour, onOpe
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-80 p-0 overflow-hidden">
-                <div className="border-b border-border/60 bg-gradient-to-r from-blue-500/10 via-sky-500/5 to-background p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-500/30 bg-blue-500/15 text-sm font-semibold text-blue-700 dark:text-blue-300">
-                      {userInitials}
+                <div className="flex items-start gap-3 px-4 pt-4 pb-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold text-foreground">
+                    {userInitials}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="truncate text-sm font-semibold text-foreground">{displayName}</div>
+                      <span
+                        className={
+                          normalizedRole === 'admin'
+                            ? 'shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-primary'
+                            : 'shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground'
+                        }
+                      >
+                        {roleLabel}
+                      </span>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-semibold text-foreground">{displayName}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-2 p-3 text-xs">
-                  <div className="flex items-center justify-between rounded-md border border-border/60 bg-muted/20 px-2.5 py-2">
-                    <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                      <Mail className="h-3.5 w-3.5" />
-                      Email
-                    </span>
-                    <span className="max-w-[180px] truncate text-foreground">{displayEmail}</span>
-                  </div>
-                  <div className="flex items-center justify-between rounded-md border border-border/60 bg-muted/20 px-2.5 py-2">
-                    <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                      <Phone className="h-3.5 w-3.5" />
-                      Phone
-                    </span>
-                    <span className="text-foreground">{profile?.phone ?? 'Not set'}</span>
-                  </div>
-                  <div className="flex items-center justify-between rounded-md border border-border/60 bg-muted/20 px-2.5 py-2">
-                    <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                      <ShieldCheck className="h-3.5 w-3.5" />
-                      Access Role
-                    </span>
-                    <span className="font-medium text-foreground">{normalizedRole === 'admin' ? 'Admin' : 'Viewer'}</span>
-                  </div>
-                  <div className="flex items-center justify-between rounded-md border border-border/60 bg-muted/20 px-2.5 py-2">
-                    <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                      Last Sign In
-                    </span>
-                    <span className="text-foreground">{formattedLastSignIn}</span>
+                    <div className="mt-0.5 truncate text-xs text-muted-foreground">{displayEmail}</div>
                   </div>
                 </div>
 
                 <DropdownMenuSeparator />
-                <div className="p-2 space-y-1.5">
+
+                <div className="px-4 py-3 space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Phone</span>
+                    <span className={profile?.phone ? 'text-foreground' : 'text-muted-foreground'}>
+                      {profile?.phone ?? 'Not set'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Last sign in</span>
+                    <span className="text-foreground tabular-nums">{formattedLastSignIn}</span>
+                  </div>
+                </div>
+
+                <DropdownMenuSeparator />
+
+                {/* Credits tracker */}
+                {profile?.credits_remaining != null && (() => {
+                  const total = 1000
+                  const remaining = profile.credits_remaining
+                  const used = total - remaining
+                  const pct = Math.min(100, Math.max(0, (used / total) * 100))
+                  return (
+                    <div className="px-4 py-3 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Credits</span>
+                        <span className="tabular-nums text-foreground">
+                          <span className="font-medium">{used.toLocaleString()}</span>
+                          <span className="text-muted-foreground"> / {total.toLocaleString()} used</span>
+                        </span>
+                      </div>
+                      <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-primary transition-all duration-500"
+                          style={{ width: `${pct}%` }}
+                          role="progressbar"
+                          aria-valuenow={used}
+                          aria-valuemin={0}
+                          aria-valuemax={total}
+                          aria-label="Credits used"
+                        />
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">{remaining.toLocaleString()} credits remaining</p>
+                    </div>
+                  )
+                })()}
+
+                <DropdownMenuSeparator />
+
+                <ProfileThemeSwitcher />
+
+                <DropdownMenuSeparator />
+
+                <div className="flex items-stretch gap-1 p-1.5">
+                  {onOpenExports && (
+                    <DropdownMenuItem
+                      className="flex flex-1 flex-col items-center justify-center gap-1 cursor-pointer rounded-md border border-border/60 bg-muted/20 px-2 py-2.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-border hover:bg-muted/60 focus:border-border focus:bg-muted/60 focus:text-foreground"
+                      onSelect={() => onOpenExports()}
+                    >
+                      <FileArchive className="h-4 w-4" />
+                      Exports
+                    </DropdownMenuItem>
+                  )}
+                  {onOpenHistory && (
+                    <DropdownMenuItem
+                      className="flex flex-1 flex-col items-center justify-center gap-1 cursor-pointer rounded-md border border-border/60 bg-muted/20 px-2 py-2.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-border hover:bg-muted/60 focus:border-border focus:bg-muted/60 focus:text-foreground"
+                      onSelect={() => onOpenHistory()}
+                    >
+                      <Clock className="h-4 w-4" />
+                      History
+                    </DropdownMenuItem>
+                  )}
                   {onStartTour && (
                     <DropdownMenuItem
-                      className="h-9 cursor-pointer rounded-md font-medium"
+                      className="flex flex-1 flex-col items-center justify-center gap-1 cursor-pointer rounded-md border border-border/60 bg-muted/20 px-2 py-2.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-border hover:bg-muted/60 focus:border-border focus:bg-muted/60 focus:text-foreground"
                       onSelect={() => onStartTour()}
                     >
                       <Compass className="h-4 w-4" />
-                      Take a tour
+                      Tour
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem
                     disabled={isLoadingProfile}
-                    className="h-9 cursor-pointer rounded-md border border-destructive/25 bg-destructive/10 font-medium text-destructive focus:bg-destructive/15 focus:text-destructive"
+                    className="flex flex-1 flex-col items-center justify-center gap-1 cursor-pointer rounded-md border border-destructive/25 bg-destructive/5 px-2 py-2.5 text-[11px] font-medium text-destructive transition-colors hover:border-destructive/40 hover:bg-destructive/10 focus:border-destructive/40 focus:bg-destructive/10 focus:text-destructive"
                     onSelect={(event) => {
                       event.preventDefault()
                       handleSignOut()

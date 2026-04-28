@@ -1,7 +1,17 @@
 "use server"
 
-import type { Account, Center, Function, Service, Tech, Prospect } from "@/lib/types"
+import type { Account, Center, Function, Service, Tech, Prospect, LockedProspectTeaser } from "@/lib/types"
+import { getProspectsPerAccountLimit, isSectionEnabled } from "@/lib/config/dashboard-access"
+import { partitionProspectsByAccess } from "@/lib/dashboard/prospect-access"
 import { getSqlOrThrow, fetchWithRetry } from "@/lib/db/connection"
+
+export type DashboardSummaryMetrics = {
+  totalAccountsCount: number
+  totalCentersCount: number
+  totalUpcomingCentersCount: number
+  totalProspectsCount: number
+  totalHeadcount: number
+}
 
 // ============================================
 // BASIC DATA FETCHING FUNCTIONS
@@ -84,7 +94,7 @@ async function getDashboardAccounts(): Promise<Account[]> {
       () => sqlClient`SELECT account_nasscom_status, account_nasscom_member_status, account_data_coverage,
         account_source, account_type, account_global_legal_name, account_hq_stock_ticker,
         account_hq_company_type, account_about, account_hq_key_offerings,
-        account_hq_city, account_hq_country, account_hq_region,
+        account_hq_city, account_hq_state, account_hq_country, account_hq_region,
         account_hq_sub_industry, account_hq_industry, account_hq_linkedin_link,
         account_primary_category, account_primary_nature, account_hq_revenue,
         account_hq_revenue_range, account_hq_employee_count, account_hq_employee_range,
@@ -110,7 +120,7 @@ async function getDashboardCenters(): Promise<Center[]> {
         center_city, center_state, center_country, center_country_iso2,
         center_region, center_employees, center_employees_range,
         center_business_segment, center_business_sub_segment,
-        center_boardline, center_account_website, lat, lng
+        center_boardline, center_account_website, center_timeline, center_address, center_zip_code, lat, lng
         FROM centers ORDER BY center_name`
     )) as Center[]
   } catch (error) {
@@ -177,6 +187,49 @@ async function getDashboardProspects(): Promise<Prospect[]> {
   }
 }
 
+async function getDashboardSummaryMetrics(): Promise<DashboardSummaryMetrics> {
+  try {
+    const sqlClient = getSqlOrThrow()
+
+    const [accountsCountRows, centersSummaryRows, prospectsCountRows] = await Promise.all([
+      fetchWithRetry(() => sqlClient`SELECT COUNT(*)::int AS count FROM accounts`),
+      fetchWithRetry(() => sqlClient`
+        SELECT
+          COUNT(*)::int AS total_centers_count,
+          COUNT(*) FILTER (WHERE center_status = 'Upcoming')::int AS total_upcoming_centers_count,
+          COALESCE(SUM(center_employees), 0)::int AS total_headcount
+        FROM centers
+      `),
+      fetchWithRetry(() => sqlClient`SELECT COUNT(*)::int AS count FROM prospects`),
+    ])
+
+    const accountsCount = Number((accountsCountRows as Array<{ count: number }>)[0]?.count ?? 0)
+    const centersSummary = (centersSummaryRows as Array<{
+      total_centers_count: number
+      total_upcoming_centers_count: number
+      total_headcount: number
+    }>)[0]
+    const prospectsCount = Number((prospectsCountRows as Array<{ count: number }>)[0]?.count ?? 0)
+
+    return {
+      totalAccountsCount: accountsCount,
+      totalCentersCount: Number(centersSummary?.total_centers_count ?? 0),
+      totalUpcomingCentersCount: Number(centersSummary?.total_upcoming_centers_count ?? 0),
+      totalProspectsCount: prospectsCount,
+      totalHeadcount: Number(centersSummary?.total_headcount ?? 0),
+    }
+  } catch (error) {
+    console.error("Error fetching dashboard summary metrics:", error)
+    return {
+      totalAccountsCount: 0,
+      totalCentersCount: 0,
+      totalUpcomingCentersCount: 0,
+      totalProspectsCount: 0,
+      totalHeadcount: 0,
+    }
+  }
+}
+
 // ============================================
 // AGGREGATED DATA FUNCTIONS
 // ============================================
@@ -188,6 +241,8 @@ export type AllDataResult = {
   services: Service[]
   tech: Tech[]
   prospects: Prospect[]
+  lockedProspectTeasers: LockedProspectTeaser[]
+  summary: DashboardSummaryMetrics
   error: string | null
 }
 
@@ -203,6 +258,14 @@ export async function getAllData(): Promise<AllDataResult> {
         services: [],
         tech: [],
         prospects: [],
+        lockedProspectTeasers: [],
+        summary: {
+          totalAccountsCount: 0,
+          totalCentersCount: 0,
+          totalUpcomingCentersCount: 0,
+          totalProspectsCount: 0,
+          totalHeadcount: 0,
+        },
         error: "Database configuration missing",
       }
     }
@@ -219,6 +282,14 @@ export async function getAllData(): Promise<AllDataResult> {
           services: [],
           tech: [],
           prospects: [],
+          lockedProspectTeasers: [],
+          summary: {
+            totalAccountsCount: 0,
+            totalCentersCount: 0,
+            totalUpcomingCentersCount: 0,
+            totalProspectsCount: 0,
+            totalHeadcount: 0,
+          },
           error: "Database connection failed",
         }
     }
@@ -240,6 +311,14 @@ export async function getAllData(): Promise<AllDataResult> {
       services,
       tech,
       prospects,
+      lockedProspectTeasers: [],
+      summary: {
+        totalAccountsCount: accounts.length,
+        totalCentersCount: centers.length,
+        totalUpcomingCentersCount: centers.filter((center) => center.center_status === "Upcoming").length,
+        totalProspectsCount: prospects.length,
+        totalHeadcount: centers.reduce((sum, center) => sum + (center.center_employees ?? 0), 0),
+      },
       error: null,
     } satisfies AllDataResult
   } catch (error) {
@@ -251,6 +330,14 @@ export async function getAllData(): Promise<AllDataResult> {
       services: [],
       tech: [],
       prospects: [],
+      lockedProspectTeasers: [],
+      summary: {
+        totalAccountsCount: 0,
+        totalCentersCount: 0,
+        totalUpcomingCentersCount: 0,
+        totalProspectsCount: 0,
+        totalHeadcount: 0,
+      },
       error: error instanceof Error ? error.message : "Unknown database error",
     }
   }
@@ -263,29 +350,86 @@ export async function getAllData(): Promise<AllDataResult> {
 export async function getDashboardData(): Promise<AllDataResult> {
   try {
     if (!process.env.DATABASE_URL) {
-      return { accounts: [], centers: [], functions: [], services: [], tech: [], prospects: [], error: "Database configuration missing" }
+      return {
+        accounts: [],
+        centers: [],
+        functions: [],
+        services: [],
+        tech: [],
+        prospects: [],
+        lockedProspectTeasers: [],
+        summary: {
+          totalAccountsCount: 0,
+          totalCentersCount: 0,
+          totalUpcomingCentersCount: 0,
+          totalProspectsCount: 0,
+          totalHeadcount: 0,
+        },
+        error: "Database configuration missing",
+      }
     }
 
     try {
       getSqlOrThrow()
     } catch {
-      return { accounts: [], centers: [], functions: [], services: [], tech: [], prospects: [], error: "Database connection failed" }
+      return {
+        accounts: [],
+        centers: [],
+        functions: [],
+        services: [],
+        tech: [],
+        prospects: [],
+        lockedProspectTeasers: [],
+        summary: {
+          totalAccountsCount: 0,
+          totalCentersCount: 0,
+          totalUpcomingCentersCount: 0,
+          totalProspectsCount: 0,
+          totalHeadcount: 0,
+        },
+        error: "Database connection failed",
+      }
     }
 
-    const [accounts, centers, functions, services, tech, prospects] = await Promise.all([
-      getDashboardAccounts(),
-      getDashboardCenters(),
-      getDashboardFunctions(),
-      getDashboardServices(),
-      getDashboardTech(),
-      getDashboardProspects(),
+    const accountsEnabled = isSectionEnabled("accounts")
+    const centersEnabled = isSectionEnabled("centers")
+    const prospectsEnabled = isSectionEnabled("prospects")
+    const prospectsPerAccountLimit = getProspectsPerAccountLimit()
+
+    const [accounts, centers, functions, services, tech, rawProspects, summary] = await Promise.all([
+      accountsEnabled ? getDashboardAccounts() : Promise.resolve([]),
+      centersEnabled ? getDashboardCenters() : Promise.resolve([]),
+      centersEnabled ? getDashboardFunctions() : Promise.resolve([]),
+      centersEnabled ? getDashboardServices() : Promise.resolve([]),
+      accountsEnabled || centersEnabled ? getDashboardTech() : Promise.resolve([]),
+      prospectsEnabled ? getDashboardProspects() : Promise.resolve([]),
+      getDashboardSummaryMetrics(),
     ])
 
-    return { accounts, centers, functions, services, tech, prospects, error: null } satisfies AllDataResult
+    const { visibleProspects, lockedProspectTeasers } = partitionProspectsByAccess(rawProspects, prospectsPerAccountLimit)
+
+    return {
+      accounts,
+      centers,
+      functions,
+      services,
+      tech,
+      prospects: visibleProspects,
+      lockedProspectTeasers,
+      summary,
+      error: null,
+    } satisfies AllDataResult
   } catch (error) {
     console.error("Error fetching dashboard data:", error)
     return {
-      accounts: [], centers: [], functions: [], services: [], tech: [], prospects: [],
+      accounts: [], centers: [], functions: [], services: [], tech: [], prospects: [], lockedProspectTeasers: [],
+      summary: {
+        totalAccountsCount: 0,
+        totalCentersCount: 0,
+        totalUpcomingCentersCount: 0,
+        totalProspectsCount: 0,
+        totalHeadcount: 0,
+      },
       error: error instanceof Error ? error.message : "Unknown database error",
     }
   }

@@ -26,14 +26,20 @@ const getStatusDotColor = (status: string | null | undefined) => {
 
 export const CenterGridCard = memo(({ center, onClick }: CenterGridCardProps) => {
   const centerName = center.center_name || "Center"
-  const location = [center.center_city, center.center_country].filter(Boolean).join(", ")
   const accountName = center.account_global_legal_name || "Account"
+  const location = [center.center_city, center.center_state].filter(Boolean).join(", ")
   const statusColor = getStatusDotColor(center.center_status)
 
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <Card className="h-full">
+        <Card
+          className="h-full animate-stagger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          tabIndex={0}
+          role="button"
+          aria-label={`View details for ${centerName}`}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick() } }}
+        >
           <CardContent className="p-4 flex flex-col gap-4">
             <div className="flex items-start gap-3">
               <CompanyLogo
@@ -48,16 +54,13 @@ export const CenterGridCard = memo(({ center, onClick }: CenterGridCardProps) =>
                   title={center.center_status ? `${centerName} — ${center.center_status}` : centerName}
                 >
                   <span className="truncate">{centerName}</span>
-                  <span className="relative inline-flex h-2 w-2 shrink-0" aria-label={center.center_status ?? "Unknown status"}>
-                    <span className={`absolute inline-flex h-full w-full rounded-full opacity-60 animate-ping ${statusColor}`} />
-                    <span className={`relative inline-flex h-2 w-2 rounded-full ${statusColor}`} />
-                  </span>
+                  <span className={`inline-flex h-2.5 w-2.5 shrink-0 rounded-full ${statusColor}`} aria-label={center.center_status ?? "Unknown status"} />
                 </h3>
                 <p
                   className="text-sm text-muted-foreground mt-1 truncate"
-                  title={location || center.center_country || "-"}
+                  title={accountName}
                 >
-                  {location || center.center_country || "-"}
+                  {accountName}
                 </p>
               </div>
             </div>
@@ -69,6 +72,15 @@ export const CenterGridCard = memo(({ center, onClick }: CenterGridCardProps) =>
                   title={center.center_type || "-"}
                 >
                   {center.center_type || "-"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3 min-w-0">
+                <span className="text-muted-foreground">Location</span>
+                <span
+                  className="font-medium text-foreground text-right truncate max-w-[160px]"
+                  title={location || center.center_state || center.center_city || "-"}
+                >
+                  {location || center.center_state || center.center_city || "-"}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-3 min-w-0">

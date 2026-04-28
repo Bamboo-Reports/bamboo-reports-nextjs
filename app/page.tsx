@@ -2,7 +2,10 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTheme } from "next-themes"
+import { toast } from "sonner"
 import { ExportDialog } from "@/components/export/export-dialog"
+import { ExportsDialog } from "@/components/exports/exports-dialog"
+import { HistoryDialog } from "@/components/history/history-dialog"
 import { FiltersSidebar } from "@/components/filters/filters-sidebar"
 import { Header } from "@/components/layout/header"
 import { GlobalSearch } from "@/components/search/global-search"
@@ -29,6 +32,12 @@ import {
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import { buildTrackedFiltersSnapshot } from "@/lib/analytics/tracking"
 import { canExportData } from "@/lib/auth/roles"
+import {
+  canAccessAccountsMapView,
+  getAccessibleDefaultSection,
+  getSectionUnavailableMessage,
+  isSectionEnabled,
+} from "@/lib/config/dashboard-access"
 import { useProductTour } from "@/hooks/use-product-tour"
 import { formatRevenueInMillions } from "@/lib/utils/helpers"
 import type { SearchResult } from "@/lib/search"
@@ -38,6 +47,11 @@ import type { Account, Center, Prospect } from "@/lib/types"
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "br-dashboard-sidebar-collapsed"
 
 function DashboardContent(): JSX.Element | null {
+  const accountsEnabled = isSectionEnabled("accounts")
+  const centersEnabled = isSectionEnabled("centers")
+  const prospectsEnabled = isSectionEnabled("prospects")
+  const defaultSection = getAccessibleDefaultSection()
+  const accountsMapEnabled = canAccessAccountsMapView()
   const { authReady, userId, userEmail, userRole } = useAuthGuard()
 
   const {
@@ -47,6 +61,8 @@ function DashboardContent(): JSX.Element | null {
     services,
     tech,
     prospects,
+    lockedProspectTeasers,
+    summary,
     loading,
     error,
     connectionStatus,
@@ -92,11 +108,13 @@ function DashboardContent(): JSX.Element | null {
   const [centersPage, setCentersPage] = useState(1)
   const [prospectsPage, setProspectsPage] = useState(1)
   const itemsPerPage = 51
-  const [accountsView, setAccountsView] = useState<"chart" | "data" | "map">("map")
+  const [accountsView, setAccountsView] = useState<"chart" | "data" | "map">(accountsMapEnabled ? "map" : "chart")
   const [centersView, setCentersView] = useState<"chart" | "data" | "map">("map")
   const [prospectsView, setProspectsView] = useState<"chart" | "data">("chart")
-  const [activeSection, setActiveSection] = useState<"accounts" | "centers" | "prospects">("accounts")
+  const [activeSection, setActiveSection] = useState<"accounts" | "centers" | "prospects">(defaultSection)
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
+  const [exportsDialogOpen, setExportsDialogOpen] = useState(false)
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const canExport = canExportData(userRole)
 
@@ -110,13 +128,18 @@ function DashboardContent(): JSX.Element | null {
     setIsOpen: setIsSearchOpen,
     handleOpen: handleSearchOpen,
     handleClose: handleSearchClose,
-  } = useGlobalSearch({ accounts, centers, prospects })
+  } = useGlobalSearch({
+    accounts: accountsEnabled ? accounts : [],
+    centers: centersEnabled ? centers : [],
+    prospects: prospectsEnabled ? prospects : [],
+  })
 
   const {
     recentItems,
     recentSearches,
     addRecentItem,
     addRecentSearch,
+    clearRecentItems,
   } = useRecentItems()
 
   // Search-triggered detail dialogs (separate from tab-level dialogs)
@@ -130,13 +153,13 @@ function DashboardContent(): JSX.Element | null {
   const hasTrackedDashboardLoadRef = useRef(false)
   const sessionStartRef = useRef<number | null>(null)
   const currentScreenStartRef = useRef<number | null>(null)
-  const currentScreenRef = useRef<"accounts" | "centers" | "prospects">("accounts")
+  const currentScreenRef = useRef<"accounts" | "centers" | "prospects">(defaultSection)
   const previousPageRef = useRef<Record<"accounts" | "centers" | "prospects", number>>({
     accounts: 1,
     centers: 1,
     prospects: 1,
   })
-  const previousAccountsViewRef = useRef<"chart" | "data" | "map">("map")
+  const previousAccountsViewRef = useRef<"chart" | "data" | "map">(accountsMapEnabled ? "map" : "chart")
   const previousCentersViewRef = useRef<"chart" | "data" | "map">("map")
   const previousProspectsViewRef = useRef<"chart" | "data">("chart")
   const viewSwitchCountRef = useRef(0)
@@ -148,6 +171,15 @@ function DashboardContent(): JSX.Element | null {
   const previousSidebarCollapsedRef = useRef<boolean | null>(null)
 
   const activeFiltersCount = getTotalActiveFilters()
+  const filteredLockedProspectTeasers = useMemo(() => {
+    const visibleAccountNames = new Set(
+      filteredData.filteredAccounts
+        .map((account) => account.account_global_legal_name)
+        .filter((name): name is string => Boolean(name))
+    )
+
+    return lockedProspectTeasers.filter((teaser) => visibleAccountNames.has(teaser.account_global_legal_name))
+  }, [filteredData.filteredAccounts, lockedProspectTeasers])
 
   const currentScreenView = useMemo(() => {
     if (activeSection === "accounts") {
@@ -246,7 +278,7 @@ function DashboardContent(): JSX.Element | null {
     hasTrackedDashboardLoadRef.current = false
     sessionStartRef.current = Date.now()
     currentScreenStartRef.current = Date.now()
-    currentScreenRef.current = "accounts"
+    currentScreenRef.current = defaultSection
     previousPageRef.current = {
       accounts: 1,
       centers: 1,
@@ -343,11 +375,13 @@ function DashboardContent(): JSX.Element | null {
         exports_count: exportCountRef.current,
       })
     }
-  }, [authReady, userId, userEmail, captureCurrentScreenTime])
+  }, [authReady, userId, userEmail, captureCurrentScreenTime, defaultSection])
 
   useEffect(() => {
     const totalVisible =
-      filteredData.filteredAccounts.length + filteredData.filteredCenters.length + filteredData.filteredProspects.length
+      (accountsEnabled ? filteredData.filteredAccounts.length : 0) +
+      (centersEnabled ? filteredData.filteredCenters.length : 0) +
+      (prospectsEnabled ? filteredData.filteredProspects.length : 0)
     const signature = `${activeFiltersCount}:${totalVisible}`
 
     if (activeFiltersCount > 0 && totalVisible === 0 && noResultsSignatureRef.current !== signature) {
@@ -470,11 +504,12 @@ function DashboardContent(): JSX.Element | null {
     previousPageRef.current[activeSection] = activePage
   }, [activePage, itemsPerPage, activeSection])
 
-  const dataLoaded =
-    !loading && accounts.length > 0 && centers.length > 0 && services.length > 0 && prospects.length > 0
+  const dataLoaded = !loading && !error
 
-  const hasMapView = accountsView === "map" || centersView === "map"
-  const { startTour } = useProductTour({ userId, dataLoaded, hasMapView })
+  const hasMapView =
+    (activeSection === "accounts" && accountsMapEnabled && accountsView === "map") ||
+    (activeSection === "centers" && centersEnabled && centersView === "map")
+  const { startTour } = useProductTour({ userId, dataLoaded, hasMapView, isSidebarCollapsed })
 
   useEffect(() => {
     if (!dataLoaded || hasTrackedDashboardLoadRef.current) {
@@ -517,6 +552,10 @@ function DashboardContent(): JSX.Element | null {
   }, [])
 
   const handleSectionSelect = useCallback((section: "accounts" | "centers" | "prospects") => {
+    if (!isSectionEnabled(section)) {
+      toast.info(getSectionUnavailableMessage(section))
+      return
+    }
     setActiveSection(section)
   }, [])
 
@@ -560,18 +599,30 @@ function DashboardContent(): JSX.Element | null {
 
       // Find the record in current data and open dialog
       if (item.type === "account") {
+        if (!accountsEnabled) {
+          toast.info(getSectionUnavailableMessage("accounts"))
+          return
+        }
         const account = accounts.find((a) => a.account_global_legal_name === item.id)
         if (account) {
           setSearchSelectedAccount(account)
           setSearchAccountDialogOpen(true)
         }
       } else if (item.type === "center") {
+        if (!centersEnabled) {
+          toast.info(getSectionUnavailableMessage("centers"))
+          return
+        }
         const center = centers.find((c) => c.cn_unique_key === item.id)
         if (center) {
           setSearchSelectedCenter(center)
           setSearchCenterDialogOpen(true)
         }
       } else if (item.type === "prospect") {
+        if (!prospectsEnabled) {
+          toast.info(getSectionUnavailableMessage("prospects"))
+          return
+        }
         const prospect = prospects.find(
           (p) => `${p.account_global_legal_name}::${p.prospect_full_name ?? `${p.prospect_first_name ?? ""} ${p.prospect_last_name ?? ""}`.trim()}` === item.id
         )
@@ -581,7 +632,7 @@ function DashboardContent(): JSX.Element | null {
         }
       }
     },
-    [handleSearchClose, accounts, centers, prospects]
+    [handleSearchClose, accounts, centers, prospects, accountsEnabled, centersEnabled, prospectsEnabled]
   )
 
   const handleSearchRecentSearchSelect = useCallback(
@@ -598,13 +649,13 @@ function DashboardContent(): JSX.Element | null {
 
       switch (action) {
         case "go-accounts":
-          setActiveSection("accounts")
+          handleSectionSelect("accounts")
           break
         case "go-centers":
-          setActiveSection("centers")
+          handleSectionSelect("centers")
           break
         case "go-prospects":
-          setActiveSection("prospects")
+          handleSectionSelect("prospects")
           break
         case "refresh":
           loadData()
@@ -614,8 +665,14 @@ function DashboardContent(): JSX.Element | null {
           break
       }
     },
-    [handleSearchClose, loadData, setTheme, resolvedTheme]
+    [handleSearchClose, handleSectionSelect, loadData, setTheme, resolvedTheme]
   )
+
+  useEffect(() => {
+    if (!accountsMapEnabled && accountsView === "map") {
+      setAccountsView("chart")
+    }
+  }, [accountsMapEnabled, accountsView])
 
   const handleSearchOpenChange = useCallback(
     (open: boolean) => {
@@ -657,7 +714,15 @@ function DashboardContent(): JSX.Element | null {
       >
         Skip to main content
       </a>
-      <Header onRefresh={handleRefresh} onStartTour={startTour} onOpenSearch={handleSearchOpen} />
+      <Header onRefresh={handleRefresh} onStartTour={startTour} onOpenSearch={handleSearchOpen} onOpenExports={() => setExportsDialogOpen(true)} onOpenHistory={() => setHistoryDialogOpen(true)} />
+      <ExportsDialog open={exportsDialogOpen} onOpenChange={setExportsDialogOpen} />
+      <HistoryDialog
+        open={historyDialogOpen}
+        onOpenChange={setHistoryDialogOpen}
+        recentItems={recentItems}
+        onItemSelect={handleSearchRecentItemSelect}
+        onClearHistory={clearRecentItems}
+      />
 
       <GlobalSearch
         open={isSearchOpen}
@@ -674,26 +739,35 @@ function DashboardContent(): JSX.Element | null {
       />
 
       {/* Search-triggered detail dialogs */}
-      <AccountDetailsDialog
-        account={searchSelectedAccount}
-        centers={centers}
-        prospects={prospects}
-        services={services}
-        tech={tech}
-        open={searchAccountDialogOpen}
-        onOpenChange={setSearchAccountDialogOpen}
-      />
-      <CenterDetailsDialog
-        center={searchSelectedCenter}
-        services={services}
-        open={searchCenterDialogOpen}
-        onOpenChange={setSearchCenterDialogOpen}
-      />
-      <ProspectDetailsDialog
-        prospect={searchSelectedProspect}
-        open={searchProspectDialogOpen}
-        onOpenChange={setSearchProspectDialogOpen}
-      />
+      {accountsEnabled && (
+        <AccountDetailsDialog
+          account={searchSelectedAccount}
+          centers={centers}
+          prospects={prospects}
+          lockedProspectTeasers={lockedProspectTeasers}
+          services={services}
+          tech={tech}
+          open={searchAccountDialogOpen}
+          onOpenChange={setSearchAccountDialogOpen}
+        />
+      )}
+      {centersEnabled && (
+        <CenterDetailsDialog
+          center={searchSelectedCenter}
+          services={services}
+          tech={tech}
+          open={searchCenterDialogOpen}
+          onOpenChange={setSearchCenterDialogOpen}
+        />
+      )}
+      {prospectsEnabled && (
+        <ProspectDetailsDialog
+          prospect={searchSelectedProspect}
+          allProspects={prospects}
+          open={searchProspectDialogOpen}
+          onOpenChange={setSearchProspectDialogOpen}
+        />
+      )}
 
       {dataLoaded && (
         <main
@@ -710,6 +784,22 @@ function DashboardContent(): JSX.Element | null {
               prospects: filteredData.filteredProspects,
             }}
             isFiltered={activeFiltersCount > 0}
+            filtersSnapshot={filters}
+            lockedProspectsCount={filteredLockedProspectTeasers.length}
+            accountNames={Array.from(
+              new Set(
+                filteredData.filteredAccounts
+                  .map((a) => a.account_global_legal_name)
+                  .filter((name): name is string => Boolean(name))
+              )
+            )}
+            centerKeys={Array.from(
+              new Set(
+                filteredData.filteredCenters
+                  .map((c) => c.cn_unique_key)
+                  .filter((key): key is string => Boolean(key))
+              )
+            )}
             onExportCompleted={handleExportCompleted}
           />
           <FiltersSidebar
@@ -746,57 +836,70 @@ function DashboardContent(): JSX.Element | null {
               <div className="px-6 pt-[var(--dashboard-content-top-gap)] pb-[var(--dashboard-content-bottom-gap)]">
                 <SummaryCards
                   filteredAccountsCount={filteredData.filteredAccounts.length}
-                  totalAccountsCount={accounts.length}
+                  totalAccountsCount={summary.totalAccountsCount}
                   filteredCentersCount={filteredData.filteredCenters.length}
-                  totalCentersCount={centers.length}
+                  totalCentersCount={summary.totalCentersCount}
                   filteredUpcomingCentersCount={filteredData.filteredCenters.filter((c) => c.center_status === "Upcoming").length}
-                  totalUpcomingCentersCount={centers.filter((c) => c.center_status === "Upcoming").length}
+                  totalUpcomingCentersCount={summary.totalUpcomingCentersCount}
                   filteredProspectsCount={filteredData.filteredProspects.length}
-                  totalProspectsCount={prospects.length}
+                  totalProspectsCount={summary.totalProspectsCount}
                   filteredHeadcount={filteredData.filteredCenters.reduce((sum, c) => sum + (c.center_employees ?? 0), 0)}
-                  totalHeadcount={centers.reduce((sum, c) => sum + (c.center_employees ?? 0), 0)}
+                  totalHeadcount={summary.totalHeadcount}
                   activeView={activeSection}
                   onSelect={handleSectionSelect}
                 />
 
                 <Tabs value={activeSection} className="space-y-4" data-tour="tab-navigation">
-                  <AccountsTab
-                    accounts={filteredData.filteredAccounts}
-                    centers={filteredData.filteredCenters}
-                    prospects={filteredData.filteredProspects}
-                    services={filteredData.filteredServices}
-                    tech={tech}
-                    functions={functions}
-                    accountChartData={accountChartData}
-                    accountsView={accountsView}
-                    setAccountsView={setAccountsView}
-                    currentPage={accountsPage}
-                    setCurrentPage={setAccountsPage}
-                    itemsPerPage={itemsPerPage}
-                  />
+                  {accountsEnabled && (
+                    <AccountsTab
+                      accounts={filteredData.filteredAccounts}
+                      centers={filteredData.filteredCenters}
+                      prospects={filteredData.filteredProspects}
+                      lockedProspectTeasers={filteredLockedProspectTeasers}
+                      services={filteredData.filteredServices}
+                      tech={tech}
+                      functions={functions}
+                      accountChartData={accountChartData}
+                      accountsView={accountsView}
+                      setAccountsView={setAccountsView}
+                      currentPage={accountsPage}
+                      setCurrentPage={setAccountsPage}
+                      itemsPerPage={itemsPerPage}
+                      onRecordOpened={addRecentItem}
+                    />
+                  )}
 
-                  <CentersTab
-                    centers={filteredData.filteredCenters}
-                    allCenters={centers}
-                    functions={functions}
-                    services={filteredData.filteredServices}
-                    centerChartData={centerChartData}
-                    centersView={centersView}
-                    setCentersView={setCentersView}
-                    currentPage={centersPage}
-                    setCurrentPage={setCentersPage}
-                    itemsPerPage={itemsPerPage}
-                  />
+                  {centersEnabled && (
+                    <CentersTab
+                      centers={filteredData.filteredCenters}
+                      allCenters={centers}
+                      functions={functions}
+                      services={filteredData.filteredServices}
+                      tech={tech}
+                      centerChartData={centerChartData}
+                      centersView={centersView}
+                      setCentersView={setCentersView}
+                      currentPage={centersPage}
+                      setCurrentPage={setCentersPage}
+                      itemsPerPage={itemsPerPage}
+                      onRecordOpened={addRecentItem}
+                    />
+                  )}
 
-                  <ProspectsTab
-                    prospects={filteredData.filteredProspects}
-                    prospectChartData={prospectChartData}
-                    prospectsView={prospectsView}
-                    setProspectsView={setProspectsView}
-                    currentPage={prospectsPage}
-                    setCurrentPage={setProspectsPage}
-                    itemsPerPage={itemsPerPage}
-                  />
+                  {prospectsEnabled && (
+                    <ProspectsTab
+                      prospects={filteredData.filteredProspects}
+                      allProspects={prospects}
+                      lockedProspectTeasers={filteredLockedProspectTeasers}
+                      prospectChartData={prospectChartData}
+                      prospectsView={prospectsView}
+                      setProspectsView={setProspectsView}
+                      currentPage={prospectsPage}
+                      setCurrentPage={setProspectsPage}
+                      itemsPerPage={itemsPerPage}
+                      onRecordOpened={addRecentItem}
+                    />
+                  )}
                 </Tabs>
               </div>
             </div>

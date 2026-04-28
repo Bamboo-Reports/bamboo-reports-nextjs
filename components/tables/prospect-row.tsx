@@ -11,30 +11,33 @@ import {
 import type { Prospect } from "@/lib/types"
 import { ensureAbsoluteUrl } from "@/lib/utils"
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard"
+import type { ProspectTableColumnKey } from "@/lib/dashboard/table-column-preferences"
 
 interface ProspectRowProps {
   prospect: Prospect
   onClick: () => void
+  visibleColumns: Set<ProspectTableColumnKey>
 }
 
-export const ProspectRow = memo(({ prospect, onClick }: ProspectRowProps) => {
+export const ProspectRow = memo(({ prospect, onClick, visibleColumns }: ProspectRowProps) => {
   const copy = useCopyToClipboard()
   const fullName =
     prospect.prospect_full_name ||
     [prospect.prospect_first_name, prospect.prospect_last_name].filter(Boolean).join(" ")
+  const accountName = prospect.account_global_legal_name || "N/A"
   const initials = fullName
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0])
     .join("")
-  const location = [prospect.prospect_city, prospect.prospect_country].filter(Boolean).join(", ")
+  const location = [prospect.prospect_city, prospect.prospect_state].filter(Boolean).join(", ") || prospect.prospect_country || ""
 
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <TableRow
-          className="cursor-pointer hover:bg-muted/50 transition-colors focus-visible:bg-muted/70"
+          className="cursor-pointer hover:bg-muted/50 transition-colors focus-visible:bg-muted/70 animate-stagger"
           onClick={onClick}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
@@ -45,6 +48,7 @@ export const ProspectRow = memo(({ prospect, onClick }: ProspectRowProps) => {
           tabIndex={0}
           aria-label={`View prospect details for ${fullName || "prospect"}`}
         >
+          {visibleColumns.has("avatar") && (
           <TableCell>
             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
               <span className="text-sm font-bold text-primary">
@@ -52,11 +56,20 @@ export const ProspectRow = memo(({ prospect, onClick }: ProspectRowProps) => {
               </span>
             </div>
           </TableCell>
+          )}
+          {visibleColumns.has("name") && (
           <TableCell className="font-medium max-w-[220px]">
-            <div className="min-w-0 truncate" title={fullName || "N/A"}>
-              {fullName || "N/A"}
+            <div className="min-w-0">
+              <div className="truncate" title={fullName || "N/A"}>
+                {fullName || "N/A"}
+              </div>
+              <div className="truncate text-xs font-normal text-muted-foreground" title={accountName}>
+                {accountName}
+              </div>
             </div>
           </TableCell>
+          )}
+          {visibleColumns.has("location") && (
           <TableCell className="max-w-[200px]">
             <div
               className="truncate"
@@ -65,16 +78,21 @@ export const ProspectRow = memo(({ prospect, onClick }: ProspectRowProps) => {
               {location || "N/A"}
             </div>
           </TableCell>
-          <TableCell className="max-w-[220px]">
+          )}
+          {visibleColumns.has("title") && (
+          <TableCell className="max-w-[180px]">
             <div className="truncate" title={prospect.prospect_title || "N/A"}>
               {prospect.prospect_title || "N/A"}
             </div>
           </TableCell>
+          )}
+          {visibleColumns.has("department") && (
           <TableCell className="max-w-[180px]">
             <div className="truncate" title={prospect.prospect_department || "N/A"}>
               {prospect.prospect_department || "N/A"}
             </div>
           </TableCell>
+          )}
         </TableRow>
       </ContextMenuTrigger>
       <ContextMenuContent className="w-48">

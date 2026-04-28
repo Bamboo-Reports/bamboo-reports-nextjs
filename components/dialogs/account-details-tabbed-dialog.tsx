@@ -25,20 +25,21 @@ import {
   Package,
   Building,
   UserCircle,
-  Layers,
   ExternalLink,
   Linkedin,
 } from "lucide-react"
 import { formatRevenueInMillions, parseRevenue } from "@/lib/utils/helpers"
-import type { Account, AccountFinancialInfo, Center, Prospect, Service, Tech } from "@/lib/types"
+import type { Account, AccountFinancialInfo, Center, Prospect, Service, Tech, LockedProspectTeaser } from "@/lib/types"
 import { CompanyLogo } from "@/components/ui/company-logo"
 import { CenterDetailsDialog } from "./center-details-dialog"
 import { ProspectDetailsDialog } from "./prospect-details-dialog"
 import { CenterGridCard } from "@/components/cards/center-grid-card"
 import { ProspectGridCard } from "@/components/cards/prospect-grid-card"
+import { LockedProspectTeaserCard } from "@/components/prospects/locked-prospect-teaser-section"
 import { Badge } from "@/components/ui/badge"
 import { TechTreemap } from "@/components/charts/tech-treemap"
 import { getAccountFinancialInfo } from "@/app/actions"
+import { isSectionEnabled } from "@/lib/config/dashboard-access"
 import {
   ChartContainer,
   ChartTooltip,
@@ -172,6 +173,7 @@ interface AccountDetailsDialogProps {
   account: Account | null
   centers: Center[]
   prospects: Prospect[]
+  lockedProspectTeasers: LockedProspectTeaser[]
   services: Service[]
   tech: Tech[]
   open: boolean
@@ -182,11 +184,14 @@ export function AccountDetailsDialog({
   account,
   centers,
   prospects,
+  lockedProspectTeasers,
   services,
   tech,
   open,
   onOpenChange,
 }: AccountDetailsDialogProps) {
+  const canViewCenters = isSectionEnabled("centers")
+  const canViewProspects = isSectionEnabled("prospects")
   const [activeTab, setActiveTab] = useState("info")
   const [selectedCenter, setSelectedCenter] = useState<Center | null>(null)
   const [isCenterDialogOpen, setIsCenterDialogOpen] = useState(false)
@@ -204,10 +209,10 @@ export function AccountDetailsDialog({
   const ticker = account?.account_hq_stock_ticker?.trim() ?? ""
 
   // Filter centers and prospects for this account
-  const accountCenters = account
+  const accountCenters = account && canViewCenters
     ? centers.filter((center) => center.account_global_legal_name === account.account_global_legal_name)
     : []
-  const accountProspects = account
+  const accountProspects = account && canViewProspects
     ? prospects
         .filter((prospect) => prospect.account_global_legal_name === account.account_global_legal_name)
         .sort((a, b) => {
@@ -216,12 +221,14 @@ export function AccountDetailsDialog({
           return nameA.localeCompare(nameB)
         })
     : []
+  const accountLockedProspectTeasers = account && canViewProspects
+    ? lockedProspectTeasers.filter((teaser) => teaser.account_global_legal_name === account.account_global_legal_name)
+    : []
   const accountTech = account
     ? tech.filter((item) => item.account_global_legal_name === account.account_global_legal_name)
     : []
 
-  // Merge city and country for location
-  const location = [account?.account_hq_city, account?.account_hq_country]
+  const location = [account?.account_hq_city, account?.account_hq_state]
     .filter(Boolean)
     .join(", ")
 
@@ -267,6 +274,7 @@ export function AccountDetailsDialog({
       return true
     })
   }, [accountProspects, prospectDeptFilter, prospectLevelFilter])
+  const lockedTeaserCountForAccount = accountLockedProspectTeasers.length
 
   const toggleInSet = (setter: React.Dispatch<React.SetStateAction<Set<string>>>, value: string) => {
     setter((prev) => {
@@ -349,7 +357,7 @@ export function AccountDetailsDialog({
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center gap-3">
               <CompanyLogo
-                domain={account.account_hq_website}
+                domain={account.account_hq_website ?? undefined}
                 companyName={account.account_global_legal_name}
                 size="md"
                 theme="auto"
@@ -383,14 +391,14 @@ export function AccountDetailsDialog({
                   </div>
                 </div>
                 <p className="text-sm font-normal text-muted-foreground mt-1">
-                  {location || account.account_hq_region}
+                  {[account.account_hq_city, account.account_hq_state, account.account_hq_country].filter(Boolean).join(", ") || account.account_hq_region}
                 </p>
               </div>
             </DialogTitle>
           </DialogHeader>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-            <TabsList className={`grid w-full ${accountCenters.length > 0 && accountProspects.length > 0 ? "grid-cols-3" : accountCenters.length > 0 || accountProspects.length > 0 ? "grid-cols-2" : "grid-cols-1"}`}>
+            <TabsList className={`grid w-full ${accountCenters.length > 0 && (accountProspects.length > 0 || accountLockedProspectTeasers.length > 0) ? "grid-cols-3" : accountCenters.length > 0 || accountProspects.length > 0 || accountLockedProspectTeasers.length > 0 ? "grid-cols-2" : "grid-cols-1"}`}>
               <TabsTrigger value="info" className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
                 Account Info
@@ -404,7 +412,7 @@ export function AccountDetailsDialog({
                 </Badge>
               </TabsTrigger>
               )}
-              {accountProspects.length > 0 && (
+              {(accountProspects.length > 0 || accountLockedProspectTeasers.length > 0) && (
               <TabsTrigger value="prospects" className="flex items-center gap-2">
                 <UserCircle className="h-4 w-4" />
                 Prospects
@@ -433,7 +441,18 @@ export function AccountDetailsDialog({
                           <Package className="h-3.5 w-3.5" />
                           Key Offerings
                         </p>
-                        <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-line">{account.account_hq_key_offerings}</p>
+                        <ul className="space-y-1 text-sm leading-relaxed text-foreground/90">
+                          {account.account_hq_key_offerings
+                            .split(/\r?\n/)
+                            .map((line) => line.trim())
+                            .filter(Boolean)
+                            .map((line, idx) => (
+                              <li key={idx} className="flex gap-2">
+                                <span className="mt-[0.55em] h-1 w-1 shrink-0 rounded-full bg-muted-foreground/70" aria-hidden="true" />
+                                <span>{line}</span>
+                              </li>
+                            ))}
+                        </ul>
                       </div>
                     )}
                   </div>
@@ -441,43 +460,28 @@ export function AccountDetailsDialog({
                     <MetaRow label="Account Type" value={account.account_hq_company_type} />
                     <MetaRow label="Stock Ticker" value={account.account_hq_stock_ticker} />
                     <MetaRow label="HQ Location" value={location} />
+                    <MetaRow label="Country" value={account.account_hq_country} />
                     <MetaRow label="Region" value={account.account_hq_region} />
                     <MetaRow label="Industry" value={account.account_hq_industry} />
                     <MetaRow label="Sub Industry" value={account.account_hq_sub_industry} />
                     <MetaRow label="Primary Category" value={account.account_primary_category} />
                     <MetaRow label="Primary Nature" value={account.account_primary_nature} />
+                    <MetaRow label="NASSCOM GCC Listing Status" value={account.account_nasscom_status} />
+                    <MetaRow label="Forbes 2000 Rank" value={account.account_hq_forbes_2000_rank ? `#${account.account_hq_forbes_2000_rank}` : null} />
+                    <MetaRow label="Fortune 500 Rank" value={account.account_hq_fortune_500_rank ? `#${account.account_hq_fortune_500_rank}` : null} />
                   </div>
                 </div>
               </section>
 
               {/* Scale & Financials */}
               <section className="space-y-4">
-                <SectionHeader title="Scale & Financials">
-                  {account.account_hq_forbes_2000_rank && (
-                    <Badge variant="outline" className="gap-1 font-normal">
-                      <Award className="h-3 w-3" />
-                      Forbes #{account.account_hq_forbes_2000_rank}
-                    </Badge>
-                  )}
-                  {account.account_hq_fortune_500_rank && (
-                    <Badge variant="outline" className="gap-1 font-normal">
-                      <Award className="h-3 w-3" />
-                      Fortune #{account.account_hq_fortune_500_rank}
-                    </Badge>
-                  )}
-                </SectionHeader>
+                <SectionHeader title="Scale & Financials" />
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <KPITile
                     icon={DollarSign}
                     label="Revenue"
-                    value={formatRevenueInMillions(parseRevenue(account.account_hq_revenue))}
+                    value={formatRevenueInMillions(parseRevenue(account.account_hq_revenue ?? undefined))}
                     caption={account.account_hq_revenue_range}
-                  />
-                  <KPITile
-                    icon={Users}
-                    label="Employees"
-                    value={account.account_hq_employee_count}
-                    caption={account.account_hq_employee_range}
                   />
                   {financialData && (
                     <>
@@ -495,6 +499,12 @@ export function AccountDetailsDialog({
                       />
                     </>
                   )}
+                  <KPITile
+                    icon={Users}
+                    label="Employees"
+                    value={account.account_hq_employee_count}
+                    caption={account.account_hq_employee_range}
+                  />
                 </div>
 
                 {ticker && !financialError && !financialLoading && financialData && financialData.annualRevenueSeries.length > 0 && (
@@ -546,21 +556,14 @@ export function AccountDetailsDialog({
               </section>
 
               {/* India Presence */}
-              {(account.account_first_center_year || account.years_in_india || account.account_center_employees || account.account_center_employees_range || account.account_nasscom_status || accountCenters.length > 0) && (
+              {canViewCenters && (account.account_first_center_year || account.years_in_india || account.account_center_employees || account.account_center_employees_range || account.account_nasscom_status || accountCenters.length > 0) && (
                 <section className="space-y-4">
-                  <SectionHeader title="India Presence">
-                    {account.account_nasscom_status && (
-                      <Badge variant="outline" className="gap-1 font-normal">
-                        <Award className="h-3 w-3" />
-                        NASSCOM: {account.account_nasscom_status}
-                      </Badge>
-                    )}
-                  </SectionHeader>
+                  <SectionHeader title="India Presence" />
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <KPITile icon={Calendar} label="First Center" value={account.account_first_center_year} />
                     <KPITile icon={Calendar} label="Years in India" value={account.years_in_india} />
                     <KPITile icon={Users} label="Center Employees" value={account.account_center_employees} />
-                    <KPITile icon={Users} label="GCC Headcount (India)" value={account.account_center_employees_range} />
+                    <KPITile icon={Users} label="GCC Aggregate Headcount (India)" value={account.account_center_employees_range} />
                   </div>
                   {accountCenters.length > 0 && (
                     <div className="rounded-lg border border-border/60 bg-background/40 backdrop-blur-sm shadow-sm overflow-hidden h-[360px] lg:h-[420px] dark:bg-white/5 dark:border-white/10">
@@ -570,7 +573,7 @@ export function AccountDetailsDialog({
                           Centers Map
                         </div>
                         <div className="flex-1 min-h-0">
-                          <CentersMap centers={accountCenters} heightClass="h-full" />
+                          <CentersMap centers={accountCenters} heightClass="h-full" showAccountsCount={false} />
                         </div>
                       </div>
                     </div>
@@ -583,15 +586,7 @@ export function AccountDetailsDialog({
                 <section className="space-y-4">
                   <SectionHeader title="Technology Stack" />
                   <div className="rounded-lg border border-border/60 bg-background/40 backdrop-blur-sm shadow-sm overflow-hidden h-[360px] lg:h-[420px] dark:bg-white/5 dark:border-white/10">
-                    <div className="flex h-full flex-col">
-                      <div className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-muted-foreground border-b border-border/40">
-                        <Layers className="h-4 w-4" />
-                        Detected Stack
-                      </div>
-                      <div className="flex-1 min-h-0">
-                        <TechTreemap tech={accountTech} heightClass="h-full" showTitle={false} />
-                      </div>
-                    </div>
+                    <TechTreemap tech={accountTech} heightClass="h-full" showTitle={false} />
                   </div>
                 </section>
               )}
@@ -633,7 +628,7 @@ export function AccountDetailsDialog({
             )}
 
             {/* Prospects Tab */}
-            {accountProspects.length > 0 && (
+            {(accountProspects.length > 0 || accountLockedProspectTeasers.length > 0) && (
             <TabsContent value="prospects" className="mt-4 space-y-4">
                 <div className="space-y-2">
                   <QuickFilterGroup
@@ -660,6 +655,25 @@ export function AccountDetailsDialog({
                         onClick={() => handleProspectClick(prospect)}
                       />
                     ))}
+                    {accountLockedProspectTeasers.map((teaser) => (
+                      <LockedProspectTeaserCard
+                        key={teaser.id}
+                        teaser={teaser}
+                        remainingCount={lockedTeaserCountForAccount}
+                        accountContext={account.account_global_legal_name}
+                      />
+                    ))}
+                  </div>
+                ) : accountLockedProspectTeasers.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {accountLockedProspectTeasers.map((teaser) => (
+                      <LockedProspectTeaserCard
+                        key={teaser.id}
+                        teaser={teaser}
+                        remainingCount={lockedTeaserCountForAccount}
+                        accountContext={account.account_global_legal_name}
+                      />
+                    ))}
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground py-6 text-center">No prospects match the selected filters.</p>
@@ -675,6 +689,7 @@ export function AccountDetailsDialog({
       <CenterDetailsDialog
         center={selectedCenter}
         services={services}
+        tech={tech}
         open={isCenterDialogOpen}
         onOpenChange={setIsCenterDialogOpen}
       />
@@ -682,6 +697,7 @@ export function AccountDetailsDialog({
       {/* Prospect Details Dialog */}
       <ProspectDetailsDialog
         prospect={selectedProspect}
+        allProspects={prospects}
         open={isProspectDialogOpen}
         onOpenChange={setIsProspectDialogOpen}
       />

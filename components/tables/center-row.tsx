@@ -11,18 +11,21 @@ import {
 import type { Center } from "@/lib/types"
 import { ensureAbsoluteUrl } from "@/lib/utils"
 import { CompanyLogo } from "@/components/ui/company-logo"
+import type { CenterTableColumnKey } from "@/lib/dashboard/table-column-preferences"
 interface CenterRowProps {
   center: Center
   onClick: () => void
+  visibleColumns: Set<CenterTableColumnKey>
 }
 
-export const CenterRow = memo(({ center, onClick }: CenterRowProps) => {
+export const CenterRow = memo(({ center, onClick, visibleColumns }: CenterRowProps) => {
+  const location = [center.center_city, center.center_state].filter(Boolean).join(", ")
 
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <TableRow
-          className="cursor-pointer hover:bg-muted/50 transition-colors focus-visible:bg-muted/70"
+          className="cursor-pointer hover:bg-muted/50 transition-colors focus-visible:bg-muted/70 animate-stagger"
           onClick={onClick}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
@@ -33,6 +36,7 @@ export const CenterRow = memo(({ center, onClick }: CenterRowProps) => {
           tabIndex={0}
           aria-label={`View center details for ${center.center_name || "center"}`}
         >
+          {visibleColumns.has("name") && (
           <TableCell className="font-medium max-w-[260px]">
             <div className="flex items-center gap-3">
               <CompanyLogo
@@ -41,29 +45,44 @@ export const CenterRow = memo(({ center, onClick }: CenterRowProps) => {
                 size="sm"
                 theme="auto"
               />
-              <div className="min-w-0 truncate" title={center.center_name || "N/A"}>
-                {center.center_name || "N/A"}
+              <div className="min-w-0">
+                <div className="truncate" title={center.center_name || "N/A"}>
+                  {center.center_name || "N/A"}
+                </div>
+                <div
+                  className="truncate text-xs font-normal text-muted-foreground"
+                  title={center.account_global_legal_name || "N/A"}
+                >
+                  {center.account_global_legal_name || "N/A"}
+                </div>
               </div>
             </div>
           </TableCell>
+          )}
+          {visibleColumns.has("location") && (
           <TableCell className="max-w-[200px]">
             <div
               className="truncate"
-              title={[center.center_city, center.center_country].filter(Boolean).join(", ") || "N/A"}
+              title={location || "N/A"}
             >
-              {[center.center_city, center.center_country].filter(Boolean).join(", ") || "N/A"}
+              {location || "N/A"}
             </div>
           </TableCell>
+          )}
+          {visibleColumns.has("type") && (
           <TableCell className="max-w-[200px]">
             <div className="truncate" title={center.center_type || "N/A"}>
               {center.center_type || "N/A"}
             </div>
           </TableCell>
+          )}
+          {visibleColumns.has("employees") && (
           <TableCell className="max-w-[160px]">
             <div className="truncate" title={center.center_employees_range || "N/A"}>
               {center.center_employees_range || "N/A"}
             </div>
           </TableCell>
+          )}
         </TableRow>
       </ContextMenuTrigger>
       <ContextMenuContent className="w-48">
