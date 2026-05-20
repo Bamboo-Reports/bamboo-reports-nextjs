@@ -74,6 +74,11 @@ function SearchResultRow({ result }: { result: SearchResult }) {
         <span className="truncate text-sm font-medium leading-tight block">
           {result.title}
         </span>
+        {result.matchedAlias && (
+          <p className="mt-0.5 truncate text-xs text-muted-foreground leading-tight">
+            Known as: {result.matchedAlias.value}
+          </p>
+        )}
         {result.subtitle && (
           <p className="mt-0.5 truncate text-xs text-muted-foreground leading-tight">
             {result.subtitle}

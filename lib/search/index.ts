@@ -1,4 +1,5 @@
-import type { Account, Center, Prospect } from "@/lib/types"
+import type { Account, Alias, Center, Prospect } from "@/lib/types"
+import { aliasSearchText, buildAliasMap, findAliasMatch, type AliasMatch } from "@/lib/search/alias-utils"
 
 export type SearchResultType = "account" | "center" | "prospect"
 
@@ -9,10 +10,18 @@ export interface SearchResult {
   subtitle: string
   meta: string
   data: Account | Center | Prospect
+  matchedAlias?: AliasMatch
+}
+
+interface AccountIndexEntry {
+  searchText: string
+  result: SearchResult
+  aliases: Alias[]
+  nameLower: string
 }
 
 interface SearchIndex {
-  accounts: { searchText: string; result: SearchResult }[]
+  accounts: AccountIndexEntry[]
   centers: { searchText: string; result: SearchResult }[]
   prospects: { searchText: string; result: SearchResult }[]
 }
@@ -20,15 +29,23 @@ interface SearchIndex {
 export function buildSearchIndex(
   accounts: Account[],
   centers: Center[],
-  prospects: Prospect[]
+  prospects: Prospect[],
+  aliases: Alias[] = []
 ): SearchIndex {
-  const accountEntries = accounts.map((a) => {
+  const aliasMap = buildAliasMap(aliases)
+
+  const accountEntries: AccountIndexEntry[] = accounts.map((a) => {
     const name = a.account_global_legal_name
     const industry = a.account_hq_industry ?? ""
     const country = a.account_hq_country ?? ""
+    const nameLower = name.toLowerCase()
+    const accountAliases = aliasMap.get(nameLower) ?? []
+    const aliasText = aliasSearchText(accountAliases)
 
     return {
-      searchText: [name, industry, country].join(" ").toLowerCase(),
+      searchText: [name, industry, country, aliasText].filter(Boolean).join(" ").toLowerCase(),
+      nameLower,
+      aliases: accountAliases,
       result: {
         type: "account" as const,
         id: name,
@@ -127,7 +144,38 @@ export function searchIndex(
     }
   }
 
-  const accounts = searchGroup(index.accounts)
+  const searchAccounts = (entries: AccountIndexEntry[]): GroupedResults => {
+    const startsWithMatches: SearchResult[] = []
+    const containsMatches: SearchResult[] = []
+
+    for (const entry of entries) {
+      const matchedByName =
+        entry.nameLower.startsWith(term) || entry.nameLower.includes(term)
+      const matchedAlias = matchedByName ? null : findAliasMatch(entry.aliases, term)
+
+      if (!matchedByName && !matchedAlias && !entry.searchText.includes(term)) {
+        continue
+      }
+
+      const result: SearchResult = matchedAlias
+        ? { ...entry.result, matchedAlias }
+        : entry.result
+
+      if (entry.nameLower.startsWith(term) || entry.searchText.startsWith(term)) {
+        startsWithMatches.push(result)
+      } else {
+        containsMatches.push(result)
+      }
+    }
+
+    const all = [...startsWithMatches, ...containsMatches]
+    return {
+      items: all.slice(0, MAX_RENDERED_PER_GROUP),
+      totalMatches: all.length,
+    }
+  }
+
+  const accounts = searchAccounts(index.accounts)
   const centers = searchGroup(index.centers)
   const prospects = searchGroup(index.prospects)
 

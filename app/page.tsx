@@ -61,6 +61,7 @@ function DashboardContent(): JSX.Element | null {
     services,
     tech,
     prospects,
+    aliases,
     lockedProspectTeasers,
     summary,
     loading,
@@ -132,6 +133,7 @@ function DashboardContent(): JSX.Element | null {
     accounts: accountsEnabled ? accounts : [],
     centers: centersEnabled ? centers : [],
     prospects: prospectsEnabled ? prospects : [],
+    aliases: accountsEnabled ? aliases : [],
   })
 
   const {
@@ -813,6 +815,7 @@ function DashboardContent(): JSX.Element | null {
             yearsInIndiaRange={yearsInIndiaRange}
             centerIncYearRange={centerIncYearRange}
             accountNames={accountNames}
+            aliases={aliases}
             setPendingFilters={setPendingFilters}
             resetFilters={resetFilters}
             handleExportAll={handleExportAll}

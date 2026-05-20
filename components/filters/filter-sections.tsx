@@ -10,7 +10,7 @@ import { EnhancedMultiSelect } from "@/components/enhanced-multi-select"
 import { AccountAutocomplete } from "@/components/filters/account-autocomplete"
 import { TitleKeywordInput } from "@/components/filters/title-keyword-input"
 import { getPremiumFilterKeys, isFilterEnabled, isShowMoreEnabled } from "@/lib/config/filters"
-import type { Filters, AvailableOptions } from "@/lib/types"
+import type { Alias, Filters, AvailableOptions } from "@/lib/types"
 
 interface FilterSectionBaseProps {
   pendingFilters: Filters
@@ -23,6 +23,7 @@ interface FilterSectionBaseProps {
 
 interface AccountFilterSectionProps extends FilterSectionBaseProps {
   accountNames: string[]
+  aliases?: Alias[]
   revenueRange: { min: number; max: number }
   yearsInIndiaRange: { min: number; max: number }
   handleMinRevenueChange: (value: string) => void
@@ -67,6 +68,7 @@ export function AccountFiltersSection({
   setPendingFilters,
   setActiveFilter,
   accountNames,
+  aliases,
   revenueRange,
   yearsInIndiaRange,
   handleMinRevenueChange,
@@ -95,6 +97,7 @@ export function AccountFiltersSection({
             <Label className="text-xs font-medium">Account Name</Label>
             <AccountAutocomplete
               accountNames={accountNames}
+              aliases={aliases}
               selectedAccounts={pendingFilters.accountGlobalLegalNameKeywords}
               onChange={(keywords) => setPendingFilters((prev) => ({ ...prev, accountGlobalLegalNameKeywords: keywords }))}
               placeholder="Type to search account names..."

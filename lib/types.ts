@@ -147,6 +147,17 @@ export interface Prospect {
   prospect_country: string | null
 }
 
+export interface Alias {
+  uuid: string
+  account_global_legal_name: string
+  short_legal_name: string | null
+  brand_name: string | null
+  abbreviated_name: string | null
+  flagship_products: string | null
+  currently_known_as: string | null
+  notes: string | null
+}
+
 export interface LockedProspectTeaser {
   id: string
   locked: true
