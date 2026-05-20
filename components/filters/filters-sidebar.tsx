@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { getSectionUnavailableMessage, isSectionEnabled } from '@/lib/config/dashboard-access'
 import { cn } from '@/lib/utils'
 import { isSectionVisible } from '@/lib/config/filters'
-import type { AvailableOptions, Filters } from '@/lib/types'
+import type { Alias, AvailableOptions, Filters } from '@/lib/types'
 
 interface FiltersSidebarProps {
   filters: Filters
@@ -26,6 +26,7 @@ interface FiltersSidebarProps {
   yearsInIndiaRange: { min: number; max: number }
   centerIncYearRange: { min: number; max: number }
   accountNames: string[]
+  aliases?: Alias[]
 
   setPendingFilters: React.Dispatch<React.SetStateAction<Filters>>
   resetFilters: () => void
@@ -57,6 +58,7 @@ export function FiltersSidebar({
   yearsInIndiaRange,
   centerIncYearRange,
   accountNames,
+  aliases,
   setPendingFilters,
   resetFilters,
   handleExportAll,
@@ -239,6 +241,7 @@ export function FiltersSidebar({
                 setPendingFilters={setPendingFilters}
                 setActiveFilter={setActiveFilter}
                 accountNames={accountNames}
+                aliases={aliases}
                 revenueRange={revenueRange}
                 yearsInIndiaRange={yearsInIndiaRange}
                 handleMinRevenueChange={handleMinRevenueChange}

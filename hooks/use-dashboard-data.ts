@@ -4,7 +4,7 @@ import { ANALYTICS_EVENTS } from "@/lib/analytics/events"
 import { isSectionEnabled } from "@/lib/config/dashboard-access"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import type { DashboardSummaryMetrics } from "@/app/actions/data"
-import type { Account, Center, Function, Service, Tech, Prospect, LockedProspectTeaser } from "@/lib/types"
+import type { Account, Alias, Center, Function, Service, Tech, Prospect, LockedProspectTeaser } from "@/lib/types"
 
 interface UseDashboardDataOptions {
   enabled: boolean
@@ -17,6 +17,7 @@ interface AllDataResult {
   services: unknown[]
   tech: unknown[]
   prospects: unknown[]
+  aliases?: unknown[]
   lockedProspectTeasers: unknown[]
   summary?: DashboardSummaryMetrics
   error?: string
@@ -32,6 +33,7 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
   const [services, setServices] = useState<Service[]>([])
   const [tech, setTech] = useState<Tech[]>([])
   const [prospects, setProspects] = useState<Prospect[]>([])
+  const [aliases, setAliases] = useState<Alias[]>([])
   const [lockedProspectTeasers, setLockedProspectTeasers] = useState<LockedProspectTeaser[]>([])
   const [summary, setSummary] = useState<DashboardSummaryMetrics>({
     totalAccountsCount: 0,
@@ -56,6 +58,7 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
       setServices([])
       setTech([])
       setProspects([])
+      setAliases([])
       setLockedProspectTeasers([])
       setSummary({
         totalAccountsCount: 0,
@@ -109,6 +112,7 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
       const servicesData = Array.isArray(data.services) ? data.services : []
       const techData = Array.isArray(data.tech) ? data.tech : []
       const prospectsData = Array.isArray(data.prospects) ? data.prospects : []
+      const aliasesData = Array.isArray(data.aliases) ? data.aliases : []
       const lockedProspectTeasersData = Array.isArray(data.lockedProspectTeasers) ? data.lockedProspectTeasers : []
       const fallbackCentersData = centersData as Center[]
       const summaryData: DashboardSummaryMetrics = data.summary ?? {
@@ -141,6 +145,7 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
       setServices(servicesData as Service[])
       setTech(techData as Tech[])
       setProspects(prospectsData as Prospect[])
+      setAliases(aliasesData as Alias[])
       setLockedProspectTeasers(lockedProspectTeasersData as LockedProspectTeaser[])
       setSummary(summaryData)
 
@@ -183,6 +188,7 @@ export function useDashboardData({ enabled }: UseDashboardDataOptions) {
     services,
     tech,
     prospects,
+    aliases,
     lockedProspectTeasers,
     summary,
     loading,

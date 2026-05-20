@@ -15,7 +15,8 @@ import {
   toTrackedFilterValueArray,
   toTrackedStringArray,
 } from "@/lib/analytics/tracking"
-import type { FilterValue } from "@/lib/types"
+import type { Alias, FilterValue } from "@/lib/types"
+import { buildAliasMap, findAliasMatch, type AliasMatch } from "@/lib/search/alias-utils"
 
 interface AccountAutocompleteProps {
   accountNames: string[]
@@ -23,6 +24,12 @@ interface AccountAutocompleteProps {
   onChange: (accounts: FilterValue[]) => void
   placeholder?: string
   trackingKey?: string
+  aliases?: Alias[]
+}
+
+interface AccountSuggestion {
+  name: string
+  matchedAlias: AliasMatch | null
 }
 
 export function AccountAutocomplete({
@@ -31,6 +38,7 @@ export function AccountAutocomplete({
   onChange,
   placeholder = "Type to search account names...",
   trackingKey,
+  aliases,
 }: AccountAutocompleteProps) {
   const [inputValue, setInputValue] = useState("")
   const [debouncedValue, setDebouncedValue] = useState("")
@@ -56,35 +64,37 @@ export function AccountAutocomplete({
     return unique.sort((a, b) => a.localeCompare(b))
   }, [accountNames])
 
+  const aliasMap = useMemo(() => buildAliasMap(aliases ?? []), [aliases])
+
   // Filter suggestions based on input with smart matching
-  const suggestions = useMemo(() => {
+  const suggestions = useMemo<AccountSuggestion[]>(() => {
     if (!debouncedValue.trim()) return []
 
     const searchTerm = debouncedValue.toLowerCase().trim()
     const alreadySelected = new Set(selectedAccounts.map(s => s.value.toLowerCase()))
 
-    // First, get accounts that start with the search term (highest priority)
-    const startsWithMatches = uniqueAccountNames.filter(
-      name =>
-        name.toLowerCase().startsWith(searchTerm) &&
-        !alreadySelected.has(name.toLowerCase())
-    )
+    const startsWithMatches: AccountSuggestion[] = []
+    const containsMatches: AccountSuggestion[] = []
+    const aliasMatches: AccountSuggestion[] = []
 
-    // Then, get accounts that contain the search term (lower priority)
-    const containsMatches = uniqueAccountNames.filter(
-      name => {
-        const lowerName = name.toLowerCase()
-        return (
-          lowerName.includes(searchTerm) &&
-          !lowerName.startsWith(searchTerm) &&
-          !alreadySelected.has(lowerName)
-        )
+    for (const name of uniqueAccountNames) {
+      const lowerName = name.toLowerCase()
+      if (alreadySelected.has(lowerName)) continue
+
+      if (lowerName.startsWith(searchTerm)) {
+        startsWithMatches.push({ name, matchedAlias: null })
+      } else if (lowerName.includes(searchTerm)) {
+        containsMatches.push({ name, matchedAlias: null })
+      } else {
+        const matched = findAliasMatch(aliasMap.get(lowerName), searchTerm)
+        if (matched) {
+          aliasMatches.push({ name, matchedAlias: matched })
+        }
       }
-    )
+    }
 
-    // Combine and limit to 50 results for performance
-    return [...startsWithMatches, ...containsMatches].slice(0, 50)
-  }, [debouncedValue, uniqueAccountNames, selectedAccounts])
+    return [...startsWithMatches, ...containsMatches, ...aliasMatches].slice(0, 50)
+  }, [debouncedValue, uniqueAccountNames, selectedAccounts, aliasMap])
   const isSuggestionsOpen = isOpen && suggestions.length > 0
   const listboxId = `${comboboxId}-listbox`
   const activeOptionId =
@@ -174,7 +184,7 @@ export function AccountAutocomplete({
       case 'Enter':
         e.preventDefault()
         if (suggestions[highlightedIndex]) {
-          handleSelectAccount(suggestions[highlightedIndex])
+          handleSelectAccount(suggestions[highlightedIndex].name)
         }
         break
       case 'Escape':
@@ -210,7 +220,7 @@ export function AccountAutocomplete({
       query_length: debouncedValue.trim().length,
       results_visible_count: suggestions.length,
       input_type: "autocomplete",
-      suggestion_values: toTrackedStringArray(suggestions),
+      suggestion_values: toTrackedStringArray(suggestions.map((s) => s.name)),
     })
   }, [debouncedValue, suggestions, sourceFilterKey])
 
@@ -341,7 +351,7 @@ export function AccountAutocomplete({
               <div className="p-1">
                 {suggestions.map((suggestion, index) => (
                   <div
-                    key={suggestion}
+                    key={suggestion.name}
                     id={`${comboboxId}-option-${index}`}
                     className={cn(
                       "flex items-center justify-between px-3 py-2 cursor-pointer rounded-sm text-sm transition-colors",
@@ -351,11 +361,20 @@ export function AccountAutocomplete({
                     )}
                     role="option"
                     aria-selected={highlightedIndex === index}
-                    onClick={() => handleSelectAccount(suggestion)}
+                    onClick={() => handleSelectAccount(suggestion.name)}
                     onMouseEnter={() => setHighlightedIndex(index)}
                   >
-                    <span className="flex-1">
-                      {highlightMatch(suggestion, debouncedValue)}
+                    <span className="flex-1 min-w-0">
+                      <span className="block">
+                        {suggestion.matchedAlias
+                          ? suggestion.name
+                          : highlightMatch(suggestion.name, debouncedValue)}
+                      </span>
+                      {suggestion.matchedAlias && (
+                        <span className="mt-0.5 block text-xs text-muted-foreground">
+                          Known as: {highlightMatch(suggestion.matchedAlias.value, debouncedValue)}
+                        </span>
+                      )}
                     </span>
                     <div className="flex gap-1 ml-2">
                       <Button
@@ -365,10 +384,10 @@ export function AccountAutocomplete({
                         className="h-6 w-6 p-0 hover:bg-green-100 dark:hover:bg-green-900/20"
                         onClick={(e) => {
                           e.stopPropagation()
-                          handleSelectAccount(suggestion, 'include')
+                          handleSelectAccount(suggestion.name, 'include')
                         }}
                         title="Include"
-                        aria-label={`Include ${suggestion}`}
+                        aria-label={`Include ${suggestion.name}`}
                       >
                         <Plus className="h-3 w-3 text-green-600" />
                       </Button>
@@ -379,10 +398,10 @@ export function AccountAutocomplete({
                         className="h-6 w-6 p-0 hover:bg-red-100 dark:hover:bg-red-900/20"
                         onClick={(e) => {
                           e.stopPropagation()
-                          handleSelectAccount(suggestion, 'exclude')
+                          handleSelectAccount(suggestion.name, 'exclude')
                         }}
                         title="Exclude"
-                        aria-label={`Exclude ${suggestion}`}
+                        aria-label={`Exclude ${suggestion.name}`}
                       >
                         <Minus className="h-3 w-3 text-red-600" />
                       </Button>

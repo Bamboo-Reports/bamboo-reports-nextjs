@@ -1,13 +1,14 @@
 "use client"
 
 import { useMemo, useState, useCallback, useRef, useEffect } from "react"
-import type { Account, Center, Prospect } from "@/lib/types"
+import type { Account, Alias, Center, Prospect } from "@/lib/types"
 import { buildSearchIndex, searchIndex, type GroupedResults } from "@/lib/search"
 
 interface UseGlobalSearchProps {
   accounts: Account[]
   centers: Center[]
   prospects: Prospect[]
+  aliases?: Alias[]
 }
 
 interface UseGlobalSearchReturn {
@@ -31,6 +32,7 @@ export function useGlobalSearch({
   accounts,
   centers,
   prospects,
+  aliases,
 }: UseGlobalSearchProps): UseGlobalSearchReturn {
   const [query, setQuery] = useState("")
   const [debouncedQuery, setDebouncedQuery] = useState("")
@@ -38,8 +40,8 @@ export function useGlobalSearch({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const index = useMemo(
-    () => buildSearchIndex(accounts, centers, prospects),
-    [accounts, centers, prospects]
+    () => buildSearchIndex(accounts, centers, prospects, aliases ?? []),
+    [accounts, centers, prospects, aliases]
   )
 
   const handleSetQuery = useCallback((value: string) => {

@@ -1,6 +1,6 @@
 "use server"
 
-import type { Account, Center, Function, Service, Tech, Prospect, LockedProspectTeaser } from "@/lib/types"
+import type { Account, Alias, Center, Function, Service, Tech, Prospect, LockedProspectTeaser } from "@/lib/types"
 import { getProspectsPerAccountLimit, isSectionEnabled } from "@/lib/config/dashboard-access"
 import { partitionProspectsByAccess } from "@/lib/dashboard/prospect-access"
 import { getSqlOrThrow, fetchWithRetry } from "@/lib/db/connection"
@@ -67,6 +67,20 @@ export async function getTech(): Promise<Tech[]> {
     )) as Tech[]
   } catch (error) {
     console.error("Error fetching tech:", error)
+    return []
+  }
+}
+
+export async function getAliases(): Promise<Alias[]> {
+  try {
+    const sqlClient = getSqlOrThrow()
+    return (await fetchWithRetry(
+      () => sqlClient`SELECT uuid, account_global_legal_name, short_legal_name, brand_name,
+        abbreviated_name, flagship_products, currently_known_as, notes
+        FROM alias`
+    )) as Alias[]
+  } catch (error) {
+    console.error("Error fetching aliases:", error)
     return []
   }
 }
@@ -241,6 +255,7 @@ export type AllDataResult = {
   services: Service[]
   tech: Tech[]
   prospects: Prospect[]
+  aliases: Alias[]
   lockedProspectTeasers: LockedProspectTeaser[]
   summary: DashboardSummaryMetrics
   error: string | null
@@ -258,6 +273,7 @@ export async function getAllData(): Promise<AllDataResult> {
         services: [],
         tech: [],
         prospects: [],
+        aliases: [],
         lockedProspectTeasers: [],
         summary: {
           totalAccountsCount: 0,
@@ -295,13 +311,14 @@ export async function getAllData(): Promise<AllDataResult> {
     }
 
     // Fetch all data in parallel with retry logic
-    const [accounts, centers, functions, services, tech, prospects] = await Promise.all([
+    const [accounts, centers, functions, services, tech, prospects, aliases] = await Promise.all([
       getAccounts(),
       getCenters(),
       getFunctions(),
       getServices(),
       getTech(),
       getProspects(),
+      getAliases(),
     ])
 
     return {
@@ -311,6 +328,7 @@ export async function getAllData(): Promise<AllDataResult> {
       services,
       tech,
       prospects,
+      aliases,
       lockedProspectTeasers: [],
       summary: {
         totalAccountsCount: accounts.length,
@@ -357,6 +375,7 @@ export async function getDashboardData(): Promise<AllDataResult> {
         services: [],
         tech: [],
         prospects: [],
+        aliases: [],
         lockedProspectTeasers: [],
         summary: {
           totalAccountsCount: 0,
@@ -379,6 +398,7 @@ export async function getDashboardData(): Promise<AllDataResult> {
         services: [],
         tech: [],
         prospects: [],
+        aliases: [],
         lockedProspectTeasers: [],
         summary: {
           totalAccountsCount: 0,
@@ -396,13 +416,14 @@ export async function getDashboardData(): Promise<AllDataResult> {
     const prospectsEnabled = isSectionEnabled("prospects")
     const prospectsPerAccountLimit = getProspectsPerAccountLimit()
 
-    const [accounts, centers, functions, services, tech, rawProspects, summary] = await Promise.all([
+    const [accounts, centers, functions, services, tech, rawProspects, aliases, summary] = await Promise.all([
       accountsEnabled ? getDashboardAccounts() : Promise.resolve([]),
       centersEnabled ? getDashboardCenters() : Promise.resolve([]),
       centersEnabled ? getDashboardFunctions() : Promise.resolve([]),
       centersEnabled ? getDashboardServices() : Promise.resolve([]),
       accountsEnabled || centersEnabled ? getDashboardTech() : Promise.resolve([]),
       prospectsEnabled ? getDashboardProspects() : Promise.resolve([]),
+      accountsEnabled ? getAliases() : Promise.resolve([]),
       getDashboardSummaryMetrics(),
     ])
 
@@ -415,6 +436,7 @@ export async function getDashboardData(): Promise<AllDataResult> {
       services,
       tech,
       prospects: visibleProspects,
+      aliases,
       lockedProspectTeasers,
       summary,
       error: null,
@@ -422,7 +444,7 @@ export async function getDashboardData(): Promise<AllDataResult> {
   } catch (error) {
     console.error("Error fetching dashboard data:", error)
     return {
-      accounts: [], centers: [], functions: [], services: [], tech: [], prospects: [], lockedProspectTeasers: [],
+      accounts: [], centers: [], functions: [], services: [], tech: [], prospects: [], aliases: [], lockedProspectTeasers: [],
       summary: {
         totalAccountsCount: 0,
         totalCentersCount: 0,
